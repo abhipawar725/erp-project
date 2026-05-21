@@ -5,6 +5,7 @@ import { Employee } from "./Employee";
 import { Department } from "./Department";
 import { Designation } from "./Designation";
 import { LeaveType } from "./LeaveModels";
+import { Candidate } from "./Candidate";
 
 // ======================================================
 // COMPANY RELATIONS
@@ -30,6 +31,28 @@ Company.hasMany(Employee, {
 Employee.belongsTo(Company, {
   foreignKey: "company_id",
   as: "company",
+});
+
+// Company -> Candidates
+Company.hasMany(Candidate, {
+  foreignKey: "company_id",
+  as: "candidates",
+});
+
+Candidate.belongsTo(Company, {
+  foreignKey: "company_id",
+  as: "company",
+});
+
+// Applied Company -> Candidates
+Company.hasMany(Candidate, {
+  foreignKey: "applied_company_id",
+  as: "appliedCandidates",
+});
+
+Candidate.belongsTo(Company, {
+  foreignKey: "applied_company_id",
+  as: "appliedCompany",
 });
 
 // Company -> Roles
@@ -187,4 +210,5 @@ export {
   Department,
   Designation,
   LeaveType,
+  Candidate,
 };

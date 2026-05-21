@@ -64,7 +64,7 @@ export class DesignationService {
     const designationIds = designations.map((d) => d.id);
     const empCounts = designationIds.length
       ? await Employee.findAll({
-          where: { designation_id: designationIds, status: ['Active', 'On Probation'] },
+          where: { designation_id: designationIds, status: ['Active', 'On_Probation'] },
           attributes: ['designation_id', [fn('COUNT', col('id')), 'count']],
           group: ['designation_id'],
           raw: true,

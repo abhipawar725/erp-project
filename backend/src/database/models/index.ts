@@ -8,6 +8,7 @@ import { Employee } from "./Employee";
 import { Department } from "./Department";
 import { Designation } from "./Designation";
 import { LeaveType } from "./LeaveModels";
+import { Candidate } from "./Candidate";
 
 // init associations ONCE
 import "./Associations";
@@ -21,4 +22,5 @@ export function initModels() {
   Department;
   Designation;
   LeaveType;
+  Candidate;
 }

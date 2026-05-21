@@ -194,7 +194,7 @@ export default function DesignationsPage() {
                               ? <Chip variant="blue">{d.department.name}</Chip>
                               : <span style={{ fontSize: 11, color: 'var(--ink4)', fontStyle: 'italic' }}>Cross-functional</span>}
                           </td>
-                          <td style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: (d.employee_count ?? 0) > 0 ? 'var(--blue)' : 'var(--ink4)', textAlign: 'center' }}>
+                          <td style={{ fontFamily: 'var(--mono)', fontWeight: 500, color: (d.employee_count ?? 0) > 0 ? 'var(--blue)' : 'var(--ink4)', textAlign: 'center' }}>
                             {d.employee_count ?? 0}
                           </td>
                           <td>
@@ -251,7 +251,7 @@ export default function DesignationsPage() {
                     <div style={{ height: 3, background: d.is_active ? 'var(--blue)' : 'var(--border2)' }} />
                     <div className="cp">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', flex: 1, marginRight: 8 }}>{d.name}</div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', flex: 1, marginRight: 8 }}>{d.name}</div>
                         {d.grade && <Chip variant={gradeColor(d.grade) as any}>{d.grade}</Chip>}
                       </div>
                       <div style={{ marginBottom: 12 }}>
@@ -260,7 +260,7 @@ export default function DesignationsPage() {
                           : <span style={{ fontSize: 10, color: 'var(--ink4)', fontStyle: 'italic' }}>Cross-functional</span>}
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink4)' }}>
-                        <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: (d.employee_count ?? 0) > 0 ? 'var(--blue)' : 'var(--ink4)' }}>
+                        <span style={{ fontFamily: 'var(--mono)', fontWeight: 500, color: (d.employee_count ?? 0) > 0 ? 'var(--blue)' : 'var(--ink4)' }}>
                           {d.employee_count ?? 0} employees
                         </span>
                         <Chip variant={d.is_active ? 'green' : 'gray'}>{d.is_active ? 'Active' : 'Inactive'}</Chip>

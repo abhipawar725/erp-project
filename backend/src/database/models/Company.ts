@@ -3,7 +3,7 @@ import { sequelize } from '../../config/database';
 
 // ─── Attributes Interface ─────────────────────────────────────────────────────
 
-interface CompanyAttributes {
+export interface CompanyAttributes {
   id: number;
   name: string;
   code?: string | null;
@@ -23,7 +23,7 @@ interface CompanyAttributes {
 }
 
 // Fields optional on create
-interface CompanyCreationAttributes
+export interface CompanyCreationAttributes
   extends Optional<CompanyAttributes, 'id' | 'country' | 'fiscal_year' | 'is_active'> {}
 
 // ─── Model Class ──────────────────────────────────────────────────────────────
