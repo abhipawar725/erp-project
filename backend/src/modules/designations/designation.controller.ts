@@ -12,6 +12,14 @@ export async function getDesignations(req: Request, res: Response, next: NextFun
   } catch (e) { next(e); }
 }
 
+// GET /api/designations/stats
+export async function getDesignationStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const data = await designationService.getStats(req.user!.companyId);
+    sendResponse(res, { data, message: 'Designation stats' });
+  } catch (e) { next(e); }
+}
+
 // GET /api/designations/:id
 export async function getDesignation(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -38,6 +46,18 @@ export async function updateDesignation(req: Request, res: Response, next: NextF
       req.user!.userId,
     );
     sendResponse(res, { data, message: 'Designation updated' });
+  } catch (e) { next(e); }
+}
+
+// PATCH /api/designations/:id/toggle
+export async function toggleDesignation(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const data = await designationService.toggleActive(
+      parseInt(req.params.id, 10),
+      req.user!.companyId,
+      req.user!.userId,
+    );
+    sendResponse(res, { data, message: `Designation ${data.is_active ? 'activated' : 'deactivated'}` });
   } catch (e) { next(e); }
 }
 
