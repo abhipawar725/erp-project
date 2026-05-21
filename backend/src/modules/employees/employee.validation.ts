@@ -119,7 +119,7 @@ export const createEmployeeValidation: ValidationChain[] = [
 // ─── Query params ─────────────────────────────────────────────────────────────
 export const listEmployeeValidation: ValidationChain[] = [
   query('page').optional().isInt({ min: 1 }),
-  query('limit').optional().isInt({ min: 1, max: 100 }),
+  query('limit').optional().isInt({ min: 1, max: 1000 }),
   query('status').optional().isIn(['Active', 'On_Probation', 'Left', 'Absconding']),
   query('employment_type').optional().isIn(['Full-time', 'Part-time', 'Contract', 'Intern']),
   query('work_location').optional().isIn(['Office', 'WFH', 'Hybrid']),

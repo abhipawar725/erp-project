@@ -32,6 +32,7 @@ export default function DepartmentsPage() {
   const { data: departments = [], isLoading } = useDepartments({
     search: debouncedSearch || undefined,
   });
+  console.log(departments)
   const { data: stats } = useDepartmentStats();
   const { data: empData } = useEmployees({ limit: 200 });
   const employees = empData?.data ?? [];
@@ -90,9 +91,9 @@ export default function DepartmentsPage() {
 
         {/* Stats */}
         <div className="g4 mb14">
-          <StatCard label="Total"        value={stats?.total     ?? '…'} color="var(--blue)"   />
-          <StatCard label="Active"       value={stats?.active    ?? '…'} color="var(--green)"  />
-          <StatCard label="With Head"    value={stats?.withHead  ?? '…'} color="var(--teal)"   />
+          <StatCard label="Total" value={stats?.total     ?? '…'} color="var(--blue)"   />
+          <StatCard label="Active" value={stats?.active    ?? '…'} color="var(--green)"  />
+          <StatCard label="With Head" value={stats?.withHead  ?? '…'} color="var(--teal)"   />
           <StatCard label="Without Head" value={stats?.withoutHead ?? '…'} color="var(--amber)" />
         </div>
 

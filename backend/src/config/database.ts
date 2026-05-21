@@ -26,12 +26,19 @@ export async function connectDatabase(): Promise<void> {
   try {
     await sequelize.authenticate();
     logger.info('Database connection established');
-    // In dev: sync without force (use migrations in prod)
+
     if (env.nodeEnv === 'development') {
-      await sequelize.sync();
+      await sequelize.sync({logging: console.log });
     }
-  } catch (error) {
-    logger.error('Database connection failed:', error);
+
+  } catch (error: any) {
+    logger.error('🔥 DATABASE ERROR FULL:', {
+      message: error.message,
+      name: error.name,
+      original: error.original,
+      sql: error.sql,
+    });
+
     process.exit(1);
   }
 }

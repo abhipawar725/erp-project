@@ -107,6 +107,10 @@ User.belongsTo(Employee, {
 // ======================================================
 // DEPARTMENT <-> EMPLOYEE
 // ======================================================
+Department.belongsTo(Employee, {
+  foreignKey: "head_id",
+  as: "head",
+});
 
 Department.hasMany(Employee, {
   foreignKey: "department_id",
@@ -118,6 +122,15 @@ Employee.belongsTo(Department, {
   as: "department",
 });
 
+Department.belongsTo(Department, {
+  foreignKey: "parent_id",
+  as: "parent",
+});
+
+Department.hasMany(Department, {
+  foreignKey: "parent_id",
+  as: "children",
+});
 // ======================================================
 // DESIGNATION <-> EMPLOYEE
 // ======================================================
