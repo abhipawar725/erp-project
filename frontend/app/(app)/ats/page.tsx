@@ -347,7 +347,7 @@ export default function ATSPage() {
                           {/* Notice */}
                           <td style={{ fontSize: 12, color: 'var(--ink3)' }}>
                             {c.notice_period != null
-                              ? `${c.notice_period} ${c.notice_period_unit || 'Days'}`
+                              ? `${c.notice_period} Days`
                               : <span style={{ color: 'var(--ink4)' }}>—</span>}
                           </td>
                           {/* Source */}

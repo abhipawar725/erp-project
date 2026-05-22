@@ -28,7 +28,7 @@ export async function connectDatabase(): Promise<void> {
     logger.info('Database connection established');
 
     if (env.nodeEnv === 'development') {
-      await sequelize.sync({logging: console.log });
+      await sequelize.sync({ alter: true, logging: console.log });
     }
 
   } catch (error: any) {

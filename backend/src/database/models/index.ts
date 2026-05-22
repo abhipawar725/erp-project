@@ -1,26 +1,33 @@
-import { sequelize } from "../../config/database";
+import { sequelize } from '../../config/database';
 
-// import models ONLY
-import { Company } from "./Company";
-import { User } from "./User";
-import { Role } from "./RoleModels";
-import { Employee } from "./Employee";
-import { Department } from "./Department";
-import { Designation } from "./Designation";
-import { LeaveType } from "./LeaveModels";
-import { Candidate } from "./Candidate";
+import { User } from './User';
+import { Employee } from './Employee';
+import { Department } from './Department';
+import { Designation } from './Designation';
+import { Attendance } from './Attendance';
+import { LeaveType, LeaveRequest } from './LeaveModels';
+import { Candidate } from './Candidate';
+import {
+  AptitudeTest,
+  AptitudeQuestion,
+  CandidateAnswer,
+} from './AptitudeTest';
+import { PayrollRun, Payslip } from './PayrollModels';
+import { Notification } from './Notification';
+import { ActivityLog } from './ActivityLog';
+import { Role, Permission, FieldPermission } from './RoleModels';
 
-// init associations ONCE
-import "./Associations";
+// IMPORTANT
+import './Associations';
 
-export function initModels() {
-  // force model registration order
-  Company;
-  User;
-  Role;
-  Employee;
-  Department;
-  Designation;
-  LeaveType;
-  Candidate;
-}
+export {
+  sequelize,
+
+  User, Employee, Department, Designation,
+  Attendance, LeaveType, LeaveRequest,
+  Candidate,
+  AptitudeTest, AptitudeQuestion, CandidateAnswer,
+  PayrollRun, Payslip,
+  Notification, ActivityLog,
+  Role, Permission, FieldPermission,
+};

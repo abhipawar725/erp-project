@@ -1,214 +1,76 @@
-import { Company } from "./Company";
-import { User } from "./User";
-import { Role } from "./RoleModels";
-import { Employee } from "./Employee";
-import { Department } from "./Department";
-import { Designation } from "./Designation";
-import { LeaveType } from "./LeaveModels";
-import { Candidate } from "./Candidate";
+import { User }            from './User';
+import { Employee }        from './Employee';
+import { Department }      from './Department';
+import { Designation }     from './Designation';
+import { Attendance }      from './Attendance';
+import { LeaveType, LeaveRequest } from './LeaveModels';
+import { Candidate }       from './Candidate';
+import { AptitudeTest, AptitudeQuestion, CandidateAnswer } from './AptitudeTest';
+import { PayrollRun, Payslip } from './PayrollModels';
+import { Notification }    from './Notification';
+import { ActivityLog }     from './ActivityLog';
+import { Role, Permission, FieldPermission } from './RoleModels';
 
-// ======================================================
-// COMPANY RELATIONS
-// ======================================================
+// ─── User ↔ Role ──────────────────────────────────────────────────────────────
+User.belongsTo(Role, { foreignKey: 'role_id', as: 'role' });
+Role.hasMany(User,   { foreignKey: 'role_id', as: 'users' });
 
-// Company -> Users
-Company.hasMany(User, {
-  foreignKey: "company_id",
-  as: "users",
-});
+// ─── User ↔ Employee ──────────────────────────────────────────────────────────
+User.belongsTo(Employee, { foreignKey: 'employee_id', as: 'employee' });
+Employee.hasOne(User,    { foreignKey: 'employee_id', as: 'user' });
 
-User.belongsTo(Company, {
-  foreignKey: "company_id",
-  as: "company",
-});
+// ─── Employee ↔ Department ────────────────────────────────────────────────────
+Employee.belongsTo(Department, { foreignKey: 'department_id', as: 'department' });
+Department.hasMany(Employee,   { foreignKey: 'department_id', as: 'employees' });
 
-// Company -> Employees
-Company.hasMany(Employee, {
-  foreignKey: "company_id",
-  as: "employees",
-});
+// ─── Department ↔ Head / Parent / Children ────────────────────────────────────
+Department.belongsTo(Employee,   { foreignKey: 'head_id',    as: 'head'     });
+Department.belongsTo(Department, { foreignKey: 'parent_id',  as: 'parent'   });
+Department.hasMany(Department,   { foreignKey: 'parent_id',  as: 'children' });
 
-Employee.belongsTo(Company, {
-  foreignKey: "company_id",
-  as: "company",
-});
+// ─── Employee ↔ Designation ───────────────────────────────────────────────────
+Employee.belongsTo(Designation, { foreignKey: 'designation_id', as: 'designation' });
+Designation.hasMany(Employee,   { foreignKey: 'designation_id', as: 'employees'   });
+Designation.belongsTo(Department, { foreignKey: 'department_id', as: 'department'  });
+Department.hasMany(Designation,   { foreignKey: 'department_id', as: 'designations' });
 
-// Company -> Candidates
-Company.hasMany(Candidate, {
-  foreignKey: "company_id",
-  as: "candidates",
-});
+// ─── Employee ↔ Manager ───────────────────────────────────────────────────────
+Employee.belongsTo(Employee, { foreignKey: 'reporting_manager_id', as: 'manager'  });
+Employee.hasMany(Employee,   { foreignKey: 'reporting_manager_id', as: 'reportees' });
 
-Candidate.belongsTo(Company, {
-  foreignKey: "company_id",
-  as: "company",
-});
+// ─── Employee ↔ Attendance ────────────────────────────────────────────────────
+Employee.hasMany(Attendance,   { foreignKey: 'employee_id', as: 'attendance' });
+Attendance.belongsTo(Employee, { foreignKey: 'employee_id', as: 'employee'   });
 
-// Applied Company -> Candidates
-Company.hasMany(Candidate, {
-  foreignKey: "applied_company_id",
-  as: "appliedCandidates",
-});
+// ─── Employee ↔ LeaveRequest ──────────────────────────────────────────────────
+Employee.hasMany(LeaveRequest,    { foreignKey: 'employee_id',   as: 'leaveRequests' });
+LeaveRequest.belongsTo(Employee,  { foreignKey: 'employee_id',   as: 'employee'      });
+LeaveRequest.belongsTo(LeaveType, { foreignKey: 'leave_type_id', as: 'leaveType'     });
+LeaveType.hasMany(LeaveRequest,   { foreignKey: 'leave_type_id', as: 'requests'      });
 
-Candidate.belongsTo(Company, {
-  foreignKey: "applied_company_id",
-  as: "appliedCompany",
-});
+// ─── PayrollRun ↔ Payslip ─────────────────────────────────────────────────────
+PayrollRun.hasMany(Payslip,   { foreignKey: 'payroll_run_id', as: 'payslips'   });
+Payslip.belongsTo(PayrollRun, { foreignKey: 'payroll_run_id', as: 'payrollRun' });
+Employee.hasMany(Payslip,     { foreignKey: 'employee_id',    as: 'payslips'   });
+Payslip.belongsTo(Employee,   { foreignKey: 'employee_id',    as: 'employee'   });
 
-// Company -> Roles
-Company.hasMany(Role, {
-  foreignKey: "company_id",
-  as: "roles",
-});
+// ─── Role ↔ Permissions ───────────────────────────────────────────────────────
+Role.belongsToMany(Permission, { through: 'role_permissions', foreignKey: 'role_id',       otherKey: 'permission_id', as: 'permissions'      });
+Permission.belongsToMany(Role, { through: 'role_permissions', foreignKey: 'permission_id', otherKey: 'role_id',       as: 'roles'            });
+Role.hasMany(FieldPermission,  { foreignKey: 'role_id', as: 'fieldPermissions' });
+FieldPermission.belongsTo(Role,{ foreignKey: 'role_id', as: 'role'             });
 
-Role.belongsTo(Company, {
-  foreignKey: "company_id",
-  as: "company",
-});
-
-// Company -> Departments
-Company.hasMany(Department, {
-  foreignKey: "company_id",
-  as: "departments",
-});
-
-Department.belongsTo(Company, {
-  foreignKey: "company_id",
-  as: "company",
-});
-
-// Company -> Designations
-Company.hasMany(Designation, {
-  foreignKey: "company_id",
-  as: "designations",
-});
-
-Designation.belongsTo(Company, {
-  foreignKey: "company_id",
-  as: "company",
-});
-
-// Company -> Leave Types
-Company.hasMany(LeaveType, {
-  foreignKey: "company_id",
-  as: "leaveTypes",
-});
-
-LeaveType.belongsTo(Company, {
-  foreignKey: "company_id",
-  as: "company",
-});
-
-// ======================================================
-// ROLE <-> USER
-// ======================================================
-
-Role.hasMany(User, {
-  foreignKey: "role_id",
-  as: "users",
-});
-
-User.belongsTo(Role, {
-  foreignKey: "role_id",
-  as: "role",
-});
-
-// ======================================================
-// EMPLOYEE <-> USER
-// ======================================================
-
-Employee.hasOne(User, {
-  foreignKey: "employee_id",
-  as: "user",
-});
-
-User.belongsTo(Employee, {
-  foreignKey: "employee_id",
-  as: "employee",
-});
-
-// ======================================================
-// DEPARTMENT <-> EMPLOYEE
-// ======================================================
-Department.belongsTo(Employee, {
-  foreignKey: "head_id",
-  as: "head",
-});
-
-Department.hasMany(Employee, {
-  foreignKey: "department_id",
-  as: "employees",
-});
-
-Employee.belongsTo(Department, {
-  foreignKey: "department_id",
-  as: "department",
-});
-
-Department.belongsTo(Department, {
-  foreignKey: "parent_id",
-  as: "parent",
-});
-
-Department.hasMany(Department, {
-  foreignKey: "parent_id",
-  as: "children",
-});
-// ======================================================
-// DESIGNATION <-> EMPLOYEE
-// ======================================================
-
-Designation.hasMany(Employee, {
-  foreignKey: "designation_id",
-  as: "employees",
-});
-
-Employee.belongsTo(Designation, {
-  foreignKey: "designation_id",
-  as: "designation",
-});
-
-// ======================================================
-// DEPARTMENT <-> DESIGNATION
-// ======================================================
-
-Department.hasMany(Designation, {
-  foreignKey: "department_id",
-  as: "designations",
-});
-
-Designation.belongsTo(Department, {
-  foreignKey: "department_id",
-  as: "department",
-});
-
-// ======================================================
-// EMPLOYEE SELF RELATION (MANAGER)
-// ======================================================
-
-// Manager -> Team Members
-Employee.hasMany(Employee, {
-  foreignKey: "reporting_manager_id",
-  as: "subordinates",
-});
-
-// Employee -> Manager
-Employee.belongsTo(Employee, {
-  foreignKey: "reporting_manager_id",
-  as: "manager",
-});
-
-// ======================================================
-// EXPORT
-// ======================================================
+// ─── AptitudeTest ↔ AptitudeQuestion (already done inside model file) ─────────
+// Candidate ↔ CandidateAnswer ──────────────────────────────────────────────────
+Candidate.hasMany(CandidateAnswer,   { foreignKey: 'candidate_id', as: 'aptitudeAnswers' });
+CandidateAnswer.belongsTo(Candidate, { foreignKey: 'candidate_id', as: 'candidate'       });
 
 export {
-  Company,
-  User,
-  Role,
-  Employee,
-  Department,
-  Designation,
-  LeaveType,
+  User, Employee, Department, Designation,
+  Attendance, LeaveType, LeaveRequest,
   Candidate,
+  AptitudeTest, AptitudeQuestion, CandidateAnswer,
+  PayrollRun, Payslip,
+  Notification, ActivityLog,
+  Role, Permission, FieldPermission,
 };

@@ -1,6 +1,6 @@
-import apiClient from './client';
+import apiClient from '../../services/api/client';
 import type { ApiResponse } from '../../types/api.types';
-import type { Candidate, CandidateStats, CreateCandidateDto, UpdateCandidateDto, CandidateQueryParams, BulkUploadResult, CandidateStatus } from '../../features/candidates/types/candidate.types';
+import type { Candidate, CandidateStats, CreateCandidateDto, UpdateCandidateDto, CandidateQueryParams, BulkUploadResult, CandidateStatus } from './types/candidate.types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 

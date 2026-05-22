@@ -23,38 +23,39 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Overview',
     items: [{ id: 'dashboard', label: 'Dashboard', icon: '⬡', href: '/dashboard' }],
   },
-  // {
-  //   label: 'Talent Acquisition',
-  //   items: [
-  //     { id: 'ats', label: 'Sourcing (ATS)', icon: '⇧', href: '/ats', count: 48 },
-  //     { id: 'pipeline', label: 'Pipeline / Kanban', icon: '▤', href: '/pipeline', count: 23 },
-  //     { id: 'interviews', label: 'Interviews', icon: '📅', href: '/interviews', count: 7 },
-  //     { id: 'evaluation', label: 'Evaluation Forms', icon: '★', href: '/evaluation' },
-  //     { id: 'pool', label: 'Candidate Pool', icon: '◙', href: '/pool' },
-  //   ],
-  // },
-  // {
-  //   label: 'Offer & Onboarding',
-  //   items: [
-  //     { id: 'offers', label: 'Offer Management', icon: '◎', href: '/offers', count: 5 },
-  //     { id: 'prejoin', label: 'Pre-Joining Portal', icon: '⬢', href: '/prejoin', count: 3 },
-  //     { id: 'onboarding', label: 'Onboarding', icon: '▶', href: '/onboarding' },
-  //   ],
-  // },
-  // {
-  //   label: 'Lifecycle',
-  //   items: [{ id: 'exit', label: 'Exit & FNF', icon: '↗', href: '/exit', count: 2 }],
-  // },
-  // {
-  //   label: 'Operations',
-  //   items: [
-  //     { id: 'payroll', label: 'Payroll', icon: '₹', href: '/payroll' },
-  //     { id: 'attendance', label: 'Attendance', icon: '◔', href: '/attendance' },
-  //     { id: 'leaves', label: 'Leave Management', icon: '◑', href: '/leaves', count: 9 },
-  //     { id: 'assets', label: 'Assets', icon: '☇', href: '/assets' },
-  //     { id: 'emails', label: 'Template Management', icon: '📄', href: '/emails' },
-  //   ],
-  // },
+  {
+    label: 'Talent Acquisition',
+    items: [
+      { id: 'ats', label: 'Sourcing (ATS)', icon: '⇧', href: '/ats' },
+      { id: 'ats-tests', label: 'Aptitude Tests', icon: '🧠', href: '/ats-tests' },
+      { id: 'pipeline', label: 'Pipeline / Kanban', icon: '▤', href: '/pipeline', count: 23 },
+      { id: 'interviews', label: 'Interviews', icon: '📅', href: '/interviews', count: 7 },
+      { id: 'evaluation', label: 'Evaluation Forms', icon: '★', href: '/evaluation' },
+      { id: 'pool', label: 'Candidate Pool', icon: '◙', href: '/pool' },
+    ],
+  },
+  {
+    label: 'Offer & Onboarding',
+    items: [
+      { id: 'offers', label: 'Offer Management', icon: '◎', href: '/offers', count: 5 },
+      { id: 'prejoin', label: 'Pre-Joining Portal', icon: '⬢', href: '/prejoin', count: 3 },
+      { id: 'onboarding', label: 'Onboarding', icon: '▶', href: '/onboarding' },
+    ],
+  },
+  {
+    label: 'Lifecycle',
+    items: [{ id: 'exit', label: 'Exit & FNF', icon: '↗', href: '/exit', count: 2 }],
+  },
+  {
+    label: 'Operations',
+    items: [
+      { id: 'payroll', label: 'Payroll', icon: '₹', href: '/payroll' },
+      { id: 'attendance', label: 'Attendance', icon: '◔', href: '/attendance' },
+      { id: 'leaves', label: 'Leave Management', icon: '◑', href: '/leaves', count: 9 },
+      { id: 'assets', label: 'Assets', icon: '☇', href: '/assets' },
+      { id: 'emails', label: 'Template Management', icon: '📄', href: '/emails' },
+    ],
+  },
   {
     label: 'People & Performance',
     items: [
@@ -141,9 +142,7 @@ export function Sidebar() {
                 <div
                   key={item.id}
                   className={`ni${isActive ? ' on' : ''}`}
-                  onClick={() => {
-                    router.push(item.href);
-                  }}
+                  onClick={() => router.push(item.href)}
                   title={collapsed ? item.label : undefined}
                 >
                   <span className="ni-ic">{item.icon}</span>

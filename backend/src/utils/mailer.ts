@@ -628,4 +628,122 @@ export const mailer = {
         ${ctaLabel && ctaUrl ? btn(ctaUrl, ctaLabel) : ''}
       `, subject),
     }),
+  /**
+   * Magic login link for candidate portal.
+   */
+  sendPortalMagicLink: (to: string, candidateName: string, magicUrl: string) =>
+    sendMail({
+      to,
+      subject: 'Your NexHR Candidate Portal Login Link',
+      html: emailShell(`
+        <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f1623;">Login to your Candidate Portal</h2>
+        <p style="font-size:13px;color:#64748b;margin:0 0 20px;line-height:1.6;">
+          Hi ${candidateName},<br/>
+          Click the button below to securely log in to your candidate portal.
+          This link is valid for <strong>15 minutes</strong> and can only be used once.
+        </p>
+        ${btn(magicUrl, 'Access My Portal →')}
+        ${divider}
+        <p style="font-size:11px;color:#94a3b8;">
+          If you did not request this link, you can safely ignore this email.
+        </p>
+      `, 'One-click login to your candidate portal'),
+    }),
+
+  /**
+   * Notify candidate of interview reschedule decision by HR.
+   */
+  sendRescheduleDecision: (
+    to: string,
+    candidateName: string,
+    decision: 'Approved' | 'Rejected',
+    newDate?: string,
+    newTime?: string,
+  ) =>
+    sendMail({
+      to,
+      subject: `Interview reschedule ${decision.toLowerCase()} — NexHR`,
+      html: emailShell(`
+        <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:${decision === 'Approved' ? '#0d9669' : '#cc2a2a'};">
+          Reschedule ${decision} ${decision === 'Approved' ? '✓' : '✗'}
+        </h2>
+        <p style="font-size:13px;color:#64748b;margin:0 0 20px;line-height:1.6;">
+          Dear ${candidateName},<br/>
+          Your reschedule request has been <strong>${decision.toLowerCase()}</strong>.
+        </p>
+        ${decision === 'Approved' && newDate && newTime ? `
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;border-radius:8px;padding:16px;margin-bottom:20px;">
+          <tbody>
+            ${kvRow('New interview date', newDate)}
+            ${kvRow('New interview time', newTime)}
+          </tbody>
+        </table>
+        ` : ''}
+        ${decision === 'Rejected' ? infoBox('Your reschedule request was not approved. Please contact HR if you need assistance.', 'amber') : ''}
+        ${btn('${frontendUrl}/portal/dashboard', 'View Portal')}
+      `, `Interview reschedule ${decision.toLowerCase()}`),
+    }),
+
+  /**
+   * Notify HR that a candidate has requested a reschedule.
+   */
+  sendRescheduleRequestToHR: (
+    to: string | string[],
+    candidateName: string,
+    reason: string,
+    proposedDate?: string,
+    proposedTime?: string,
+  ) =>
+    sendMail({
+      to,
+      subject: `Reschedule request from ${candidateName}`,
+      html: emailShell(`
+        <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f1623;">Interview Reschedule Request</h2>
+        <p style="font-size:13px;color:#64748b;margin:0 0 20px;line-height:1.6;">
+          <strong>${candidateName}</strong> has requested to reschedule their interview.
+        </p>
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;border-radius:8px;padding:16px;margin-bottom:20px;">
+          <tbody>
+            ${kvRow('Candidate',       candidateName)}
+            ${kvRow('Reason',          reason)}
+            ${proposedDate ? kvRow('Proposed date', proposedDate) : ''}
+            ${proposedTime ? kvRow('Proposed time', proposedTime) : ''}
+          </tbody>
+        </table>
+        ${btn('${frontendUrl}/ats', 'Review in ATS', '#c96f00')}
+      `, `${candidateName} requested a reschedule`),
+    }),
+
+  /**
+   * Notify candidate that their aptitude test has been assigned.
+   */
+  sendAptitudeTestInvite: (
+    to: string,
+    candidateName: string,
+    testTitle: string,
+    durationMins: number,
+    portalUrl: string,
+  ) =>
+    sendMail({
+      to,
+      subject: `You have been assigned an aptitude test — NexHR`,
+      html: emailShell(`
+        <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f1623;">Aptitude Test Assigned 🧠</h2>
+        <p style="font-size:13px;color:#64748b;margin:0 0 20px;line-height:1.6;">
+          Dear ${candidateName},<br/>
+          As part of your application process, you have been assigned an aptitude test.
+          Please complete it at your earliest convenience.
+        </p>
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;border-radius:8px;padding:16px;margin-bottom:20px;">
+          <tbody>
+            ${kvRow('Test', testTitle)}
+            ${kvRow('Duration', `${durationMins} minutes`)}
+            ${kvRow('Results', 'Will be shared by HR')}
+          </tbody>
+        </table>
+        ${infoBox('Ensure a stable internet connection before starting. The timer starts immediately once you begin.', 'amber')}
+        ${btn(portalUrl, 'Start Test →')}
+      `, `Complete your aptitude test`),
+    }),
+
 };

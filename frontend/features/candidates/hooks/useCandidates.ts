@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { candidateService } from '../../../services/api/candidate.service';
+import { candidateService } from '../candidate.service';
 import { showToast }        from '../../../utils/toast';
 import type {
   CreateCandidateDto, UpdateCandidateDto,

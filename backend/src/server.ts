@@ -5,7 +5,7 @@ import { logger } from "./config/logger";
 import { env } from "./config/env";
 
 // Load models BEFORE DB connection
-import "./database/models";
+import "./database/models/Associations";
 
 async function bootstrap() {
   try {
