@@ -11,11 +11,12 @@ import { CandidateFormModal }   from '../../../../features/candidates/components
 import { StatusMoveModal }      from '../../../../features/candidates/components/StatusMoveModal';
 import { InterviewSchedulerModal } from '../../../../features/candidates/components/InterviewSchedulerModal';
 import { useCandidate, useDeleteCandidate, useUploadResume } from '../../../../features/candidates/hooks/useCandidates';
-import { candidateService }     from '../../../../features/candidates/candidate.service';
+import { candidateService }     from '../../../../services/api/candidate.service';
 import { usePermission }        from '../../../../features/auth/hooks/usePermission';
 import { STATUS_COLORS, STATUS_LABEL, SOURCE_EMOJI, type CandidateStatus } from '../../../../features/candidates/types/candidate.types';
 import { showToast }            from '../../../../utils/toast';
 import { formatDate }           from '../../../../utils/formatters';
+import useCandidatePassword from '@/hooks/useCandidatePassword';
 
 export default function CandidateDetailPage() {
   const params   = useParams();
@@ -37,7 +38,7 @@ export default function CandidateDetailPage() {
   const resumeMutation = useUploadResume(id);
 
   const grantPortalMutation = useMutation({
-    mutationFn: () => candidateService.grantPortalAccess(id),
+    mutationFn: ({password} : {password: string}) => candidateService.grantPortalAccess(id, password),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['candidates', id] }); showToast('✓ Portal access granted'); },
     onError: (err: any) => showToast(err?.message || 'Failed'),
   });
@@ -277,7 +278,7 @@ export default function CandidateDetailPage() {
               <InfoRow label="Portal access" value={<Chip variant={c.is_portal_user ? 'green' : 'gray'}>{c.is_portal_user ? '✓ Active' : 'Not granted'}</Chip>} />
               {c.portal_last_login && <InfoRow label="Last login" value={formatDate(c.portal_last_login)} />}
               {canManage && !c.is_portal_user && (
-                <button className="btn btn-sec btn-sm" style={{ marginTop: 10 }} onClick={() => grantPortalMutation.mutate()} disabled={grantPortalMutation.isPending}>
+                <button className="btn btn-sec btn-sm" style={{ marginTop: 10 }} onClick={() => grantPortalMutation.mutate({password: useCandidatePassword(c.candidate_name, c.id)})} disabled={grantPortalMutation.isPending}>
                   {grantPortalMutation.isPending ? 'Granting…' : '🌐 Grant Portal Access'}
                 </button>
               )}

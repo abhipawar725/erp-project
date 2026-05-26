@@ -18,6 +18,7 @@ import {
   ALL_STATUSES, ALL_SOURCES, STATUS_COLORS, SOURCE_EMOJI, PIPELINE_STAGES,
 } from '../../../features/candidates/types/candidate.types';
 import { formatDate }          from '../../../utils/formatters';
+import { useCandidateStatus } from '@/hooks/useCandidateStatus';
 
 export default function ATSPage() {
   const dispatch = useAppDispatch();
@@ -50,6 +51,8 @@ export default function ATSPage() {
   const { data: stats } = useCandidateStats();
   const candidates = data?.data ?? [];
   const meta       = data?.meta;
+
+  console.log("stats", stats)
 
   useEffect(() => {
     dispatch(setPageTitle({ title: 'Candidate Sourcing', breadcrumb: 'Recruitment' }));
@@ -198,25 +201,28 @@ export default function ATSPage() {
         {stats?.pipeline && (
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 4 }}>
             {stats.pipeline.map(({ status, count }) => {
-              const c = STATUS_COLORS[status as keyof typeof STATUS_COLORS];
-              if (!c) return null;
+              const {normalizedStatus, colors, label} = useCandidateStatus(status);
+              console.log("normalizedStatus",normalizedStatus)
+              console.log("colors",colors)
+              console.log("label", label)
+              if (!colors) return null;
               return (
                 <button
                   key={status}
                   type="button"
-                  onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
+                  onClick={() => setStatusFilter(statusFilter === normalizedStatus ? '' : normalizedStatus)}
                   style={{
                     display:      'flex', flexDirection: 'column', alignItems: 'center',
-                    padding:      '8px 14px', border: `1px solid ${statusFilter === status ? c.text : c.border}`,
-                    borderRadius: 'var(--r)', background: statusFilter === status ? c.text : c.bg,
+                    padding:      '8px 14px', border: `1px solid ${statusFilter === normalizedStatus ? colors.text : colors.border}`,
+                    borderRadius: 'var(--r)', background: statusFilter === normalizedStatus ? colors.text : colors.bg,
                     cursor:       'pointer', flexShrink: 0, minWidth: 80, fontFamily: 'var(--font)',
                   }}
                 >
-                  <span style={{ fontSize: 16, fontFamily: 'var(--mono)', fontWeight: 700, color: statusFilter === status ? '#fff' : c.text }}>
+                  <span style={{ fontSize: 16, fontFamily: 'var(--mono)', fontWeight: 700, color: statusFilter === normalizedStatus ? '#fff' : colors.text }}>
                     {count}
                   </span>
-                  <span style={{ fontSize: 9, color: statusFilter === status ? 'rgba(255,255,255,.85)' : c.text, fontWeight: 600, marginTop: 2, whiteSpace: 'nowrap' }}>
-                    {status}
+                  <span style={{ fontSize: 9, color: statusFilter === normalizedStatus ? 'rgba(255,255,255,.85)' : colors.text, fontWeight: 600, marginTop: 2, whiteSpace: 'nowrap' }}>
+                    {label}
                   </span>
                 </button>
               );
@@ -309,7 +315,7 @@ export default function ATSPage() {
                         </tr>
                       )
                     : candidates.map((c) => (
-                        <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => router.push(`/ats/${c.id}`)}>
+                        <tr key={c.id} style={{ cursor: 'pointer' }}>
                           {/* Name + company */}
                           <td>
                             <div style={{ fontWeight: 700, color: 'var(--ink)' }}>{c.candidate_name}</div>
@@ -362,6 +368,7 @@ export default function ATSPage() {
                           {canManage && (
                             <td onClick={(e) => e.stopPropagation()}>
                               <div style={{ display: 'flex', gap: 4 }}>
+                                <Chip variant='blue' onClick={() => router.push(`/ats/${c.id}`)}>View</Chip>
                                 <Chip variant="gray"   onClick={() => openEdit(c)}>Edit</Chip>
                                 <Chip variant="purple" onClick={() => setMoveTarget(c)}>Move</Chip>
                                 <Chip variant="red"    onClick={() => setDeleteTarget(c)}>Delete</Chip>

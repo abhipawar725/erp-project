@@ -32,7 +32,6 @@ export interface CandidateAttributes {
   location?:                string | null;
   total_experience?:        number | null;
   relevant_experience?:     number | null;
-  skills?:                  string[] | null;
 
   // ── Compensation ──────────────────────────────────────────────────────────
   current_salary?:          number | null;
@@ -121,7 +120,6 @@ export class Candidate
   public location!:                 string | null;
   public total_experience!:         number | null;
   public relevant_experience!:      number | null;
-  public skills!:                   string[] | null;
   public current_salary!:           number | null;
   public expected_salary!:          number | null;
   public notice_period!:            number | null;
@@ -184,8 +182,7 @@ Candidate.init(
     location:                 { type: DataTypes.STRING(200), allowNull: true },
     total_experience:         { type: DataTypes.DECIMAL(5,1), allowNull: true },
     relevant_experience:      { type: DataTypes.DECIMAL(5,1), allowNull: true },
-    skills:                   { type: DataTypes.JSON, allowNull: true },
-
+    
     current_salary:           { type: DataTypes.DECIMAL(12,2), allowNull: true },
     expected_salary:          { type: DataTypes.DECIMAL(12,2), allowNull: true },
 

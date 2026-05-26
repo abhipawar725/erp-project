@@ -27,7 +27,6 @@ export const createCandidateValidation: ValidationChain[] = [
   body('own_vehicle').optional().isBoolean(),
   body('expected_joining_date').optional({ nullable: true }).isISO8601(),
   body('source').optional({ nullable: true }).isIn(SOURCES),
-  body('skills').optional({ nullable: true }).isArray(),
 ];
 
 export const updateCandidateValidation: ValidationChain[] = [

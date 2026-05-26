@@ -109,6 +109,7 @@ export async function handleReschedule(req: Request, res: Response, next: NextFu
 export async function grantPortalAccess(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { password } = req.body;
+    console.log("password", password)
     const { hashPassword } = await import('../../utils/hash');
     const hash = await hashPassword(password || crypto.randomUUID().slice(0, 12));
     const candidate = await (await import('../../database/models/Candidate')).Candidate.findOne({
