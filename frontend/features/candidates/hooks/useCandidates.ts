@@ -206,6 +206,20 @@ export function useWithdrawCandidate(id: number) {
   });
 }
 
+
+// ─── Send aptitude test link ─────────────────────────────────────────────────
+export function useSendAptitudeTestLink(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (testId: number) => candidateService.sendAptitudeTestLink(id, testId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEYS.detail(id) });
+      showToast('✓ Aptitude test link sent to candidate');
+    },
+    onError: (err: any) => showToast(err?.message || 'Failed to send aptitude test'),
+  });
+}
+
 // ─── Send pre-interview form ──────────────────────────────────────────────────
 export function useSendPreInterviewForm(id: number) {
   const qc = useQueryClient();

@@ -571,6 +571,15 @@ export async function portalGetCompanyInfo(req: Request, res: Response, next: Ne
   } catch (e) { next(e); }
 }
 
+export async function portalSavePreJoining(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { candidateId, companyId } = (req as any).portalCandidate;
+    const isDraft = req.body.is_draft !== false;
+    const data = await candidateService.savePreJoiningForm(candidateId, companyId, req.body.form_data, isDraft);
+    sendResponse(res, { data, message: isDraft ? 'Draft saved' : 'Pre-joining form submitted successfully' });
+  } catch (e) { next(e); }
+}
+
 export async function portalSavePrejoin(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { candidateId, companyId } = (req as any).portalCandidate;

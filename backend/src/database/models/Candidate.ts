@@ -103,10 +103,15 @@ export interface CandidateAttributes {
   is_portal_user?:          boolean;
   portal_last_login?:       Date | null;
 
+// ── Pre-interview form ──────────────────────────────────────────────────────
+  preinterview_form_data?:        Record<string, unknown> | null;
+  preinterview_form_status?:     'Not_Started' | 'Draft' | 'Submitted' | null;
+  preinterview_submitted_at?:    Date | null;
+
   // ── Pre-joining form ──────────────────────────────────────────────────────
-  prejoin_form_data?:       Record<string, unknown> | null;
-  prejoin_form_status?:     'Not_Started' | 'Draft' | 'Submitted' | null;
-  prejoin_submitted_at?:    Date | null;
+  prejoining_form_data?:     Record<string, unknown> | null;
+  prejoining_form_status?:   'Not_Started' | 'Draft' | 'Submitted' | null;
+  prejoining_submitted_at?:  Date | null;
 
   // ── Sent tracking ─────────────────────────────────────────────────────────
   aptitude_test_sent?:         boolean;      // HR clicked "Send Aptitude Test"
@@ -200,9 +205,12 @@ export class Candidate
   public portal_token_expires!:     Date | null;
   public is_portal_user!:           boolean;
   public portal_last_login!:        Date | null;
-  public prejoin_form_data!:        Record<string, unknown> | null;
-  public prejoin_form_status!:      'Not_Started' | 'Draft' | 'Submitted' | null;
-  public prejoin_submitted_at!:     Date | null;
+  public prejoining_form_data!:     Record<string, unknown> | null;
+  public prejoining_form_status!:   'Not_Started' | 'Draft' | 'Submitted' | null;
+  public prejoining_submitted_at!:  Date | null;
+  public preinterview_form_data!:        Record<string, unknown> | null;
+  public preinterview_form_status!:      'Not_Started' | 'Draft' | 'Submitted' | null;
+  public preinterview_submitted_at!:     Date | null;
   public aptitude_test_sent!:          boolean;
   public aptitude_test_sent_at!:       Date | null;
   public pre_interview_form_sent!:     boolean;
@@ -308,13 +316,16 @@ Candidate.init(
     portal_last_login:        { type: DataTypes.DATE, allowNull: true },
 
     // ── Pre-join ───────────────────────────────────────────────────────────
-  prejoin_form_data:        { type: DataTypes.JSON, allowNull: true },
-    prejoin_form_status: {
+    prejoining_form_data:     { type: DataTypes.JSON, allowNull: true },
+    prejoining_form_status:   { type: DataTypes.ENUM('Not_Started','Draft','Submitted'), allowNull: true, defaultValue: 'Not_Started' },
+    prejoining_submitted_at:  { type: DataTypes.DATE, allowNull: true },
+    preinterview_form_data:        { type: DataTypes.JSON, allowNull: true },
+    preinterview_form_status: {
       type: DataTypes.ENUM('Not_Started','Draft','Submitted'),
       allowNull: true,
       defaultValue: 'Not_Started',
     },
-    prejoin_submitted_at:     { type: DataTypes.DATE, allowNull: true },
+    preinterview_submitted_at:     { type: DataTypes.DATE, allowNull: true },
 
     aptitude_test_sent:          { type: DataTypes.BOOLEAN, defaultValue: false },
     aptitude_test_sent_at:       { type: DataTypes.DATE, allowNull: true },

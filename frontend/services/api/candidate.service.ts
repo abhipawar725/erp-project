@@ -1,5 +1,5 @@
-import apiClient   from './client';
-import axios       from 'axios';
+import apiClient from './client';
+import axios from 'axios';
 import type { ApiResponse } from '../../types/api.types';
 import type {
   Candidate, CandidateStats, CreateCandidateDto,
@@ -28,10 +28,10 @@ export const candidateService = {
     apiClient.patch<unknown, ApiResponse<Candidate>>(`/candidates/${id}/status`, { status, remarks }),
 
   scheduleInterview: (id: number, data: {
-    interview_date:          string;
-    interview_time:          string;
-    interview_type:          string;
-    interview_link?:         string;
+    interview_date: string;
+    interview_time: string;
+    interview_type: string;
+    interview_link?: string;
     interview_instructions?: string;
   }) => apiClient.patch<unknown, ApiResponse<Candidate>>(`/candidates/${id}/interview`, data),
 
@@ -54,13 +54,13 @@ export const candidateService = {
 
 
   submitInterviewResult: (id: number, data: {
-    interview_result_by:        number;
-    interview_result_mode:      'Online' | 'Offline';
-    interview_result_date:      string;
+    interview_result_by: number;
+    interview_result_mode: 'Online' | 'Offline';
+    interview_result_date: string;
     interview_result_feedback?: string;
-    candidate_decision:         'Select' | 'Reject' | 'On_Hold';
-    decision_reason?:           string;
-    decision_joining_date?:     string;
+    candidate_decision: 'Select' | 'Reject' | 'On_Hold';
+    decision_reason?: string;
+    decision_joining_date?: string;
   }) => apiClient.patch<unknown, ApiResponse<Candidate>>(`/candidates/${id}/interview-result`, data),
 
 
@@ -81,6 +81,9 @@ export const candidateService = {
 
   withdrawCandidate: (id: number, reason: string) =>
     apiClient.patch<unknown, ApiResponse<Candidate>>(`/candidates/${id}/withdraw`, { reason }),
+
+  sendAptitudeTestLink: (id: number, testId: number) =>
+    apiClient.post<unknown, ApiResponse<{ sent: boolean; testUrl: string }>>(`/candidates/${id}/send-aptitude-test`, { test_id: testId }),
 
   sendPreInterviewForm: (id: number) =>
     apiClient.post<unknown, ApiResponse<{ sent: boolean }>>(`/candidates/${id}/send-pre-interview`),
@@ -137,6 +140,11 @@ export const portalService = {
       { token, company_id: company_id || 1 },
     ),
 
+  getCompanyInfo: () =>
+    portalClient.get<unknown, ApiResponse<{ name: string; logo_url: string | null; address: string | null }>>(
+      '/candidates/portal/company-info',
+    ),
+ 
   getProfile: () =>
     portalClient.get<unknown, ApiResponse<Candidate>>('/candidates/portal/profile'),
 
@@ -150,6 +158,12 @@ export const portalService = {
     portalClient.post<unknown, ApiResponse<Candidate>>(
       '/candidates/portal/reschedule',
       { reason, proposed_date, proposed_time },
+    ),
+
+  savePreJoining: (form_data: Record<string, unknown>, is_draft: boolean) =>
+    portalClient.post<unknown, ApiResponse<any>>(
+      '/candidates/portal/prejoining',
+      { form_data, is_draft },
     ),
 
   savePrejoin: (form_data: Record<string, unknown>, is_draft: boolean) =>

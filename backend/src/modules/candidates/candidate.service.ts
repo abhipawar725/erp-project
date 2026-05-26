@@ -137,7 +137,7 @@ export class CandidateService {
       remarks:                  dto.remarks?.trim()           || null,
       job_id:                   dto.job_id                ?? null,
       status:                   'Applied',
-      prejoin_form_status:      'Not_Started',
+      preinterview_form_status:      'Not_Started',
       created_by:               createdBy                 ?? null,
     });
 
@@ -644,6 +644,19 @@ export class CandidateService {
 
     await logActivity({ companyId, userId: sentBy, action: 'PRE_INTERVIEW_FORM_SENT', module: 'candidates', entityId: id });
     return { sent: true };
+  }
+
+  // ─── Save pre-joining form (separate from pre-interview) ─────────────────
+  async savePreJoiningForm(id: number, companyId: number, data: Record<string, unknown>, isDraft: boolean) {
+    const candidate = await this.getById(id, companyId);
+    const update: any = {
+      prejoining_form_data:   data,
+      prejoining_form_status: isDraft ? 'Draft' : 'Submitted',
+    };
+    if (!isDraft) update.prejoining_submitted_at = new Date();
+    await candidate.update(update);
+    await logActivity({ companyId, userId: undefined, action: isDraft ? 'PREJOINING_DRAFT_SAVED' : 'PREJOINING_SUBMITTED', module: 'candidates', entityId: id });
+    return candidate;
   }
 
   // ─── Bulk upload ─────────────────────────────────────────────────────────

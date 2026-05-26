@@ -16,6 +16,7 @@ import { OfferLetterModal }        from '../../../../features/candidates/compone
 import { HireCandidateModal }      from '../../../../features/candidates/components/HireCandidateModal';
 import { WithdrawModal }           from '../../../../features/candidates/components/WithdrawModal';
 import { PreInterviewFormModal }   from '../../../../features/candidates/components/PreInterviewFormModal';
+import { AptitudeTestSendModal }   from '../../../../features/candidates/components/AptitudeTestSendModal';
 
 // Hooks
 import {
@@ -80,6 +81,7 @@ export default function CandidateDetailPage() {
   const [hireOpen,          setHireOpen]           = useState(false);
   const [withdrawOpen,      setWithdrawOpen]       = useState(false);
   const [preFormOpen,       setPreFormOpen]        = useState(false);
+  const [aptitudeOpen,      setAptitudeOpen]       = useState(false);
   const [deleteOpen,        setDeleteOpen]         = useState(false);
 
   const { data: candidate, isLoading, isError } = useCandidate(id);
@@ -123,26 +125,55 @@ export default function CandidateDetailPage() {
 
   // ─── Status-driven action buttons ────────────────────────────────────────
   const ActionBar = () => {
-    const btns: React.ReactNode[] = [];
+    if (!canManage) return null;
+    return (
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        {/* Aptitude test — available at ANY stage */}
+        <button className="btn btn-sec btn-sm" onClick={() => setAptitudeOpen(true)}>
+          🧠 {c.aptitude_test_sent ? 'Resend Test' : 'Send Aptitude Test'}
+        </button>
 
-    if (c.status === 'Shortlisted' && canManage)
-      btns.push(<button key="schedule" className="btn btn-sec btn-sm" onClick={() => setScheduleOpen(true)}>📅 Schedule Interview</button>);
+        {/* Schedule interview — when shortlisted */}
+        {c.status === 'Shortlisted' && (
+          <button className="btn btn-sec btn-sm" onClick={() => setScheduleOpen(true)}>📅 Schedule Interview</button>
+        )}
 
-    if (c.status === 'Interview_Scheduled' && canManage) {
-      btns.push(<button key="schedule" className="btn btn-sec btn-sm" onClick={() => setScheduleOpen(true)}>📅 Reschedule</button>);
-      if (c.interview_accepted === true)
-        btns.push(<button key="preform" className="btn btn-sec btn-sm" onClick={() => setPreFormOpen(true)}>📋 Send Pre-Interview Form</button>);
-    }
+        {/* Reschedule + pre-interview form — when scheduled */}
+        {c.status === 'Interview_Scheduled' && (
+          <>
+            <button className="btn btn-sec btn-sm" onClick={() => setScheduleOpen(true)}>📅 Reschedule</button>
+            {c.interview_accepted === true && (
+              <button
+                className="btn btn-sec btn-sm"
+                style={c.pre_interview_form_sent ? { color: 'var(--green)', borderColor: 'var(--green-bd)' } : {}}
+                onClick={() => setPreFormOpen(true)}
+              >
+                📋 {c.pre_interview_form_sent ? 'Resend Pre-Interview Form' : 'Send Pre-Interview Form'}
+              </button>
+            )}
+          </>
+        )}
 
-    if (c.status === 'Interview_Result' && canManage)
-      btns.push(<button key="result" className="btn btn-pri btn-sm" style={{ background: 'var(--teal)', borderColor: 'var(--teal)' }} onClick={() => setResultOpen(true)}>🎯 Record Result</button>);
+        {/* Record result */}
+        {c.status === 'Interview_Result' && (
+          <button className="btn btn-pri btn-sm" style={{ background: 'var(--teal)', borderColor: 'var(--teal)' }} onClick={() => setResultOpen(true)}>
+            🎯 Record Result
+          </button>
+        )}
 
-    if (c.status === 'Offered' && canManage) {
-      btns.push(<button key="offer"   className="btn btn-sec btn-sm" onClick={() => setOfferOpen(true)}>✉ Send / Resend Offer</button>);
-      btns.push(<button key="hire"    className="btn btn-pri btn-sm" style={{ background: 'var(--green)', borderColor: 'var(--green)' }} onClick={() => setHireOpen(true)}>🎉 Confirm Hire</button>);
-    }
-
-    return <>{btns}</>;
+        {/* Offer + Hire — when offered */}
+        {c.status === 'Offered' && (
+          <>
+            <button className="btn btn-sec btn-sm" onClick={() => setOfferOpen(true)}>
+              ✉ {c.offer_sent_at ? 'Resend Offer' : 'Send Offer Letter'}
+            </button>
+            <button className="btn btn-pri btn-sm" style={{ background: 'var(--green)', borderColor: 'var(--green)' }} onClick={() => setHireOpen(true)}>
+              🎉 Confirm Hire
+            </button>
+          </>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -188,7 +219,7 @@ export default function CandidateDetailPage() {
 
           <div className="ph-r">
             <button className="btn btn-sec btn-sm" onClick={() => router.push('/ats')}>← Back</button>
-            {canManage && <ActionBar />}
+            <ActionBar />
             {canManage && (
               <>
                 <button className="btn btn-sec btn-sm" onClick={() => setMoveOpen(true)}>Move Stage</button>
@@ -399,15 +430,13 @@ export default function CandidateDetailPage() {
               <InfoRow label="Date of Birth" value={formatDate(c.date_of_birth)} />
               <InfoRow label="Location"     value={c.location} />
               <InfoRow label="Qualification" value={c.qualification} />
-              <InfoRow label="Apply Department" value={c.apply_department} />
-              <InfoRow label="Apply Designation" value={c.apply_designation} />
               <InfoRow label="Own Vehicle"  value={c.own_vehicle ? '✓ Yes' : '✗ No'} />
             </SectionCard>
 
             {/* ── Experience ───────────────────────────────────────── */}
             <SectionCard title="Experience">
               <InfoRow label="Current Company"  value={c.current_company_name} />
-              <InfoRow label="Last Designation" value={c.current_company_designation} />
+              <InfoRow label="Current Designation" value={c.current_company_designation} />
               <InfoRow label="Total Experience" value={c.total_experience != null ? `${c.total_experience} years` : null} />
               <InfoRow label="Relevant Exp."   value={c.relevant_experience != null ? `${c.relevant_experience} years` : null} />
             </SectionCard>
@@ -533,8 +562,8 @@ export default function CandidateDetailPage() {
               <InfoRow label="Portal access"  value={<Chip variant={c.is_portal_user ? 'green' : 'gray'}>{c.is_portal_user ? '✓ Active' : 'Not granted'}</Chip>} />
               {c.portal_last_login && <InfoRow label="Last login" value={formatDate(c.portal_last_login)} />}
               <InfoRow label="Pre-join form" value={
-                <Chip variant={c.prejoin_form_status === 'Submitted' ? 'green' : c.prejoin_form_status === 'Draft' ? 'amber' : 'gray'}>
-                  {c.prejoin_form_status === 'Submitted' ? '✓ Submitted' : c.prejoin_form_status === 'Draft' ? '📝 Draft' : 'Not started'}
+                <Chip variant={c.preinterview_form_status === 'Submitted' ? 'green' : c.preinterview_form_status === 'Draft' ? 'amber' : 'gray'}>
+                  {c.preinterview_form_status === 'Submitted' ? '✓ Submitted' : c.preinterview_form_status === 'Draft' ? '📝 Draft' : 'Not started'}
                 </Chip>
               } />
               {canManage && !c.is_portal_user && (
@@ -542,6 +571,21 @@ export default function CandidateDetailPage() {
                   🌐 Grant Portal Access &amp; Send Form
                 </button>
               )}
+              <InfoRow label="Aptitude test sent" value={
+                c.aptitude_test_sent
+                  ? <Chip variant="green">✓ Sent {c.aptitude_test_sent_at ? formatDate(c.aptitude_test_sent_at) : ''}</Chip>
+                  : <Chip variant="gray">Not sent</Chip>
+              } />
+              <InfoRow label="Pre-interview form" value={
+                c.pre_interview_form_sent
+                  ? <Chip variant="green">✓ Sent {c.pre_interview_form_sent_at ? formatDate(c.pre_interview_form_sent_at) : ''}</Chip>
+                  : <Chip variant="gray">Not sent</Chip>
+              } />
+              <InfoRow label="Pre-joining form" value={
+                c.pre_joining_form_sent
+                  ? <Chip variant="green">✓ Unlocked</Chip>
+                  : <Chip variant="gray">Not unlocked</Chip>
+              } />
             </SectionCard>
 
             {/* ── Record ───────────────────────────────────────────── */}
@@ -577,6 +621,12 @@ export default function CandidateDetailPage() {
       <InterviewResultModal
         open={resultOpen}
         onClose={() => setResultOpen(false)}
+        candidate={c}
+      />
+
+      <AptitudeTestSendModal
+        open={aptitudeOpen}
+        onClose={() => setAptitudeOpen(false)}
         candidate={c}
       />
 

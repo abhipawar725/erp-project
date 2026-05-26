@@ -9,14 +9,16 @@ export type CandidateSource =
 export type CandidateGender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';
 
 export interface Candidate {
-  id: number; 
+    id: number; 
   company_id: number; 
   job_id?: number | null;
+
   candidate_name: string; 
   email?: string | null; 
   phone_number?: string | null;
   gender?: CandidateGender | null; 
   date_of_birth?: string | null;
+
   current_company_name?: string | null; 
   current_company_designation?: string | null;
   qualification?: string | null; 
@@ -36,6 +38,7 @@ export interface Candidate {
   status: CandidateStatus; 
   remarks?: string | null; 
   resume_url?: string | null;
+
   interview_date?: string | null; 
   interview_time?: string | null;
   interview_type?: 'Online' | 'Offline' | 'Phone' | null;
@@ -43,16 +46,21 @@ export interface Candidate {
   interview_instructions?: string | null;
   interview_accepted?: boolean | null; 
   interview_response_at?: string | null;
+
   reschedule_requested?: boolean; 
   reschedule_reason?: string | null;
   reschedule_status?: 'Pending' | 'Approved' | 'Rejected' | null;
   reschedule_proposed_date?: string | null; 
   reschedule_proposed_time?: string | null;
+
   is_portal_user?: boolean; 
   portal_last_login?: string | null;
-  prejoin_form_data?: Record<string, unknown> | null;
-  prejoin_form_status?: 'Not_Started' | 'Draft' | 'Submitted' | null;
-  prejoin_submitted_at?: string | null;
+  preinterview_form_data?: Record<string, unknown> | null;
+  prejoining_form_data?: Record<string, unknown> | null;
+  prejoining_form_status?: 'Not_Started' | 'Draft' | 'Submitted' | null;
+  prejoining_submitted_at?: string | null;
+  preinterview_form_status?: 'Not_Started' | 'Draft' | 'Submitted' | null;
+  preinterview_submitted_at?: string | null;
   aptitude_score?: number | null; 
   aptitude_attempted_at?: string | null; 
   aptitude_time_taken?: number | null;
@@ -78,6 +86,14 @@ export interface Candidate {
   decision_reason?: string | null;
   decision_joining_date?: string | null;
   created_at: string; updated_at: string;
+
+  // ── Sent tracking ─────────────────────────────────────────────────────────
+  aptitude_test_sent?:         boolean;      // HR clicked "Send Aptitude Test"
+  aptitude_test_sent_at?:      Date | null;
+  pre_interview_form_sent?:    boolean;      // HR clicked "Send Pre-Interview Form"
+  pre_interview_form_sent_at?: Date | null;
+  pre_joining_form_sent?:      boolean;      // automatically true when offer is sent
+  pre_joining_form_sent_at?:   Date | null;
 }
 
 export interface CandidateStats {
@@ -102,13 +118,9 @@ export interface CreateCandidateDto {
   apply_designation?: string | null;
   current_salary?: number | null; 
   expected_salary?: number | null;
-  notice_period?: number | null; 
-  immediate_joiner?: boolean;
-  expected_joining_date?: string | null; 
-  own_vehicle?: boolean;
-  source?: CandidateSource | null; 
-  reference_source?: string | null; 
-  remarks?: string | null;
+  notice_period?: number | null; immediate_joiner?: boolean;
+  expected_joining_date?: string | null; own_vehicle?: boolean;
+  source?: CandidateSource | null; reference_source?: string | null; remarks?: string | null;
 }
 
 export type UpdateCandidateDto = Partial<CreateCandidateDto> & { status?: CandidateStatus };
@@ -147,7 +159,6 @@ export const ALL_STATUSES = [
   'Withdrawn',
   'On_Hold'
 ] as const;
-
 
 export const STATUS_LABEL: Record<CandidateStatus, string> = {
   Applied:'Applied', Shortlisted:'Shortlisted', Interview_Scheduled:'Interview Scheduled',

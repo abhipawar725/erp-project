@@ -12,7 +12,7 @@ import {
   scheduleInterview, handleReschedule, grantPortalAccess, submitInterviewResult,
   sendOffer, hireCandidate, withdrawCandidate, sendPreInterviewForm, sendAptitudeTestLink,
   portalLogin, portalMagicLink, portalVerifyMagic,
-  portalAuthenticate, portalGetProfile, portalGetCompanyInfo,
+  portalAuthenticate, portalGetProfile, portalGetCompanyInfo, portalSavePreJoining,
   portalRespondInterview, portalRequestReschedule, portalSavePrejoin,
 } from './candidate.controller';
 import {
@@ -111,6 +111,8 @@ router.get('/portal/profile',       portalAuthenticate, portalGetProfile);
 router.get('/portal/company-info',   portalAuthenticate, portalGetCompanyInfo);
 router.post('/portal/interview-response', portalAuthenticate, portalRespondInterview);
 router.post('/portal/reschedule',         portalAuthenticate, rescheduleValidation, validate, portalRequestReschedule);
+router.post('/portal/reschedule',         portalAuthenticate, rescheduleValidation, validate, portalRequestReschedule);
 router.post('/portal/prejoin',            portalAuthenticate, portalSavePrejoin);
+router.post('/portal/prejoining',         portalAuthenticate, portalSavePreJoining);
 
 export default router;
