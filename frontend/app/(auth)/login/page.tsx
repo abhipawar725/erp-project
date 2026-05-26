@@ -45,7 +45,7 @@ export default function LoginPage() {
           <div className="sb-mark" style={{ width: 40, height: 40, fontSize: 14 }}>NX</div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-.3px' }}>
-              NexHR ERP
+              UNG ERP
             </div>
             <div style={{ fontSize: 11, color: 'var(--ink4)' }}>Enterprise Suite</div>
           </div>

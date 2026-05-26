@@ -1,14 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
-import fs     from 'fs';
+import fs from 'fs';
+import path from 'path';
+import * as XLSX from 'xlsx';
 import crypto from 'crypto';
-import jwt    from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { CandidateService } from './candidate.service';
-import { Candidate }        from '../../database/models/Candidate';
-import { hashPassword }     from '../../utils/hash';
+import { Candidate } from '../../database/models/Candidate';
+import { hashPassword } from '../../utils/hash';
 import { sendResponse, sendPaginated, sendError } from '../../utils/response';
 import { env } from '../../config/env';
 
-const candidateService    = new CandidateService();
+const MAX_ROWS = 5000;
+const REQUIRED_HEADERS = ['candidate_name'];
+const candidateService = new CandidateService();
 const PORTAL_TOKEN_SECRET = env.jwt.accessSecret + '_portal';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -71,6 +75,21 @@ export async function deleteCandidate(req: Request, res: Response, next: NextFun
 
 
 // ─── Send offer letter ────────────────────────────────────────────────────────
+export async function sendAptitudeTestLink(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { test_id } = req.body;
+    if (!test_id) { sendError(res, 'test_id is required', 400); return; }
+    const data = await candidateService.sendAptitudeTestLink(
+      parseInt(req.params.id, 10),
+      req.user!.companyId,
+      parseInt(test_id, 10),
+      req.user!.userId,
+    );
+    sendResponse(res, { data, message: 'Aptitude test link sent to candidate' });
+  } catch (e) { next(e); }
+}
+
+
 export async function sendOffer(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await candidateService.sendOffer(
@@ -131,47 +150,241 @@ export async function uploadResume(req: Request, res: Response, next: NextFuncti
   } catch (e) { next(e); }
 }
 
-export async function bulkUploadCandidates(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function bulkUploadCandidates(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
-    if (!req.file) { sendError(res, 'No CSV file uploaded', 400); return; }
-
-    const fileContent = fs.readFileSync(req.file.path, 'utf-8');
-    const lines = fileContent.split('\n').filter(l => l.trim());
-
-    if (lines.length < 2) {
-      fs.unlinkSync(req.file.path);
-      sendError(res, 'CSV must have a header row and at least one data row', 400);
+    if (!req.file) {
+      sendError(res, 'No file uploaded', 400);
       return;
     }
 
-    const headers = lines[0]
-      .split(',')
-      .map(h => h.trim().replace(/^"|"$/g, '').toLowerCase().replace(/\s+/g, '_'));
+    const ext = path
+      .extname(req.file.originalname)
+      .toLowerCase();
 
-    const rows = lines.slice(1).map(line => {
-      // Handle quoted values with commas inside
-      const values: string[] = [];
-      let current = '';
-      let inQuotes = false;
-      for (const char of line) {
-        if (char === '"') { inQuotes = !inQuotes; }
-        else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
-        else { current += char; }
+    let rows: any[] = [];
+
+    // ─────────────────────────────────────────────
+    // CSV Parsing
+    // ─────────────────────────────────────────────
+
+    if (ext === '.csv') {
+      const fileContent = fs.readFileSync(
+        req.file.path,
+        'utf-8',
+      );
+
+      const lines = fileContent
+        .split('\n')
+        .filter(l => l.trim());
+
+      if (lines.length < 2) {
+        sendError(
+          res,
+          'CSV must contain a header row and at least one data row',
+          400,
+        );
+
+        return;
       }
-      values.push(current.trim());
-      return Object.fromEntries(headers.map((h, i) => [h, (values[i] || '').replace(/^"|"$/g, '')]));
-    });
 
-    fs.unlinkSync(req.file.path);
+      const headers = lines[0]
+        .split(',')
+        .map(h =>
+          h
+            .trim()
+            .replace(/^"|"$/g, '')
+            .toLowerCase()
+            .replace(/\s+/g, '_'),
+        );
 
-    const result = await candidateService.bulkUpload(rows as any, req.user!.companyId, req.user!.userId);
+      rows = lines.slice(1).map(line => {
+        const values: string[] = [];
+
+        let current = '';
+        let inQuotes = false;
+
+        for (const char of line) {
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            values.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+
+        values.push(current.trim());
+
+        return Object.fromEntries(
+          headers.map((h, i) => [
+            h,
+            (values[i] || '').replace(/^"|"$/g, ''),
+          ]),
+        );
+      });
+    }
+
+    // ─────────────────────────────────────────────
+    // XLS / XLSX Parsing
+    // ─────────────────────────────────────────────
+
+    else if (ext === '.xlsx' || ext === '.xls') {
+      const workbook = XLSX.readFile(req.file.path, {
+        cellDates: true,
+      });
+
+      const sheetName = workbook.SheetNames[0];
+
+      if (!sheetName) {
+        sendError(
+          res,
+          'Excel file does not contain any sheets',
+          400,
+        );
+
+        return;
+      }
+
+      const worksheet = workbook.Sheets[sheetName];
+
+      rows = XLSX.utils.sheet_to_json(worksheet, {
+        defval: '',
+        raw: false,
+      });
+      rows = rows.map((row: any) => {
+        const normalized: any = {};
+
+        Object.keys(row).forEach(key => {
+          const normalizedKey = key
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, '_');
+
+          normalized[normalizedKey] = row[key];
+        });
+
+        return normalized;
+      });
+
+      if (!rows.length) {
+        sendError(
+          res,
+          'Excel file must contain at least one data row',
+          400,
+        );
+
+        return;
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // Unsupported File
+    // ─────────────────────────────────────────────
+
+    else {
+      sendError(
+        res,
+        'Unsupported file format. Please upload CSV or Excel file.',
+        400,
+      );
+
+      return;
+    }
+
+    // ─────────────────────────────────────────────
+    // Header Validation
+    // ─────────────────────────────────────────────
+
+    if (!rows.length || !Object.keys(rows[0]).length) {
+      sendError(
+        res,
+        'File contains invalid or empty headers',
+        400,
+      );
+
+      return;
+    }
+
+    const fileHeaders = Object.keys(rows[0]);
+
+    const missingHeaders = REQUIRED_HEADERS.filter(
+      h => !fileHeaders.includes(h),
+    );
+
+    if (missingHeaders.length) {
+      sendError(
+        res,
+        `Missing required columns: ${missingHeaders.join(', ')}`,
+        400,
+      );
+
+      return;
+    }
+
+    // ─────────────────────────────────────────────
+    // Row Limit Validation
+    // ─────────────────────────────────────────────
+
+    if (rows.length > MAX_ROWS) {
+      sendError(
+        res,
+        `Maximum ${MAX_ROWS} rows allowed per upload`,
+        400,
+      );
+
+      return;
+    }
+
+    // ─────────────────────────────────────────────
+    // Upload
+    // ─────────────────────────────────────────────
+
+    const result = await candidateService.bulkUpload(
+      rows,
+      req.user!.companyId,
+      req.user!.userId,
+    );
 
     sendResponse(res, {
-      data:       result,
-      message:    `Bulk upload complete: ${result.success} added, ${result.failed} failed`,
-      statusCode: result.failed === 0 ? 201 : 207,
+      data: result,
+
+      message:
+        `Bulk upload complete: ` +
+        `${result.success} added, ` +
+        `${result.failed} failed`,
+
+      statusCode:
+        result.failed === 0 ? 201 : 207,
     });
-  } catch (e) { next(e); }
+
+  } catch (e) {
+    next(e);
+  }
+
+  // ─────────────────────────────────────────────
+  // Cleanup Temp File
+  // ─────────────────────────────────────────────
+
+  finally {
+    try {
+      if (
+        req.file?.path &&
+        fs.existsSync(req.file.path)
+      ) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (cleanupError) {
+      console.error(
+        'Failed to cleanup uploaded file:',
+        cleanupError,
+      );
+    }
+  }
 }
 
 export async function scheduleInterview(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -243,9 +456,9 @@ export async function portalLogin(req: Request, res: Response, next: NextFunctio
 
     res.cookie('portalToken', token, {
       httpOnly: true,
-      secure:   env.isProduction,
+      secure: env.isProduction,
       sameSite: 'strict',
-      maxAge:   7 * 24 * 3600 * 1000,
+      maxAge: 7 * 24 * 3600 * 1000,
     });
 
     sendResponse(res, {
@@ -276,9 +489,9 @@ export async function portalVerifyMagic(req: Request, res: Response, next: NextF
 
     res.cookie('portalToken', token, {
       httpOnly: true,
-      secure:   env.isProduction,
+      secure: env.isProduction,
       sameSite: 'strict',
-      maxAge:   7 * 24 * 3600 * 1000,
+      maxAge: 7 * 24 * 3600 * 1000,
     });
 
     sendResponse(res, {
@@ -333,6 +546,28 @@ export async function portalRequestReschedule(req: Request, res: Response, next:
       req.body.proposed_time,
     );
     sendResponse(res, { data, message: 'Reschedule request submitted. HR will review shortly.' });
+  } catch (e) { next(e); }
+}
+
+export async function portalGetCompanyInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { companyId } = (req as any).portalCandidate;
+    const { Company }     = await import('../../database/models/Company');
+    const { EmailBranding } = await import('../../database/models/EmailTemplate');
+
+    const [company, branding] = await Promise.all([
+      Company.findByPk(companyId, { attributes: ['id','name','logo_url','address','city','state','pincode'] }),
+      EmailBranding.findOne({ where: { company_id: companyId }, attributes: ['company_name','logo_url','from_name'] }),
+    ]);
+
+    sendResponse(res, {
+      data: {
+        name:     branding?.company_name || company?.name || 'Company',
+        logo_url: branding?.logo_url || company?.logo_url || null,
+        address:  [company?.address, company?.city, company?.state, company?.pincode].filter(Boolean).join(', ') || null,
+      },
+      message: 'Company info fetched',
+    });
   } catch (e) { next(e); }
 }
 

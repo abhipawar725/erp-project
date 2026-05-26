@@ -399,27 +399,17 @@ export default function CandidateDetailPage() {
               <InfoRow label="Date of Birth" value={formatDate(c.date_of_birth)} />
               <InfoRow label="Location"     value={c.location} />
               <InfoRow label="Qualification" value={c.qualification} />
+              <InfoRow label="Apply Department" value={c.apply_department} />
+              <InfoRow label="Apply Designation" value={c.apply_designation} />
               <InfoRow label="Own Vehicle"  value={c.own_vehicle ? '✓ Yes' : '✗ No'} />
             </SectionCard>
 
             {/* ── Experience ───────────────────────────────────────── */}
             <SectionCard title="Experience">
               <InfoRow label="Current Company"  value={c.current_company_name} />
-              <InfoRow label="Last Designation" value={c.last_company_designation} />
+              <InfoRow label="Last Designation" value={c.current_company_designation} />
               <InfoRow label="Total Experience" value={c.total_experience != null ? `${c.total_experience} years` : null} />
               <InfoRow label="Relevant Exp."   value={c.relevant_experience != null ? `${c.relevant_experience} years` : null} />
-              {c.skills && c.skills.length > 0 && (
-                <div style={{ paddingTop: 10 }}>
-                  <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 6 }}>Skills</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                    {c.skills.map((s: string) => (
-                      <span key={s} style={{ background: 'var(--blue-lt)', border: '1px solid var(--blue-md)', color: 'var(--blue)', borderRadius: 99, padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </SectionCard>
 
             {/* ── Sourcing ─────────────────────────────────────────── */}

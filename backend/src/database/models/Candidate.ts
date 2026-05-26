@@ -27,12 +27,13 @@ export interface CandidateAttributes {
 
   // ── Professional ──────────────────────────────────────────────────────────
   current_company_name?:    string | null;
-  last_company_designation?: string | null;
+  current_company_designation?: string | null;
   qualification?:           string | null;
   location?:                string | null;
   total_experience?:        number | null;
   relevant_experience?:     number | null;
-  skills?:                  string[] | null;
+  apply_department?:        string | null;
+  apply_designation?:       string | null;
 
   // ── Compensation ──────────────────────────────────────────────────────────
   current_salary?:          number | null;
@@ -107,6 +108,14 @@ export interface CandidateAttributes {
   prejoin_form_status?:     'Not_Started' | 'Draft' | 'Submitted' | null;
   prejoin_submitted_at?:    Date | null;
 
+  // ── Sent tracking ─────────────────────────────────────────────────────────
+  aptitude_test_sent?:         boolean;      // HR clicked "Send Aptitude Test"
+  aptitude_test_sent_at?:      Date | null;
+  pre_interview_form_sent?:    boolean;      // HR clicked "Send Pre-Interview Form"
+  pre_interview_form_sent_at?: Date | null;
+  pre_joining_form_sent?:      boolean;      // automatically true when offer is sent
+  pre_joining_form_sent_at?:   Date | null;
+
   // ── Aptitude test ─────────────────────────────────────────────────────────
   aptitude_score?:          number | null;
   aptitude_attempted_at?:   Date | null;
@@ -139,12 +148,13 @@ export class Candidate
   public gender!:                   CandidateGender | null;
   public date_of_birth!:            Date | null;
   public current_company_name!:     string | null;
-  public last_company_designation!: string | null;
+  public current_company_designation!: string | null;
   public qualification!:            string | null;
   public location!:                 string | null;
   public total_experience!:         number | null;
   public relevant_experience!:      number | null;
-  public skills!:                   string[] | null;
+  public apply_department!:         string | null;
+  public apply_designation!:        string | null;
   public current_salary!:           number | null;
   public expected_salary!:          number | null;
   public notice_period!:            number | null;
@@ -193,6 +203,12 @@ export class Candidate
   public prejoin_form_data!:        Record<string, unknown> | null;
   public prejoin_form_status!:      'Not_Started' | 'Draft' | 'Submitted' | null;
   public prejoin_submitted_at!:     Date | null;
+  public aptitude_test_sent!:          boolean;
+  public aptitude_test_sent_at!:       Date | null;
+  public pre_interview_form_sent!:     boolean;
+  public pre_interview_form_sent_at!:  Date | null;
+  public pre_joining_form_sent!:       boolean;
+  public pre_joining_form_sent_at!:    Date | null;
   public aptitude_score!:           number | null;
   public aptitude_attempted_at!:    Date | null;
   public aptitude_time_taken!:      number | null;
@@ -219,15 +235,16 @@ Candidate.init(
     },
     date_of_birth:            { type: DataTypes.DATEONLY, allowNull: true },
     current_company_name:     { type: DataTypes.STRING(200), allowNull: true },
-    last_company_designation: { type: DataTypes.STRING(200), allowNull: true },
+    current_company_designation: { type: DataTypes.STRING(200), allowNull: true },
     qualification:            { type: DataTypes.STRING(200), allowNull: true },
     location:                 { type: DataTypes.STRING(200), allowNull: true },
     total_experience:         { type: DataTypes.DECIMAL(5,1), allowNull: true },
     relevant_experience:      { type: DataTypes.DECIMAL(5,1), allowNull: true },
-    skills:                   { type: DataTypes.JSON, allowNull: true },
-
+    
     current_salary:           { type: DataTypes.DECIMAL(12,2), allowNull: true },
     expected_salary:          { type: DataTypes.DECIMAL(12,2), allowNull: true },
+    apply_department:         { type: DataTypes.STRING(200), allowNull: true },   
+    apply_designation:        { type: DataTypes.STRING(200), allowNull: true }, 
 
     notice_period:            { type: DataTypes.INTEGER, allowNull: true },
     immediate_joiner:         { type: DataTypes.BOOLEAN, defaultValue: false },
@@ -291,13 +308,20 @@ Candidate.init(
     portal_last_login:        { type: DataTypes.DATE, allowNull: true },
 
     // ── Pre-join ───────────────────────────────────────────────────────────
-    prejoin_form_data:        { type: DataTypes.JSON, allowNull: true },
+  prejoin_form_data:        { type: DataTypes.JSON, allowNull: true },
     prejoin_form_status: {
       type: DataTypes.ENUM('Not_Started','Draft','Submitted'),
       allowNull: true,
       defaultValue: 'Not_Started',
     },
     prejoin_submitted_at:     { type: DataTypes.DATE, allowNull: true },
+
+    aptitude_test_sent:          { type: DataTypes.BOOLEAN, defaultValue: false },
+    aptitude_test_sent_at:       { type: DataTypes.DATE, allowNull: true },
+    pre_interview_form_sent:     { type: DataTypes.BOOLEAN, defaultValue: false },
+    pre_interview_form_sent_at:  { type: DataTypes.DATE, allowNull: true },
+    pre_joining_form_sent:       { type: DataTypes.BOOLEAN, defaultValue: false },
+    pre_joining_form_sent_at:    { type: DataTypes.DATE, allowNull: true },
 
     // ── Aptitude ───────────────────────────────────────────────────────────
     aptitude_score:           { type: DataTypes.DECIMAL(5,2), allowNull: true },

@@ -138,10 +138,15 @@ export const uploadDocument = multer({
  */
 export const uploadBulkCSV = multer({
   storage: diskStorage('bulk'),
-  limits: { fileSize: 5 * 1024 * 1024 },
+
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+  },
+
   fileFilter: makeFileFilter(
-    /^(text\/csv|application\/vnd\.ms-excel)$/,
-    ['csv'],
+    /^(text\/csv|application\/vnd\.ms-excel|application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet)$/,
+
+    ['csv', 'xlsx', 'xls'],
   ),
 });
 

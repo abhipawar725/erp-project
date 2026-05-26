@@ -10,9 +10,9 @@ import {
   createCandidate, updateCandidate, moveCandidateStatus,
   deleteCandidate, uploadResume, bulkUploadCandidates,
   scheduleInterview, handleReschedule, grantPortalAccess, submitInterviewResult,
-  sendOffer, hireCandidate, withdrawCandidate, sendPreInterviewForm,
+  sendOffer, hireCandidate, withdrawCandidate, sendPreInterviewForm, sendAptitudeTestLink,
   portalLogin, portalMagicLink, portalVerifyMagic,
-  portalAuthenticate, portalGetProfile,
+  portalAuthenticate, portalGetProfile, portalGetCompanyInfo,
   portalRespondInterview, portalRequestReschedule, portalSavePrejoin,
 } from './candidate.controller';
 import {
@@ -44,10 +44,30 @@ const resumeUpload = multer({
 const bulkDir = path.join(process.cwd(), env.upload.dir, 'bulk');
 if (!fs.existsSync(bulkDir)) fs.mkdirSync(bulkDir, { recursive: true });
 
-const csvUpload = multer({
+const allowedExtensions = ['.csv', '.xlsx', '.xls'];
+
+export const bulkUpload = multer({
   dest: bulkDir,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => cb(null, path.extname(file.originalname).toLowerCase() === '.csv'),
+
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+  },
+
+  fileFilter: (_req, file, cb) => {
+    const ext = path
+      .extname(file.originalname)
+      .toLowerCase();
+
+    if (!allowedExtensions.includes(ext)) {
+      return cb(
+        new Error(
+          'Only CSV, XLSX and XLS files are allowed',
+        ),
+      );
+    }
+
+    cb(null, true);
+  },
 });
 
 const router = Router();
@@ -58,7 +78,7 @@ router.get('/',      authenticate, listCandidateValidation, validate, getCandida
 router.get('/:id',   authenticate, idValidation, validate, getCandidate);
 
 router.post('/',     authenticate, createCandidateValidation, validate, createCandidate);
-router.post('/bulk', authenticate, csvUpload.single('file'), bulkUploadCandidates);
+router.post('/bulk', authenticate, bulkUpload.single('file'), bulkUploadCandidates);
 
 router.put('/:id',   authenticate, updateCandidateValidation, validate, updateCandidate);
 
@@ -81,12 +101,14 @@ router.patch('/:id/send-offer',           authenticate, sendOfferValidation,    
 router.patch('/:id/hire',                 authenticate, hireCandidateValidation,   validate, hireCandidate);
 router.patch('/:id/withdraw',             authenticate, withdrawValidation,        validate, withdrawCandidate);
 router.post('/:id/send-pre-interview',    authenticate, idValidation,             validate, sendPreInterviewForm);
+router.post('/:id/send-aptitude-test',     authenticate, idValidation,             validate, sendAptitudeTestLink);
 
 // ─── Candidate portal routes (portal JWT) ────────────────────────────────────
 router.post('/portal/login',        portalLoginValidation, validate, portalLogin);
 router.post('/portal/magic-link',   portalMagicLink);
 router.post('/portal/verify-magic', portalVerifyMagic);
 router.get('/portal/profile',       portalAuthenticate, portalGetProfile);
+router.get('/portal/company-info',   portalAuthenticate, portalGetCompanyInfo);
 router.post('/portal/interview-response', portalAuthenticate, portalRespondInterview);
 router.post('/portal/reschedule',         portalAuthenticate, rescheduleValidation, validate, portalRequestReschedule);
 router.post('/portal/prejoin',            portalAuthenticate, portalSavePrejoin);

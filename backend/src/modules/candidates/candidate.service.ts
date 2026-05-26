@@ -119,12 +119,13 @@ export class CandidateService {
       gender:                   (dto.gender || null) as any,
       date_of_birth:            dto.date_of_birth ? new Date(dto.date_of_birth) : null,
       current_company_name:     dto.current_company_name?.trim()     || null,
-      last_company_designation: dto.last_company_designation?.trim() || null,
+      current_company_designation: dto.current_company_designation?.trim() || null,
       qualification:            dto.qualification?.trim()            || null,
       location:                 dto.location?.trim()                 || null,
       total_experience:         dto.total_experience      ?? null,
       relevant_experience:      dto.relevant_experience   ?? null,
-      skills:                   dto.skills                ?? null,
+      apply_department:         dto.apply_department      ?? null,
+      apply_designation:        dto.apply_designation     ?? null,    
       current_salary:           dto.current_salary        ?? null,
       expected_salary:          dto.expected_salary       ?? null,
       notice_period:            dto.notice_period         ?? null,
@@ -479,7 +480,7 @@ export class CandidateService {
       await mailer.sendOfferLetter(
         candidate.email,
         candidate.candidate_name,
-        candidate.last_company_designation || 'the position',
+        candidate.current_company_designation || 'the position',
         ctcFormatted,
         joiningFormatted,
         `${process.env.FRONTEND_URL || 'http://localhost:3000'}/portal/dashboard`,
@@ -564,6 +565,46 @@ export class CandidateService {
     return candidate;
   }
 
+  // ─── Send aptitude test link (any status, HR triggered) ──────────────────
+  async sendAptitudeTestLink(
+    id:        number,
+    companyId: number,
+    testId:    number,
+    sentBy?:   number,
+  ) {
+    const candidate = await this.getById(id, companyId);
+    if (!candidate.email) throw new AppError('Candidate has no email address', 400);
+
+    // Ensure portal access
+    if (!candidate.is_portal_user) {
+      const crypto = await import('crypto');
+      const rawPwd = crypto.randomBytes(6).toString('hex');
+      await candidate.update({
+        portal_password_hash: await hashPassword(rawPwd),
+        is_portal_user:       true,
+      });
+    }
+
+    const testUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/portal/test/${testId}`;
+
+    await mailer.sendAptitudeTestInvite(
+      candidate.email,
+      candidate.candidate_name,
+      `Aptitude Test`,
+      45,
+      testUrl,
+    );
+
+    // Mark as sent
+    await candidate.update({
+      aptitude_test_sent:    true,
+      aptitude_test_sent_at: new Date(),
+    });
+
+    await logActivity({ companyId, userId: sentBy, action: 'APTITUDE_TEST_SENT', module: 'candidates', entityId: id, newValues: { testId } });
+    return { sent: true, testUrl };
+  }
+
   // ─── Send pre-interview form link (after interview accepted) ─────────────
   async sendPreInterviewForm(id: number, companyId: number, sentBy?: number) {
     const candidate = await this.getById(id, companyId);
@@ -595,6 +636,12 @@ export class CandidateService {
       'blue',
     );
 
+    // Mark as sent
+    await candidate.update({
+      pre_interview_form_sent:    true,
+      pre_interview_form_sent_at: new Date(),
+    });
+
     await logActivity({ companyId, userId: sentBy, action: 'PRE_INTERVIEW_FORM_SENT', module: 'candidates', entityId: id });
     return { sent: true };
   }
@@ -625,12 +672,13 @@ export class CandidateService {
           gender:                   null as any,
           date_of_birth:            row.date_of_birth ? new Date(row.date_of_birth) : null,
           current_company_name:     row.current_company_name?.toString().trim() || null,
-          last_company_designation: row.last_company_designation?.toString().trim() || null,
+          current_company_designation: row.current_company_designation?.toString().trim() || null,
           qualification:            row.qualification?.toString().trim()  || null,
           location:                 row.location?.toString().trim()       || null,
           total_experience:         row.total_experience != null ? Number(row.total_experience) : null,
           relevant_experience:      row.relevant_experience != null ? Number(row.relevant_experience) : null,
-          skills:                   row.skills ? String(row.skills).split(',').map(s => s.trim()).filter(Boolean) : null,
+          apply_department:         row.apply_department?.toString().trim() || null,
+          apply_designation:        row.apply_designation?.toString().trim() || null,
           current_salary:           row.current_salary != null ? Number(row.current_salary) : null,
           expected_salary:          row.expected_salary != null ? Number(row.expected_salary) : null,
           notice_period:            row.notice_period != null ? Number(row.notice_period) : null,
