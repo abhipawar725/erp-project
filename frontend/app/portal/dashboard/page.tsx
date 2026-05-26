@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter }   from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { portalService } from '../../../services/api/candidate.service';
+import { portalService } from '../../../features/candidates/candidate.service';
 import { STATUS_LABEL, STATUS_COLORS, type Candidate, type CandidateStatus } from '../../../features/candidates/types/candidate.types';
 import { formatDate }  from '../../../utils/formatters';
 
@@ -195,7 +195,7 @@ export default function PortalDashboard() {
         )}
 
         {/* Pre-joining form card */}
-        {(c.status === 'Applied' || c.status === 'Shortlisted' || c.status === 'Offered' || c.status === 'Hired') && (
+        {(c.status === 'Offered' || c.status === 'Hired') && (
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r3)', padding: '20px 24px', marginBottom: 20, boxShadow: 'var(--sh)' }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 8 }}>📋 Pre-joining Form</div>
             <div style={{ fontSize: 12, color: 'var(--ink4)', marginBottom: 14 }}>
@@ -214,7 +214,7 @@ export default function PortalDashboard() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r3)', padding: '20px 24px', marginBottom: 20, boxShadow: 'var(--sh)' }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 8 }}>🧠 Aptitude Test</div>
             <div style={{ fontSize: 12, color: 'var(--ink4)', marginBottom: 14 }}>Complete the aptitude assessment to move forward in the process.</div>
-            <button className="btn btn-pri btn-sm" onClick={() => router.push('/portal/test/2')}>Start Test →</button>
+            <button className="btn btn-pri btn-sm" onClick={() => router.push('/portal/test/1')}>Start Test →</button>
           </div>
         )}
 

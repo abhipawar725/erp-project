@@ -1,6 +1,6 @@
 export type CandidateStatus =
   | 'Applied' | 'Shortlisted' | 'Interview_Scheduled' | 'Technical'
-  | 'HR_Round' | 'Offered' | 'Hired' | 'Rejected' | 'Withdrawn' | 'On_Hold';
+  | 'HR_Round' | 'Interview_Result' | 'Offered' | 'Hired' | 'Rejected' | 'Withdrawn' | 'On_Hold';
 
 export type CandidateSource =
   | 'Naukri' | 'LinkedIn' | 'CollarCheck' | 'Referral'
@@ -33,6 +33,27 @@ export interface Candidate {
   prejoin_form_status?: 'Not_Started' | 'Draft' | 'Submitted' | null;
   prejoin_submitted_at?: string | null;
   aptitude_score?: number | null; aptitude_attempted_at?: string | null; aptitude_time_taken?: number | null;
+  // Offer
+  offered_ctc?: number | null;
+  offer_letter_url?: string | null;
+  offer_sent_at?: string | null;
+  offer_accepted?: boolean | null;
+  offer_valid_till?: string | null;
+  confirmed_joining_date?: string | null;
+  // Hire
+  hired_at?: string | null;
+  converted_employee_id?: number | null;
+  // Withdrawal
+  withdrawal_reason?: string | null;
+  withdrawn_at?: string | null;
+  // Interview result
+  interview_result_by?: number | null;
+  interview_result_mode?: 'Online' | 'Offline' | null;
+  interview_result_date?: string | null;
+  interview_result_feedback?: string | null;
+  candidate_decision?: 'Select' | 'Reject' | 'On_Hold' | null;
+  decision_reason?: string | null;
+  decision_joining_date?: string | null;
   created_at: string; updated_at: string;
 }
 
@@ -66,12 +87,35 @@ export interface BulkUploadResult {
   errors: { row: number; name: string; reason: string }[]; inserted: number[];
 }
 
-export const ALL_STATUSES: CandidateStatus[] = ['Applied','Shortlisted','Interview_Scheduled','Technical','HR_Round','Offered','Hired','Rejected','Withdrawn','On_Hold'];
-export const ALL_SOURCES  = ['Naukri','LinkedIn','CollarCheck','Referral','Walk-in','Indeed','Direct','Other'] as const;
+export const ALL_SOURCES = [
+  'Naukri',
+  'LinkedIn',
+  'CollarCheck',
+  'Referral',
+  'Walk-in',
+  'Indeed',
+  'Direct',
+  'Other'
+] as const;
+
+export const ALL_STATUSES = [
+  'Applied',
+  'Shortlisted',
+  'Interview_Scheduled',
+  'Technical',
+  'HR_Round',
+  'Interview_Result',
+  'Offered',
+  'Hired',
+  'Rejected',
+  'Withdrawn',
+  'On_Hold'
+] as const;
+
 
 export const STATUS_LABEL: Record<CandidateStatus, string> = {
   Applied:'Applied', Shortlisted:'Shortlisted', Interview_Scheduled:'Interview Scheduled',
-  Technical:'Technical', HR_Round:'HR Round', Offered:'Offered',
+  Technical:'Technical', HR_Round:'HR Round',Interview_Result: 'Interview Result', Offered:'Offered',
   Hired:'Hired', Rejected:'Rejected', Withdrawn:'Withdrawn', On_Hold:'On Hold',
 };
 
@@ -81,6 +125,7 @@ export const STATUS_COLORS: Record<CandidateStatus, { bg: string; text: string; 
   Interview_Scheduled: { bg: 'var(--purple-lt)', text: 'var(--purple)', border: 'var(--purple-bd)' },
   Technical:           { bg: 'var(--amber-lt)',  text: 'var(--amber)',  border: 'var(--amber-bd)'  },
   HR_Round:            { bg: 'var(--pink-lt)',   text: 'var(--pink)',   border: 'var(--pink-bd)'   },
+  Interview_Result:    { bg: 'var(--teal-lt)',   text: 'var(--teal)',   border: 'var(--teal-bd)'   },
   Offered:             { bg: 'var(--green-lt)',  text: 'var(--green)',  border: 'var(--green-bd)'  },
   Hired:               { bg: 'var(--green-lt)',  text: 'var(--green)',  border: 'var(--green-bd)'  },
   Rejected:            { bg: 'var(--red-lt)',    text: 'var(--red)',    border: 'var(--red-bd)'    },
@@ -93,4 +138,4 @@ export const SOURCE_EMOJI: Record<string, string> = {
   'Walk-in':'🚶', Indeed:'🔍', Direct:'📧', Other:'➕',
 };
 
-export const PIPELINE_STAGES: CandidateStatus[] = ['Applied','Shortlisted','Interview_Scheduled','Technical','HR_Round','Offered','Hired'];
+export const PIPELINE_STAGES: CandidateStatus[] = ['Applied','Shortlisted','Interview_Scheduled','Technical','HR_Round','Interview_Result','Offered','Hired'];

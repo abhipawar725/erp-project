@@ -2,8 +2,8 @@ import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../../config/database';
 
 export type CandidateStatus =
-  | 'Applied' | 'Shortlisted' | 'Interview Scheduled' | 'Technical'
-  | 'HR_Round' | 'Offered' | 'Hired' | 'Rejected' | 'Withdrawn' | 'On Hold';
+  | 'Applied' | 'Shortlisted' | 'Interview_Scheduled' | 'Technical'
+  | 'HR_Round' | 'Interview_Result' | 'Offered' | 'Hired' | 'Rejected' | 'Withdrawn' | 'On_Hold';
 
 export type CandidateSource =
   | 'Naukri' | 'LinkedIn' | 'CollarCheck' | 'Referral'
@@ -32,6 +32,7 @@ export interface CandidateAttributes {
   location?:                string | null;
   total_experience?:        number | null;
   relevant_experience?:     number | null;
+  skills?:                  string[] | null;
 
   // ── Compensation ──────────────────────────────────────────────────────────
   current_salary?:          number | null;
@@ -63,12 +64,36 @@ export interface CandidateAttributes {
   interview_accepted?:      boolean | null;         // null=pending, true=accepted, false=rejected
   interview_response_at?:   Date | null;
 
+  // ── Interview Result ──────────────────────────────────────────────────────
+  interview_result_by?:       number | null;       // employee_id
+  interview_result_mode?:     'Online' | 'Offline' | null;
+  interview_result_date?:     Date | null;
+  interview_result_feedback?: string | null;
+  candidate_decision?:        'Select' | 'Reject' | 'On_Hold' | null;
+  decision_reason?:           string | null;
+  decision_joining_date?:     Date | null;
+
   // ── Reschedule ────────────────────────────────────────────────────────────
   reschedule_requested?:    boolean;
   reschedule_reason?:       string | null;
   reschedule_status?:       RescheduleStatus | null;
   reschedule_proposed_date?: Date | null;
   reschedule_proposed_time?: string | null;
+
+
+  // ── Offer / Hire ──────────────────────────────────────────────────────────
+  offered_ctc?:             number | null;
+  offer_letter_url?:        string | null;
+  offer_sent_at?:           Date | null;
+  offer_accepted?:          boolean | null;
+  offer_valid_till?:        Date | null;
+  confirmed_joining_date?:  Date | null;
+  hired_at?:                Date | null;
+  converted_employee_id?:   number | null;   // FK after convert-to-employee
+
+  // ── Withdrawal ────────────────────────────────────────────────────────────
+  withdrawal_reason?:       string | null;
+  withdrawn_at?:            Date | null;
 
   // ── Portal auth ───────────────────────────────────────────────────────────
   portal_password_hash?:    string | null;
@@ -91,7 +116,6 @@ export interface CandidateAttributes {
   created_by?:              number | null;
   updated_by?:              number | null;
   deleted_by?:              number | null;
-
   created_at?:              Date;
   updated_at?:              Date;
   deleted_at?:              Date | null;
@@ -120,6 +144,7 @@ export class Candidate
   public location!:                 string | null;
   public total_experience!:         number | null;
   public relevant_experience!:      number | null;
+  public skills!:                   string[] | null;
   public current_salary!:           number | null;
   public expected_salary!:          number | null;
   public notice_period!:            number | null;
@@ -138,11 +163,28 @@ export class Candidate
   public interview_instructions!:   string | null;
   public interview_accepted!:       boolean | null;
   public interview_response_at!:    Date | null;
+  public interview_result_by!:       number | null;
+  public interview_result_mode!:     'Online' | 'Offline' | null;
+  public interview_result_date!:     Date | null;
+  public interview_result_feedback!: string | null;
+  public candidate_decision!:        'Select' | 'Reject' | 'On_Hold' | null;
+  public decision_reason!:           string | null;
+  public decision_joining_date!:     Date | null;
   public reschedule_requested!:     boolean;
   public reschedule_reason!:        string | null;
   public reschedule_status!:        RescheduleStatus | null;
   public reschedule_proposed_date!: Date | null;
   public reschedule_proposed_time!: string | null;
+  public offered_ctc!:             number | null;
+  public offer_letter_url!:        string | null;
+  public offer_sent_at!:           Date | null;
+  public offer_accepted!:          boolean | null;
+  public offer_valid_till!:        Date | null;
+  public confirmed_joining_date!:  Date | null;
+  public hired_at!:                Date | null;
+  public converted_employee_id!:   number | null;
+  public withdrawal_reason!:       string | null;
+  public withdrawn_at!:            Date | null;
   public portal_password_hash!:     string | null;
   public portal_access_token!:      string | null;
   public portal_token_expires!:     Date | null;
@@ -182,7 +224,8 @@ Candidate.init(
     location:                 { type: DataTypes.STRING(200), allowNull: true },
     total_experience:         { type: DataTypes.DECIMAL(5,1), allowNull: true },
     relevant_experience:      { type: DataTypes.DECIMAL(5,1), allowNull: true },
-    
+    skills:                   { type: DataTypes.JSON, allowNull: true },
+
     current_salary:           { type: DataTypes.DECIMAL(12,2), allowNull: true },
     expected_salary:          { type: DataTypes.DECIMAL(12,2), allowNull: true },
 
@@ -200,7 +243,7 @@ Candidate.init(
     resume_url:               { type: DataTypes.STRING(500), allowNull: true },
 
     status: {
-      type: DataTypes.ENUM('Applied','Shortlisted','Interview Scheduled','Technical','HR Round','Offered','Hired','Rejected','Withdrawn','On Hold'),
+      type: DataTypes.ENUM('Applied','Shortlisted','Interview_Scheduled','Technical','HR_Round','Interview_Result','Offered','Hired','Rejected','Withdrawn','On_Hold'),
       defaultValue: 'Applied',
       allowNull: false,
     },
@@ -214,12 +257,31 @@ Candidate.init(
     interview_accepted:       { type: DataTypes.BOOLEAN, allowNull: true },
     interview_response_at:    { type: DataTypes.DATE, allowNull: true },
 
+    interview_result_by:       { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
+    interview_result_mode:     { type: DataTypes.ENUM('Online','Offline'), allowNull: true },
+    interview_result_date:     { type: DataTypes.DATE, allowNull: true },
+    interview_result_feedback: { type: DataTypes.TEXT, allowNull: true },
+    candidate_decision:        { type: DataTypes.ENUM('Select','Reject','On_Hold'), allowNull: true },
+    decision_reason:           { type: DataTypes.TEXT, allowNull: true },
+    decision_joining_date:     { type: DataTypes.DATEONLY, allowNull: true },
+
     // ── Reschedule ─────────────────────────────────────────────────────────
     reschedule_requested:     { type: DataTypes.BOOLEAN, defaultValue: false },
     reschedule_reason:        { type: DataTypes.TEXT, allowNull: true },
     reschedule_status:        { type: DataTypes.ENUM('Pending','Approved','Rejected'), allowNull: true },
     reschedule_proposed_date: { type: DataTypes.DATEONLY, allowNull: true },
     reschedule_proposed_time: { type: DataTypes.STRING(5), allowNull: true },
+
+    offered_ctc:             { type: DataTypes.DECIMAL(12,2), allowNull: true },
+    offer_letter_url:        { type: DataTypes.STRING(500), allowNull: true },
+    offer_sent_at:           { type: DataTypes.DATE, allowNull: true },
+    offer_accepted:          { type: DataTypes.BOOLEAN, allowNull: true },
+    offer_valid_till:        { type: DataTypes.DATE, allowNull: true },
+    confirmed_joining_date:  { type: DataTypes.DATEONLY, allowNull: true },
+    hired_at:                { type: DataTypes.DATE, allowNull: true },
+    converted_employee_id:   { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
+    withdrawal_reason:       { type: DataTypes.TEXT, allowNull: true },
+    withdrawn_at:            { type: DataTypes.DATE, allowNull: true },
 
     // ── Portal ─────────────────────────────────────────────────────────────
     portal_password_hash:     { type: DataTypes.STRING(255), allowNull: true },

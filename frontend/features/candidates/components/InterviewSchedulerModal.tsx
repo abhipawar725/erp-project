@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z }         from 'zod';
 import { Modal }     from '../../../components/ui/Modal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { candidateService } from '../../../services/api/candidate.service';
+import { candidateService } from '../candidate.service';
 import { showToast }        from '../../../utils/toast';
 import type { Candidate }   from '../types/candidate.types';
 

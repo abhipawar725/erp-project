@@ -67,8 +67,6 @@ export async function getCandidateResult(req: Request, res: Response, next: Next
 export async function portalGetTest(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { companyId } = getPortalPayload(req);
-    console.log("company-id", companyId)
-    console.log("test-id", req.params.id)
     const data = await aptitudeService.getTestForCandidate(parseInt(req.params.id, 10), companyId);
     sendResponse(res, { data, message: 'Test fetched' });
   } catch (e) { next(e); }

@@ -45,7 +45,7 @@ router.delete('/:id/questions/:qid', authenticate, deleteQuestion);
 router.get('/:id/candidates/:candidateId/result', authenticate, getCandidateResult);
 
 // ─── Portal routes (candidate) ────────────────────────────────────────────────
-router.get('/portal/:id', portalGetTest);
+router.get('/portal/:id',        portalGetTest);
 router.post('/portal/:id/submit',
   [body('answers').isArray({ min: 1 }).withMessage('Answers required'), body('time_taken').optional().isInt()],
   validate,

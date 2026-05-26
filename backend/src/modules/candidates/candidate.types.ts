@@ -12,6 +12,7 @@ export interface CreateCandidateDto {
   location?: string | null;
   total_experience?: number | null;
   relevant_experience?: number | null;
+  skills?: string[] | null;
   current_salary?: number | null;
   expected_salary?: number | null;
   notice_period?: number | null;
@@ -50,6 +51,7 @@ export interface BulkCandidateRow {
   location?: string;
   total_experience?: string | number;
   relevant_experience?: string | number;
+  skills?: string;
   current_salary?: string | number;
   expected_salary?: string | number;
   notice_period?: string | number;

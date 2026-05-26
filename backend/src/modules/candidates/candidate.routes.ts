@@ -9,7 +9,8 @@ import {
   getCandidates, getCandidateStats, getCandidate,
   createCandidate, updateCandidate, moveCandidateStatus,
   deleteCandidate, uploadResume, bulkUploadCandidates,
-  scheduleInterview, handleReschedule, grantPortalAccess,
+  scheduleInterview, handleReschedule, grantPortalAccess, submitInterviewResult,
+  sendOffer, hireCandidate, withdrawCandidate, sendPreInterviewForm,
   portalLogin, portalMagicLink, portalVerifyMagic,
   portalAuthenticate, portalGetProfile,
   portalRespondInterview, portalRequestReschedule, portalSavePrejoin,
@@ -17,7 +18,8 @@ import {
 import {
   listCandidateValidation, createCandidateValidation,
   updateCandidateValidation, scheduleInterviewValidation,
-  moveStatusValidation, idValidation,
+  moveStatusValidation, interviewResultValidation, idValidation,
+  sendOfferValidation, hireCandidateValidation, withdrawValidation,
   portalLoginValidation, rescheduleValidation, handleRescheduleValidation,
 } from './candidate.validation';
 import { env } from '../../config/env';
@@ -68,6 +70,17 @@ router.patch('/:id/portal-access', authenticate, grantPortalAccess);
 router.delete('/:id', authenticate, idValidation, validate, deleteCandidate);
 
 router.post('/:id/resume', authenticate, idValidation, validate, resumeUpload.single('resume'), uploadResume);
+
+
+// PATCH /api/candidates/:id/interview-result
+router.patch('/:id/interview-result', authenticate, interviewResultValidation, validate, submitInterviewResult);
+
+
+// ─── Offer / Hire / Withdrawal / Pre-interview form ──────────────────────────
+router.patch('/:id/send-offer',           authenticate, sendOfferValidation,      validate, sendOffer);
+router.patch('/:id/hire',                 authenticate, hireCandidateValidation,   validate, hireCandidate);
+router.patch('/:id/withdraw',             authenticate, withdrawValidation,        validate, withdrawCandidate);
+router.post('/:id/send-pre-interview',    authenticate, idValidation,             validate, sendPreInterviewForm);
 
 // ─── Candidate portal routes (portal JWT) ────────────────────────────────────
 router.post('/portal/login',        portalLoginValidation, validate, portalLogin);

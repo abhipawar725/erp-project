@@ -1,7 +1,8 @@
-import { Op, WhereOptions, fn, col } from 'sequelize';
+import { Op, WhereOptions, fn, col, DATE } from 'sequelize';
 import crypto from 'crypto';
 import { Candidate, CandidateStatus } from '../../database/models/Candidate';
 import { AppError }    from '../../middleware/errorHandler.middleware';
+import { Employee }     from '../../database/models/Employee';
 import { parsePaginationParams, buildPaginationMeta } from '../../utils/response';
 import { logActivity } from '../../utils/activityLogger';
 import { hashPassword, comparePassword } from '../../utils/hash';
@@ -12,7 +13,7 @@ import type {
 } from './candidate.types';
 
 const VALID_SOURCES  = ['Naukri','LinkedIn','CollarCheck','Referral','Walk-in','Indeed','Direct','Other'];
-const VALID_STATUSES = ['Applied','Shortlisted','Interview Scheduled','Technical','HR Round','Offered','Hired','Rejected','Withdrawn','On Hold'];
+const VALID_STATUSES = ['Applied','Shortlisted','Interview_Scheduled','Technical','HR_Round','Interview_Result','Offered','Hired','Rejected','Withdrawn','On_Hold'];
 
 export class CandidateService {
 
@@ -64,7 +65,7 @@ export class CandidateService {
     const [total, hired, active, thisMonth] = await Promise.all([
       Candidate.count({ where: { company_id: companyId } }),
       Candidate.count({ where: { company_id: companyId, status: 'Hired' } }),
-      Candidate.count({ where: { company_id: companyId, status: ['Applied','Shortlisted','Interview Scheduled','Technical','HR Round','Offered','On Hold'] } }),
+      Candidate.count({ where: { company_id: companyId, status: ['Applied','Shortlisted','Interview_Scheduled','Technical','HR_Round','Offered','On_Hold'] } }),
       Candidate.count({ where: { company_id: companyId, created_at: { [Op.gte]: new Date(new Date().setDate(1)) } } }),
     ]);
     const conversionRate = total > 0 ? Math.round((hired / total) * 100) : 0;
@@ -123,6 +124,7 @@ export class CandidateService {
       location:                 dto.location?.trim()                 || null,
       total_experience:         dto.total_experience      ?? null,
       relevant_experience:      dto.relevant_experience   ?? null,
+      skills:                   dto.skills                ?? null,
       current_salary:           dto.current_salary        ?? null,
       expected_salary:          dto.expected_salary       ?? null,
       notice_period:            dto.notice_period         ?? null,
@@ -215,7 +217,7 @@ export class CandidateService {
       interview_accepted:    null,   // reset response
       reschedule_requested:  false,
       reschedule_status:     null,
-      status:                'Interview Scheduled',
+      status:                'Interview_Scheduled',
       updated_by:            scheduledBy,
     });
 
@@ -234,14 +236,14 @@ export class CandidateService {
       );
     }
 
-    await logActivity({ companyId, userId: scheduledBy, action: 'INTERVIEW SCHEDULED', module: 'candidates', entityId: id });
+    await logActivity({ companyId, userId: scheduledBy, action: 'INTERVIEW_SCHEDULED', module: 'candidates', entityId: id });
     return candidate;
   }
 
   // ─── Candidate respond to interview (accept/reject) ───────────────────────
   async respondToInterview(id: number, companyId: number, accepted: boolean) {
     const candidate = await this.getById(id, companyId);
-    if (candidate.status !== 'Interview Scheduled')
+    if (candidate.status !== 'Interview_Scheduled')
       throw new AppError('No interview scheduled for this candidate', 400);
 
     await candidate.update({
@@ -260,7 +262,7 @@ export class CandidateService {
     proposed_time?: string,
   ) {
     const candidate = await this.getById(id, companyId);
-    if (candidate.status !== 'Interview Scheduled')
+    if (candidate.status !== 'Interview_Scheduled')
       throw new AppError('No interview scheduled', 400);
 
     await candidate.update({
@@ -370,6 +372,233 @@ export class CandidateService {
     return candidate;
   }
 
+
+
+  // ─── Submit interview result & auto-advance status ────────────────────────
+  async submitInterviewResult(
+    id:        number,
+    companyId: number,
+    dto: {
+      interview_result_by:        number;
+      interview_result_mode:      'Online' | 'Offline';
+      interview_result_date:      string;
+      interview_result_feedback?: string;
+      candidate_decision:         'Select' | 'Reject' | 'On_Hold';
+      decision_reason?:           string;
+      decision_joining_date?:     string;
+    },
+    updatedBy?: number,
+  ) {
+    const candidate = await this.getById(id, companyId);
+
+    // Decision → next status mapping
+    const nextStatus: Record<string, string> = {
+      Select:  'Offered',
+      Reject:  'Rejected',
+      On_Hold: 'On_Hold',
+    };
+    const targetStatus = nextStatus[dto.candidate_decision];
+    if (!targetStatus) throw new AppError('Invalid candidate decision', 400);
+
+    // Joining date must not be in the past when selecting
+    if (dto.candidate_decision === 'Select' && dto.decision_joining_date) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (new Date(dto.decision_joining_date) < today)
+        throw new AppError('Expected joining date cannot be in the past', 400);
+    }
+
+    await candidate.update({
+      interview_result_by:        dto.interview_result_by,
+      interview_result_mode:      dto.interview_result_mode as any,
+      interview_result_date:      dto.interview_result_date ? new Date(dto.interview_result_date) : null,
+      interview_result_feedback:  dto.interview_result_feedback || null,
+      candidate_decision:         dto.candidate_decision as any,
+      decision_reason:            dto.decision_reason       || null,
+      decision_joining_date:      dto.decision_joining_date ? new Date(dto.decision_joining_date) as any : null,
+      status:                     targetStatus as any,
+      updated_by:                 updatedBy ?? null,
+    });
+
+    await logActivity({
+      companyId,
+      userId:    updatedBy,
+      action:    'INTERVIEW_RESULT_SUBMITTED',
+      module:    'candidates',
+      entityId:  id,
+      oldValues: { status: candidate.status },
+      newValues: { status: targetStatus, candidate_decision: dto.candidate_decision },
+    });
+
+    return candidate;
+  }
+
+  // ─── Send offer letter ────────────────────────────────────────────────────
+  async sendOffer(
+    id:        number,
+    companyId: number,
+    dto: {
+      offered_ctc:          number;
+      confirmed_joining_date: string;
+      offer_valid_till:     string;
+      offer_letter_url?:    string;
+    },
+    updatedBy?: number,
+  ) {
+    const candidate = await this.getById(id, companyId);
+    if (candidate.status !== 'Offered')
+      throw new AppError('Candidate must be in Offered status', 400);
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    if (new Date(dto.confirmed_joining_date) < today)
+      throw new AppError('Joining date cannot be in the past', 400);
+
+    await candidate.update({
+      offered_ctc:            dto.offered_ctc,
+      confirmed_joining_date: new Date(dto.confirmed_joining_date) as any,
+      offer_valid_till:       new Date(dto.offer_valid_till),
+      offer_letter_url:       dto.offer_letter_url || null,
+      offer_sent_at:          new Date(),
+      updated_by:             updatedBy ?? null,
+    });
+
+    // Grant portal access if not already done
+    if (!candidate.is_portal_user && candidate.email) {
+      const crypto = await import('crypto');
+      const rawPwd = crypto.randomBytes(6).toString('hex');
+      await candidate.update({
+        portal_password_hash: await hashPassword(rawPwd),
+        is_portal_user:       true,
+      });
+    }
+
+    // Email offer letter
+    if (candidate.email) {
+      const joiningFormatted = new Date(dto.confirmed_joining_date).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' });
+      const validTillFormatted = new Date(dto.offer_valid_till).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' });
+      const ctcFormatted = `₹${(dto.offered_ctc * 12 / 100000).toFixed(2)}L/yr`;
+      await mailer.sendOfferLetter(
+        candidate.email,
+        candidate.candidate_name,
+        candidate.last_company_designation || 'the position',
+        ctcFormatted,
+        joiningFormatted,
+        `${process.env.FRONTEND_URL || 'http://localhost:3000'}/portal/dashboard`,
+        validTillFormatted,
+      );
+    }
+
+    await logActivity({ companyId, userId: updatedBy, action: 'OFFER_SENT', module: 'candidates', entityId: id });
+    return candidate;
+  }
+
+  // ─── Mark as hired & convert to employee ─────────────────────────────────
+  async hireCandidate(
+    id:        number,
+    companyId: number,
+    dto: {
+      department_id?:         number;
+      designation_id?:        number;
+      employment_type?:       string;
+      reporting_manager_id?:  number;
+      date_of_joining?:       string;
+    },
+    createdBy?: number,
+  ) {
+    const candidate = await this.getById(id, companyId);
+
+    // Create employee record from candidate data
+    const employee = await Employee.create({
+      company_id:           companyId,
+      first_name:           candidate.candidate_name.split(' ')[0] || candidate.candidate_name,
+      last_name:            candidate.candidate_name.split(' ').slice(1).join(' ') || '-',
+      email:                candidate.email || `candidate${candidate.id}@placeholder.com`,
+      phone:                candidate.phone_number || null,
+      date_of_birth:        candidate.date_of_birth || null,
+      gender:               (candidate.gender as any) || null,
+      department_id:        dto.department_id    || null,
+      designation_id:       dto.designation_id   || null,
+      employment_type:      (dto.employment_type as any) || 'Full-time',
+      work_location:        'Office' as any,
+      date_of_joining:      dto.date_of_joining
+                              ? new Date(dto.date_of_joining)
+                              : (candidate.confirmed_joining_date || new Date()),
+      reporting_manager_id: dto.reporting_manager_id || null,
+      status:               'On Probation' as any,
+      created_by:           createdBy ?? null,
+    } as any);
+
+    // Mark candidate as hired
+    await candidate.update({
+      status:                'Hired',
+      hired_at:              new Date(),
+      converted_employee_id: employee.id,
+      updated_by:            createdBy ?? null,
+    });
+
+    await logActivity({ companyId, userId: createdBy, action: 'CANDIDATE_HIRED', module: 'candidates', entityId: id, newValues: { employee_id: employee.id } });
+    return { candidate, employee };
+  }
+
+  // ─── Withdraw candidate ───────────────────────────────────────────────────
+  async withdrawCandidate(
+    id:        number,
+    companyId: number,
+    reason:    string,
+    updatedBy?: number,
+  ) {
+    const candidate = await this.getById(id, companyId);
+
+    // Can withdraw from most active stages
+    const terminalStatuses = ['Hired', 'Withdrawn'];
+    if (terminalStatuses.includes(candidate.status))
+      throw new AppError(`Cannot withdraw a ${candidate.status} candidate`, 400);
+
+    await candidate.update({
+      status:            'Withdrawn',
+      withdrawal_reason: reason.trim(),
+      withdrawn_at:      new Date(),
+      updated_by:        updatedBy ?? null,
+    });
+
+    await logActivity({ companyId, userId: updatedBy, action: 'CANDIDATE_WITHDRAWN', module: 'candidates', entityId: id, oldValues: { status: candidate.status }, newValues: { withdrawal_reason: reason } });
+    return candidate;
+  }
+
+  // ─── Send pre-interview form link (after interview accepted) ─────────────
+  async sendPreInterviewForm(id: number, companyId: number, sentBy?: number) {
+    const candidate = await this.getById(id, companyId);
+    if (!candidate.email) throw new AppError('Candidate has no email address', 400);
+
+    const portalUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/portal/dashboard`;
+
+    // Ensure portal access exists
+    if (!candidate.is_portal_user) {
+      const crypto = await import('crypto');
+      const rawPwd = crypto.randomBytes(6).toString('hex');
+      await candidate.update({
+        portal_password_hash: await hashPassword(rawPwd),
+        is_portal_user:       true,
+      });
+    }
+
+    await mailer.sendSystemNotification(
+      candidate.email,
+      'Pre-Interview Form — Action Required',
+      'Complete Your Pre-Interview Form',
+      `Dear ${candidate.candidate_name},<br/><br/>
+      Congratulations on your upcoming interview! To help us prepare, please complete the
+      <strong>Pre-Interview Declaration Form</strong> on the candidate portal before your interview.<br/><br/>
+      This form includes your personal details, experience summary, and a declaration that is
+      required for our onboarding records.`,
+      'Open Candidate Portal →',
+      portalUrl,
+      'blue',
+    );
+
+    await logActivity({ companyId, userId: sentBy, action: 'PRE_INTERVIEW_FORM_SENT', module: 'candidates', entityId: id });
+    return { sent: true };
+  }
+
   // ─── Bulk upload ─────────────────────────────────────────────────────────
   async bulkUpload(rows: BulkCandidateRow[], companyId: number, createdBy?: number): Promise<BulkUploadResult> {
     const result: BulkUploadResult = { total: rows.length, success: 0, failed: 0, errors: [], inserted: [] };
@@ -401,6 +630,7 @@ export class CandidateService {
           location:                 row.location?.toString().trim()       || null,
           total_experience:         row.total_experience != null ? Number(row.total_experience) : null,
           relevant_experience:      row.relevant_experience != null ? Number(row.relevant_experience) : null,
+          skills:                   row.skills ? String(row.skills).split(',').map(s => s.trim()).filter(Boolean) : null,
           current_salary:           row.current_salary != null ? Number(row.current_salary) : null,
           expected_salary:          row.expected_salary != null ? Number(row.expected_salary) : null,
           notice_period:            row.notice_period != null ? Number(row.notice_period) : null,

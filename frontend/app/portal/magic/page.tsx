@@ -2,7 +2,7 @@
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
-import { portalService } from '../../../services/api/candidate.service';
+import { portalService } from '../../../features/candidates/candidate.service';
 
 function MagicVerify() {
   const router = useRouter();

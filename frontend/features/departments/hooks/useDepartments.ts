@@ -82,6 +82,14 @@ export function useDeleteDepartment() {
 
 // ─── Dropdown helper ──────────────────────────────────────────────────────────
 export function useDepartmentOptions() {
-  const { data = [] } = useDepartments();
-  return data.map((d) => ({ value: d.id, label: d.name, code: d.code }));
+  const query = useDepartments();
+
+  return {
+    ...query,
+    data: (query.data || []).map((d) => ({
+      value: d.id,
+      label: d.name,
+      code: d.code
+    }))
+  };
 }
