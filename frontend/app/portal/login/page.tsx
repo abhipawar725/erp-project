@@ -41,10 +41,10 @@ function LoginContent() {
 
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff' }}>NX</div>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff' }}>UNG</div>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>Candidate Portal</div>
-            <div style={{ fontSize: 11, color: 'var(--ink4)' }}>NexHR ERP · Recruitment</div>
+            <div style={{ fontSize: 11, color: 'var(--ink4)' }}>UNG HRMS · Recruitment</div>
           </div>
         </div>
 
@@ -53,10 +53,10 @@ function LoginContent() {
 
         {/* Mode tabs */}
         <div style={{ display: 'flex', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 3, gap: 3, marginBottom: 22 }}>
-          {(['magic','password'] as const).map(m => (
+          {(['magic', 'password'] as const).map(m => (
             <button key={m} type="button" onClick={() => { setMode(m); setError(''); setMagicSent(false); }}
               style={{ flex: 1, padding: '7px 0', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: mode === m ? 'var(--surface)' : 'transparent', color: mode === m ? 'var(--ink)' : 'var(--ink4)', boxShadow: mode === m ? 'var(--sh)' : 'none', fontFamily: 'var(--font)', transition: 'all .1s' }}>
-              {m === 'magic' ? '✉ Magic Link' : '🔑 Password'}
+              {m === 'magic' ? 'Magic Link' : 'Password'}
             </button>
           ))}
         </div>

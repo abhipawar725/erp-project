@@ -1,5 +1,5 @@
-import apiClient from './client';
-import axios from 'axios';
+import apiClient   from '../../services/api/client';
+import axios       from 'axios';
 import type { ApiResponse } from '../../types/api.types';
 import type {
   Candidate, CandidateStats, CreateCandidateDto,
@@ -28,18 +28,18 @@ export const candidateService = {
     apiClient.patch<unknown, ApiResponse<Candidate>>(`/candidates/${id}/status`, { status, remarks }),
 
   scheduleInterview: (id: number, data: {
-    interview_date: string;
-    interview_time: string;
-    interview_type: string;
-    interview_link?: string;
+    interview_date:          string;
+    interview_time:          string;
+    interview_type:          string;
+    interview_link?:         string;
     interview_instructions?: string;
   }) => apiClient.patch<unknown, ApiResponse<Candidate>>(`/candidates/${id}/interview`, data),
 
   handleReschedule: (id: number, decision: 'Approved' | 'Rejected', new_date?: string, new_time?: string) =>
     apiClient.patch<unknown, ApiResponse<Candidate>>(`/candidates/${id}/reschedule-decision`, { decision, new_date, new_time }),
 
-  grantPortalAccess: (id: number, password?: string) =>
-    apiClient.patch<unknown, ApiResponse<{ is_portal_user: boolean; temp_password?: string }>>(`/candidates/${id}/portal-access`, { password }),
+  grantPortalAccess: (id: number, data: { password?: string; send_email?: boolean }) =>
+    apiClient.patch<unknown, ApiResponse<{ is_portal_user: boolean; temp_password: string; email_sent: boolean; is_new_access: boolean }>>(`/candidates/${id}/portal-access`, data),
 
   delete: (id: number) =>
     apiClient.delete<unknown, ApiResponse<null>>(`/candidates/${id}`),
@@ -54,15 +54,22 @@ export const candidateService = {
 
 
   submitInterviewResult: (id: number, data: {
-    interview_result_by: number;
-    interview_result_mode: 'Online' | 'Offline';
-    interview_result_date: string;
+    interview_result_by:        number;
+    interview_result_mode:      'Online' | 'Offline';
+    interview_result_date:      string;
     interview_result_feedback?: string;
-    candidate_decision: 'Select' | 'Reject' | 'On_Hold';
-    decision_reason?: string;
-    decision_joining_date?: string;
+    candidate_decision:         'Select' | 'Reject' | 'On_Hold';
+    decision_reason?:           string;
+    decision_joining_date?:     string;
   }) => apiClient.patch<unknown, ApiResponse<Candidate>>(`/candidates/${id}/interview-result`, data),
 
+
+
+  getPreInterviewForm: (id: number) =>
+    apiClient.get<unknown, ApiResponse<any>>(`/candidates/${id}/form/pre-interview`),
+
+  getPreJoiningForm: (id: number) =>
+    apiClient.get<unknown, ApiResponse<any>>(`/candidates/${id}/form/pre-joining`),
 
   sendOffer: (id: number, data: {
     offered_ctc: number;
@@ -140,11 +147,12 @@ export const portalService = {
       { token, company_id: company_id || 1 },
     ),
 
+
   getCompanyInfo: () =>
     portalClient.get<unknown, ApiResponse<{ name: string; logo_url: string | null; address: string | null }>>(
       '/candidates/portal/company-info',
     ),
- 
+
   getProfile: () =>
     portalClient.get<unknown, ApiResponse<Candidate>>('/candidates/portal/profile'),
 
@@ -159,6 +167,7 @@ export const portalService = {
       '/candidates/portal/reschedule',
       { reason, proposed_date, proposed_time },
     ),
+
 
   savePreJoining: (form_data: Record<string, unknown>, is_draft: boolean) =>
     portalClient.post<unknown, ApiResponse<any>>(

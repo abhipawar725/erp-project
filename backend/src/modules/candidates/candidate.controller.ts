@@ -9,6 +9,8 @@ import { Candidate } from '../../database/models/Candidate';
 import { hashPassword } from '../../utils/hash';
 import { sendResponse, sendPaginated, sendError } from '../../utils/response';
 import { env } from '../../config/env';
+import { mailer } from '@/utils/mailer';
+import { ActivityLog } from '@/database/models';
 
 const MAX_ROWS = 5000;
 const REQUIRED_HEADERS = ['candidate_name'];
@@ -416,24 +418,48 @@ export async function handleReschedule(req: Request, res: Response, next: NextFu
 
 export async function grantPortalAccess(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { password } = req.body;
-    // Generate a random password if none provided
-    const rawPassword = password || crypto.randomBytes(6).toString('hex');
-    const hash = await hashPassword(rawPassword);
+    const { password, send_email = true } = req.body;
 
     const candidate = await Candidate.findOne({
       where: { id: parseInt(req.params.id, 10), company_id: req.user!.companyId },
     });
     if (!candidate) { sendError(res, 'Candidate not found', 404); return; }
 
+    // Generate or use provided password
+    const rawPassword = password || crypto.randomBytes(6).toString('hex');
+    const hash        = await hashPassword(rawPassword);
+
+    const isNewUser = !candidate.is_portal_user;
     await candidate.update({ portal_password_hash: hash, is_portal_user: true });
+
+    // Send portal welcome / credentials email
+    if (send_email && candidate.email) {
+      const portalUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/portal/login`;
+      try {
+        await mailer.sendPortalCredentials(
+          candidate.email,
+          candidate.candidate_name,
+          candidate.email,
+          rawPassword,
+          portalUrl,
+          isNewUser,
+        );
+      } catch (mailErr) {
+        // Email failure should not block the API response
+        console.error('Portal credentials email failed:', mailErr);
+      }
+    }
+
     sendResponse(res, {
       data: {
-        is_portal_user: true,
-        // Return generated password in dev so HR can share it
-        ...(env.nodeEnv === 'development' && !password ? { temp_password: rawPassword } : {}),
+        is_portal_user:  true,
+        email_sent:      !!(send_email && candidate.email),
+        temp_password:   rawPassword,   // always return so HR can share manually if needed
+        is_new_access:   isNewUser,
       },
-      message: 'Portal access granted',
+      message: isNewUser
+        ? `Portal access granted${candidate.email ? ' — credentials emailed to candidate' : ' — no email on file'}`
+        : `Portal password reset${candidate.email ? ' — new credentials emailed' : ''}`,
     });
   } catch (e) { next(e); }
 }
@@ -580,11 +606,34 @@ export async function portalSavePreJoining(req: Request, res: Response, next: Ne
   } catch (e) { next(e); }
 }
 
-export async function portalSavePrejoin(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function portalSavePreinterview(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { candidateId, companyId } = (req as any).portalCandidate;
     const isDraft = req.body.is_draft !== false;
-    const data = await candidateService.savePrejoinForm(candidateId, companyId, req.body.form_data, isDraft);
+    const data = await candidateService.savePreInterviewForm(candidateId, companyId, req.body.form_data, isDraft);
     sendResponse(res, { data, message: isDraft ? 'Draft saved successfully' : 'Pre-joining form submitted successfully' });
+  } catch (e) { next(e); }
+}
+
+
+// ─── HR: View pre-interview form ──────────────────────────────────────────────
+export async function getPreInterviewForm(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const data = await candidateService.getPreInterviewForm(
+      parseInt(req.params.id, 10),
+      req.user!.companyId,
+    );
+    sendResponse(res, { data, message: 'Pre-interview form fetched' });
+  } catch (e) { next(e); }
+}
+
+// ─── HR: View pre-joining form ────────────────────────────────────────────────
+export async function getPreJoiningForm(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const data = await candidateService.getPreJoiningForm(
+      parseInt(req.params.id, 10),
+      req.user!.companyId,
+    );
+    sendResponse(res, { data, message: 'Pre-joining form fetched' });
   } catch (e) { next(e); }
 }

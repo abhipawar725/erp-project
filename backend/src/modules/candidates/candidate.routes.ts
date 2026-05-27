@@ -11,9 +11,10 @@ import {
   deleteCandidate, uploadResume, bulkUploadCandidates,
   scheduleInterview, handleReschedule, grantPortalAccess, submitInterviewResult,
   sendOffer, hireCandidate, withdrawCandidate, sendPreInterviewForm, sendAptitudeTestLink,
+  getPreInterviewForm, getPreJoiningForm,
   portalLogin, portalMagicLink, portalVerifyMagic,
   portalAuthenticate, portalGetProfile, portalGetCompanyInfo, portalSavePreJoining,
-  portalRespondInterview, portalRequestReschedule, portalSavePrejoin,
+  portalRespondInterview, portalRequestReschedule, portalSavePreinterview,
 } from './candidate.controller';
 import {
   listCandidateValidation, createCandidateValidation,
@@ -102,6 +103,8 @@ router.patch('/:id/hire',                 authenticate, hireCandidateValidation,
 router.patch('/:id/withdraw',             authenticate, withdrawValidation,        validate, withdrawCandidate);
 router.post('/:id/send-pre-interview',    authenticate, idValidation,             validate, sendPreInterviewForm);
 router.post('/:id/send-aptitude-test',     authenticate, idValidation,             validate, sendAptitudeTestLink);
+router.get('/:id/form/pre-interview',       authenticate, idValidation,             validate, getPreInterviewForm);
+router.get('/:id/form/pre-joining',         authenticate, idValidation,             validate, getPreJoiningForm);
 
 // ─── Candidate portal routes (portal JWT) ────────────────────────────────────
 router.post('/portal/login',        portalLoginValidation, validate, portalLogin);
@@ -112,7 +115,7 @@ router.get('/portal/company-info',   portalAuthenticate, portalGetCompanyInfo);
 router.post('/portal/interview-response', portalAuthenticate, portalRespondInterview);
 router.post('/portal/reschedule',         portalAuthenticate, rescheduleValidation, validate, portalRequestReschedule);
 router.post('/portal/reschedule',         portalAuthenticate, rescheduleValidation, validate, portalRequestReschedule);
-router.post('/portal/prejoin',            portalAuthenticate, portalSavePrejoin);
+router.post('/portal/preinterview',            portalAuthenticate, portalSavePreinterview);
 router.post('/portal/prejoining',         portalAuthenticate, portalSavePreJoining);
 
 export default router;

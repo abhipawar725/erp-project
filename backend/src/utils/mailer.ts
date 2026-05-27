@@ -22,6 +22,8 @@ export interface MailOptions {
   }>;
 }
 
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Transporter singleton
 // ─────────────────────────────────────────────────────────────────────────────
@@ -32,8 +34,8 @@ function getTransporter(): Transporter {
   if (_transporter) return _transporter;
 
   _transporter = nodemailer.createTransport({
-    host:   env.smtp.host,
-    port:   env.smtp.port,
+    host: env.smtp.host,
+    port: env.smtp.port,
     secure: env.smtp.port === 465,   // true for port 465, STARTTLS for 587
     auth: {
       user: env.smtp.user,
@@ -42,11 +44,11 @@ function getTransporter(): Transporter {
     // Keep connection alive for batched sends
     pool: true,
     maxConnections: 5,
-    maxMessages:    100,
+    maxMessages: 100,
     // Timeout settings
     connectionTimeout: 10_000,
-    greetingTimeout:   5_000,
-    socketTimeout:     30_000,
+    greetingTimeout: 5_000,
+    socketTimeout: 30_000,
   });
 
   return _transporter;
@@ -97,13 +99,13 @@ export async function sendMail(options: MailOptions): Promise<SentMessageInfo | 
   const attempt = async (): Promise<SentMessageInfo> =>
     getTransporter().sendMail({
       from,
-      to:          options.to,
-      cc:          options.cc,
-      bcc:         options.bcc,
-      replyTo:     options.replyTo,
-      subject:     options.subject,
-      html:        options.html,
-      text:        options.text ?? htmlToText(options.html),
+      to: options.to,
+      cc: options.cc,
+      bcc: options.bcc,
+      replyTo: options.replyTo,
+      subject: options.subject,
+      html: options.html,
+      text: options.text ?? htmlToText(options.html),
       attachments: options.attachments,
     });
 
@@ -136,7 +138,7 @@ function emailShell(content: string, previewText = ''): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NexHR ERP</title>
+  <title>UNG HRMS ERP</title>
   <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
 </head>
 <body style="margin:0;padding:0;background:#f5f6f8;font-family:'DM Sans',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
@@ -151,10 +153,10 @@ function emailShell(content: string, previewText = ''): string {
             <table cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td style="width:36px;height:36px;background:#1e56d9;border-radius:9px;text-align:center;vertical-align:middle;">
-                  <span style="color:#fff;font-size:13px;font-weight:700;line-height:36px;">NX</span>
+                  <span style="color:#fff;font-size:13px;font-weight:700;line-height:36px;">UNG</span>
                 </td>
                 <td style="padding-left:10px;vertical-align:middle;">
-                  <span style="font-size:15px;font-weight:700;color:#0f1623;letter-spacing:-0.3px;">NexHR ERP</span>
+                  <span style="font-size:15px;font-weight:700;color:#0f1623;letter-spacing:-0.3px;">UNG HRMS ERP</span>
                 </td>
               </tr>
             </table>
@@ -171,8 +173,8 @@ function emailShell(content: string, previewText = ''): string {
         <!-- Footer -->
         <tr>
           <td style="padding:20px 0 0 0;text-align:center;font-size:11px;color:#94a3b8;line-height:1.6;">
-            © ${new Date().getFullYear()} NexHR ERP · Enterprise Human Resource Management
-            <br/>This email was sent by the NexHR system. Please do not reply to this email.
+            © ${new Date().getFullYear()} UNG HRMS ERP · Enterprise Human Resource Management
+            <br/>This email was sent by the UNG HRMS system. Please do not reply to this email.
           </td>
         </tr>
 
@@ -202,10 +204,10 @@ function kvRow(label: string, value: string): string {
 /** Info box (amber/blue/green/red) */
 function infoBox(text: string, color: 'blue' | 'amber' | 'green' | 'red' = 'blue'): string {
   const map = {
-    blue:  { bg: '#eef3fd', border: '#c7d9fb', text: '#1e56d9' },
+    blue: { bg: '#eef3fd', border: '#c7d9fb', text: '#1e56d9' },
     amber: { bg: '#fff8ed', border: '#fcd59f', text: '#c96f00' },
     green: { bg: '#ecfdf5', border: '#99f0d2', text: '#0d9669' },
-    red:   { bg: '#fef2f2', border: '#fcc5c5', text: '#cc2a2a' },
+    red: { bg: '#fef2f2', border: '#fcc5c5', text: '#cc2a2a' },
   };
   const c = map[color];
   return `<div style="background:${c.bg};border:1px solid ${c.border};border-radius:8px;padding:12px 14px;font-size:12px;color:${c.text};margin:16px 0;">${text}</div>`;
@@ -237,11 +239,11 @@ export const mailer = {
   sendPasswordReset: (to: string, rawToken: string) =>
     sendMail({
       to,
-      subject: 'Reset your NexHR password',
+      subject: 'Reset your UNG HRMS password',
       html: emailShell(`
         <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f1623;letter-spacing:-0.3px;">Reset your password</h2>
         <p style="margin:0 0 20px;font-size:13px;color:#64748b;line-height:1.6;">
-          We received a request to reset the password for your NexHR account.
+          We received a request to reset the password for your UNG HRMS account.
           Click the button below — this link expires in <strong>1 hour</strong>.
         </p>
         ${btn(`${frontendUrl}/reset-password?token=${rawToken}`, 'Reset Password')}
@@ -250,7 +252,7 @@ export const mailer = {
           If you didn't request a password reset, you can safely ignore this email.
           Your password will not change.
         </p>
-      `, 'Reset your NexHR account password'),
+      `, 'Reset your UNG HRMS account password'),
     }),
 
   /**
@@ -259,14 +261,14 @@ export const mailer = {
   sendPasswordChanged: (to: string, name: string) =>
     sendMail({
       to,
-      subject: 'Your NexHR password was changed',
+      subject: 'Your UNG HRMS password was changed',
       html: emailShell(`
         <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f1623;">Password changed</h2>
         <p style="font-size:13px;color:#64748b;margin:0 0 16px;line-height:1.6;">
-          Hi ${name},<br/>Your NexHR account password was successfully changed.
+          Hi ${name},<br/>Your UNG HRMS account password was successfully changed.
         </p>
         ${infoBox('If you did not make this change, please contact your HR administrator immediately and reset your password.', 'amber')}
-        ${btn(`${frontendUrl}/login`, 'Sign in to NexHR')}
+        ${btn(`${frontendUrl}/login`, 'Sign in to UNG HRMS')}
       `, 'Your password was changed'),
     }),
 
@@ -278,11 +280,11 @@ export const mailer = {
   sendWelcome: (to: string, name: string, tempPassword: string) =>
     sendMail({
       to,
-      subject: `Welcome to NexHR ERP, ${name.split(' ')[0]}!`,
+      subject: `Welcome to UNG HRMS ERP, ${name.split(' ')[0]}!`,
       html: emailShell(`
         <h2 style="margin:0 0 4px;font-size:22px;font-weight:700;color:#0f1623;">Welcome, ${name}! 👋</h2>
         <p style="font-size:13px;color:#64748b;margin:0 0 24px;line-height:1.6;">
-          Your NexHR ERP account has been set up. Use the credentials below to log in.
+          Your UNG HRMS ERP account has been set up. Use the credentials below to log in.
         </p>
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;border-radius:8px;padding:16px;margin-bottom:20px;">
           <tbody>
@@ -291,12 +293,12 @@ export const mailer = {
           </tbody>
         </table>
         ${infoBox('Please log in and change your temporary password immediately.', 'amber')}
-        ${btn(`${frontendUrl}/login`, 'Log in to NexHR')}
+        ${btn(`${frontendUrl}/login`, 'Log in to UNG HRMS')}
         ${divider}
         <p style="font-size:11px;color:#94a3b8;">
           If you have any trouble signing in, contact your HR team.
         </p>
-      `, `Your NexHR ERP account is ready`),
+      `, `Your UNG HRMS ERP account is ready`),
     }),
 
   /**
@@ -304,8 +306,8 @@ export const mailer = {
    */
   sendOnboardingComplete: (to: string, hrEmail: string, employeeName: string, joinDate: string) =>
     sendMail({
-      to:      hrEmail,
-      cc:      to,
+      to: hrEmail,
+      cc: to,
       subject: `Onboarding complete — ${employeeName}`,
       html: emailShell(`
         <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0d9669;">Onboarding complete ✓</h2>
@@ -340,10 +342,10 @@ export const mailer = {
         </p>
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;border-radius:8px;padding:16px;margin-bottom:20px;">
           <tbody>
-            ${kvRow('Leave type',   leaveType)}
-            ${kvRow('From',         fromDate)}
-            ${kvRow('To',           toDate)}
-            ${kvRow('Total days',   `${days} day${days !== 1 ? 's' : ''}`)}
+            ${kvRow('Leave type', leaveType)}
+            ${kvRow('From', fromDate)}
+            ${kvRow('To', toDate)}
+            ${kvRow('Total days', `${days} day${days !== 1 ? 's' : ''}`)}
             ${reason ? kvRow('Reason', reason) : ''}
           </tbody>
         </table>
@@ -378,10 +380,10 @@ export const mailer = {
         </p>
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;border-radius:8px;padding:16px;margin-bottom:20px;">
           <tbody>
-            ${kvRow('Leave type',   leaveType)}
-            ${kvRow('Period',       `${fromDate} – ${toDate}`)}
-            ${kvRow('Total days',   `${days} day${days !== 1 ? 's' : ''}`)}
-            ${kvRow('Status',       status)}
+            ${kvRow('Leave type', leaveType)}
+            ${kvRow('Period', `${fromDate} – ${toDate}`)}
+            ${kvRow('Total days', `${days} day${days !== 1 ? 's' : ''}`)}
+            ${kvRow('Status', status)}
           </tbody>
         </table>
         ${!isApproved && rejectionReason ? infoBox(`Reason: ${rejectionReason}`, 'red') : ''}
@@ -417,9 +419,9 @@ export const mailer = {
         </p>
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;border-radius:8px;padding:16px;margin-bottom:20px;">
           <tbody>
-            ${kvRow('Pay period',  `${month} ${year}`)}
-            ${kvRow('Net pay',     `<strong style="color:#0d9669;font-size:15px;">${netPay}</strong>`)}
-            ${kvRow('Status',      '<span style="color:#0d9669;font-weight:600;">Disbursed</span>')}
+            ${kvRow('Pay period', `${month} ${year}`)}
+            ${kvRow('Net pay', `<strong style="color:#0d9669;font-size:15px;">${netPay}</strong>`)}
+            ${kvRow('Status', '<span style="color:#0d9669;font-weight:600;">Disbursed</span>')}
           </tbody>
         </table>
         ${btn(payslipUrl ?? `${frontendUrl}/payroll/payslips`, 'Download Payslip')}
@@ -452,11 +454,11 @@ export const mailer = {
         </p>
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;border-radius:8px;padding:16px;margin-bottom:20px;">
           <tbody>
-            ${kvRow('Pay period',       `${month} ${year}`)}
-            ${kvRow('Employees',        `${employeeCount}`)}
-            ${kvRow('Total gross',      totalGross)}
-            ${kvRow('Total net pay',    totalNet)}
-            ${kvRow('Submitted by',     submittedBy)}
+            ${kvRow('Pay period', `${month} ${year}`)}
+            ${kvRow('Employees', `${employeeCount}`)}
+            ${kvRow('Total gross', totalGross)}
+            ${kvRow('Total net pay', totalNet)}
+            ${kvRow('Submitted by', submittedBy)}
           </tbody>
         </table>
         ${btn(`${frontendUrl}/payroll/runs`, 'Review & Approve', '#c96f00')}
@@ -490,10 +492,10 @@ export const mailer = {
         </p>
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;border-radius:8px;padding:16px;margin-bottom:20px;">
           <tbody>
-            ${kvRow('Round',          `Round ${round} — ${interviewType}`)}
-            ${kvRow('Date & time',    scheduledAt)}
-            ${kvRow('Duration',       `${durationMins} minutes`)}
-            ${kvRow('Interviewer',    interviewerName)}
+            ${kvRow('Round', `Round ${round} — ${interviewType}`)}
+            ${kvRow('Date & time', scheduledAt)}
+            ${kvRow('Duration', `${durationMins} minutes`)}
+            ${kvRow('Interviewer', interviewerName)}
             ${meetLink ? kvRow('Meeting link', `<a href="${meetLink}" style="color:#1e56d9;">${meetLink}</a>`) : ''}
           </tbody>
         </table>
@@ -525,9 +527,9 @@ export const mailer = {
         </p>
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;border-radius:8px;padding:16px;margin-bottom:20px;">
           <tbody>
-            ${kvRow('Position',         jobTitle)}
-            ${kvRow('Offered CTC',      `<strong style="color:#0d9669;">${offeredCtc}</strong>`)}
-            ${kvRow('Joining date',     joiningDate)}
+            ${kvRow('Position', jobTitle)}
+            ${kvRow('Offered CTC', `<strong style="color:#0d9669;">${offeredCtc}</strong>`)}
+            ${kvRow('Joining date', joiningDate)}
             ${kvRow('Offer valid till', validTill)}
           </tbody>
         </table>
@@ -575,12 +577,12 @@ export const mailer = {
             Happy Birthday, ${employeeName.split(' ')[0]}!
           </h2>
           <p style="font-size:13px;color:#64748b;line-height:1.7;margin:0 0 24px;">
-            The entire NexHR family wishes you a wonderful birthday.<br/>
+            The entire UNG HRMS family wishes you a wonderful birthday.<br/>
             Here's to another great year ahead!
           </p>
           <div style="font-size:28px;">🎉 🎊 🎈</div>
         </div>
-      `, `Happy Birthday from NexHR!`),
+      `, `Happy Birthday from UNG HRMS!`),
     }),
 
   /**
@@ -589,8 +591,8 @@ export const mailer = {
   sendWorkAnniversary: (to: string, employeeName: string, years: number, hrEmail: string) =>
     sendMail({
       to,
-      cc:      hrEmail,
-      subject: `${years} year${years !== 1 ? 's' : ''} at NexHR — Thank you, ${employeeName.split(' ')[0]}!`,
+      cc: hrEmail,
+      subject: `${years} year${years !== 1 ? 's' : ''} at UNG HRMS — Thank you, ${employeeName.split(' ')[0]}!`,
       html: emailShell(`
         <div style="text-align:center;padding:8px 0 16px;">
           <div style="font-size:44px;margin-bottom:12px;">🏆</div>
@@ -610,6 +612,62 @@ export const mailer = {
   /**
    * Generic system notification — used for app alerts, reminders, etc.
    */
+
+  sendPortalCredentials: async (
+    to: string,
+    candidateName: string,
+    loginEmail: string,
+    password: string,
+    portalUrl: string,
+    isNewAccess: boolean,
+  ) => {
+    const subject = isNewAccess
+      ? 'Your Candidate Portal Access — Login Credentials'
+      : 'Your Candidate Portal — Password Updated';
+
+    const body = isNewAccess
+      ? `<h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f1623;">Candidate Portal Access 🎉</h2>
+<p style="font-size:13px;color:#64748b;margin:0 0 16px;line-height:1.6;">
+  Dear ${candidateName},<br/>
+  You have been granted access to the HR candidate portal. Use the credentials below to log in.
+</p>`
+      : `<h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f1623;">Portal Password Updated 🔑</h2>
+<p style="font-size:13px;color:#64748b;margin:0 0 16px;line-height:1.6;">
+  Dear ${candidateName},<br/>
+  Your candidate portal password has been updated. Use the credentials below to log in.
+</p>`;
+
+    const html = emailShell(
+      subject,
+      `${body}
+<table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:20px;">
+  <tr>
+    <td style="padding:8px 0;font-size:12px;color:#64748b;width:45%;">Portal URL</td>
+    <td style="padding:8px 0;font-size:12px;"><a href="${portalUrl}" style="color:#1e56d9;font-weight:600;">${portalUrl}</a></td>
+  </tr>
+  <tr>
+    <td style="padding:8px 0;font-size:12px;color:#64748b;border-top:1px solid #e2e8f0;">Email / Username</td>
+    <td style="padding:8px 0;font-size:12px;font-weight:600;border-top:1px solid #e2e8f0;">${loginEmail}</td>
+  </tr>
+  <tr>
+    <td style="padding:8px 0;font-size:12px;color:#64748b;border-top:1px solid #e2e8f0;">Password</td>
+    <td style="padding:8px 0;border-top:1px solid #e2e8f0;"><code style="background:#e0e7ff;color:#3730a3;padding:4px 10px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:1px;">${password}</code></td>
+  </tr>
+</table>
+<a href="${portalUrl}" style="display:inline-block;background:#1e56d9;color:#fff;text-decoration:none;padding:11px 24px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:16px;">
+  Log in to Portal →
+</a>
+<p style="font-size:11px;color:#94a3b8;line-height:1.6;margin:0;">
+  For security, please change your password after first login. Keep your credentials confidential.
+  If you did not expect this email, please contact HR.
+</p>`,
+    );
+
+    return sendMail({ to, subject, html });
+  },
+
+
+
   sendSystemNotification: (
     to: string | string[],
     subject: string,
@@ -634,7 +692,7 @@ export const mailer = {
   sendPortalMagicLink: (to: string, candidateName: string, magicUrl: string) =>
     sendMail({
       to,
-      subject: 'Your NexHR Candidate Portal Login Link',
+      subject: 'Your UNG HRMS Candidate Portal Login Link',
       html: emailShell(`
         <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f1623;">Login to your Candidate Portal</h2>
         <p style="font-size:13px;color:#64748b;margin:0 0 20px;line-height:1.6;">
@@ -662,7 +720,7 @@ export const mailer = {
   ) =>
     sendMail({
       to,
-      subject: `Interview reschedule ${decision.toLowerCase()} — NexHR`,
+      subject: `Interview reschedule ${decision.toLowerCase()} — UNG HRMS`,
       html: emailShell(`
         <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:${decision === 'Approved' ? '#0d9669' : '#cc2a2a'};">
           Reschedule ${decision} ${decision === 'Approved' ? '✓' : '✗'}
@@ -704,8 +762,8 @@ export const mailer = {
         </p>
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;border-radius:8px;padding:16px;margin-bottom:20px;">
           <tbody>
-            ${kvRow('Candidate',       candidateName)}
-            ${kvRow('Reason',          reason)}
+            ${kvRow('Candidate', candidateName)}
+            ${kvRow('Reason', reason)}
             ${proposedDate ? kvRow('Proposed date', proposedDate) : ''}
             ${proposedTime ? kvRow('Proposed time', proposedTime) : ''}
           </tbody>
@@ -726,7 +784,7 @@ export const mailer = {
   ) =>
     sendMail({
       to,
-      subject: `You have been assigned an aptitude test — NexHR`,
+      subject: `You have been assigned an aptitude test — UNG HRMS`,
       html: emailShell(`
         <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f1623;">Aptitude Test Assigned 🧠</h2>
         <p style="font-size:13px;color:#64748b;margin:0 0 20px;line-height:1.6;">

@@ -90,7 +90,7 @@ apiClient.interceptors.response.use(
           { withCredentials: true }
         );
 
-        const newToken = response.data?.accessToken;
+        const newToken = response.data?.data?.accessToken;
 
         if (!newToken) throw new Error("No token from refresh");
 

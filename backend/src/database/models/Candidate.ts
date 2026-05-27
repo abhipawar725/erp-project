@@ -14,125 +14,122 @@ export type InterviewType = 'Online' | 'Offline' | 'Phone';
 export type RescheduleStatus = 'Pending' | 'Approved' | 'Rejected';
 
 export interface CandidateAttributes {
-  id:                       number;
-  company_id:               number;
-  job_id?:                  number | null;
+  id: number;
+  company_id: number;
+  job_id?: number | null;
 
   // ── Personal ──────────────────────────────────────────────────────────────
-  candidate_name:           string;
-  email?:                   string | null;
-  phone_number?:            string | null;
-  gender?:                  CandidateGender | null;
-  date_of_birth?:           Date | null;
+  candidate_name: string;
+  email?: string | null;
+  phone_number?: string | null;
+  gender?: CandidateGender | null;
+  date_of_birth?: Date | null;
 
   // ── Professional ──────────────────────────────────────────────────────────
-  current_company_name?:    string | null;
+  current_company_name?: string | null;
   current_company_designation?: string | null;
-  qualification?:           string | null;
-  location?:                string | null;
-  total_experience?:        number | null;
-  relevant_experience?:     number | null;
-  apply_department?:        string | null;
-  apply_designation?:       string | null;
+  qualification?: string | null;
+  location?: string | null;
+  total_experience?: number | null;
+  relevant_experience?: number | null;
+  apply_department?: string | null;
+  apply_designation?: string | null;
 
   // ── Compensation ──────────────────────────────────────────────────────────
-  current_salary?:          number | null;
-  expected_salary?:         number | null;
+  current_salary?: number | null;
+  expected_salary?: number | null;
 
   // ── Availability ──────────────────────────────────────────────────────────
-  notice_period?:           number | null;
-  immediate_joiner?:        boolean;
-  expected_joining_date?:   Date | null;
-  own_vehicle?:             boolean;
+  notice_period?: number | null;
+  immediate_joiner?: boolean;
+  expected_joining_date?: Date | null;
+  own_vehicle?: boolean;
 
   // ── Sourcing ──────────────────────────────────────────────────────────────
-  source?:                  CandidateSource | null;
-  reference_source?:        string | null;
-  remarks?:                 string | null;
+  source?: CandidateSource | null;
+  reference_source?: string | null;
+  remarks?: string | null;
 
   // ── Resume ────────────────────────────────────────────────────────────────
-  resume_url?:              string | null;
+  resume_url?: string | null;
 
   // ── ATS Status ────────────────────────────────────────────────────────────
-  status:                   CandidateStatus;
+  status: CandidateStatus;
 
   // ── Interview ─────────────────────────────────────────────────────────────
-  interview_date?:          Date | null;
-  interview_time?:          string | null;         // HH:MM
-  interview_type?:          InterviewType | null;
-  interview_link?:          string | null;
-  interview_instructions?:  string | null;
-  interview_accepted?:      boolean | null;         // null=pending, true=accepted, false=rejected
-  interview_response_at?:   Date | null;
+  interview_date?: Date | null;
+  interview_time?: string | null;         // HH:MM
+  interview_type?: InterviewType | null;
+  interview_link?: string | null;
+  interview_instructions?: string | null;
+  interview_accepted?: boolean | null;         // null=pending, true=accepted, false=rejected
+  interview_response_at?: Date | null;
 
   // ── Interview Result ──────────────────────────────────────────────────────
-  interview_result_by?:       number | null;       // employee_id
-  interview_result_mode?:     'Online' | 'Offline' | null;
-  interview_result_date?:     Date | null;
+  interview_result_by?: number | null;       // employee_id
+  interview_result_mode?: 'Online' | 'Offline' | null;
+  interview_result_date?: Date | null;
   interview_result_feedback?: string | null;
-  candidate_decision?:        'Select' | 'Reject' | 'On_Hold' | null;
-  decision_reason?:           string | null;
-  decision_joining_date?:     Date | null;
+  candidate_decision?: 'Select' | 'Reject' | 'On_Hold' | null;
+  decision_reason?: string | null;
+  decision_joining_date?: Date | null;
 
   // ── Reschedule ────────────────────────────────────────────────────────────
-  reschedule_requested?:    boolean;
-  reschedule_reason?:       string | null;
-  reschedule_status?:       RescheduleStatus | null;
+  reschedule_requested?: boolean;
+  reschedule_reason?: string | null;
+  reschedule_status?: RescheduleStatus | null;
   reschedule_proposed_date?: Date | null;
   reschedule_proposed_time?: string | null;
 
-
   // ── Offer / Hire ──────────────────────────────────────────────────────────
-  offered_ctc?:             number | null;
-  offer_letter_url?:        string | null;
-  offer_sent_at?:           Date | null;
-  offer_accepted?:          boolean | null;
-  offer_valid_till?:        Date | null;
-  confirmed_joining_date?:  Date | null;
-  hired_at?:                Date | null;
-  converted_employee_id?:   number | null;   // FK after convert-to-employee
+  offered_ctc?: number | null;
+  offer_letter_url?: string | null;
+  offer_sent_at?: Date | null;
+  offer_accepted?: boolean | null;
+  offer_valid_till?: Date | null;
+  confirmed_joining_date?: Date | null;
+  hired_at?: Date | null;
+  converted_employee_id?: number | null;   // FK after convert-to-employee
 
   // ── Withdrawal ────────────────────────────────────────────────────────────
-  withdrawal_reason?:       string | null;
-  withdrawn_at?:            Date | null;
+  withdrawal_reason?: string | null;
+  withdrawn_at?: Date | null;
 
   // ── Portal auth ───────────────────────────────────────────────────────────
-  portal_password_hash?:    string | null;
-  portal_access_token?:     string | null;       // magic link token
-  portal_token_expires?:    Date | null;
-  is_portal_user?:          boolean;
-  portal_last_login?:       Date | null;
+  portal_password_hash?: string | null;
+  portal_access_token?: string | null;       // magic link token
+  portal_token_expires?: Date | null;
+  is_portal_user?: boolean;
+  portal_last_login?: Date | null;
 
-// ── Pre-interview form ──────────────────────────────────────────────────────
-  preinterview_form_data?:        Record<string, unknown> | null;
-  preinterview_form_status?:     'Not_Started' | 'Draft' | 'Submitted' | null;
-  preinterview_submitted_at?:    Date | null;
+  // ── Pre-interview form ──────────────────────────────────────────────────────
+  preinterview_form_data?: Record<string, unknown> | null;
+  preinterview_form_status?: 'Not_Started' | 'Draft' | 'Submitted' | null;
+  preinterview_submitted_at?: Date | null;
+  pre_interview_form_sent?: boolean;      // HR clicked "Send Pre-Interview Form"
+  pre_interview_form_sent_at?: Date | null;
 
   // ── Pre-joining form ──────────────────────────────────────────────────────
-  prejoining_form_data?:     Record<string, unknown> | null;
-  prejoining_form_status?:   'Not_Started' | 'Draft' | 'Submitted' | null;
-  prejoining_submitted_at?:  Date | null;
-
-  // ── Sent tracking ─────────────────────────────────────────────────────────
-  aptitude_test_sent?:         boolean;      // HR clicked "Send Aptitude Test"
-  aptitude_test_sent_at?:      Date | null;
-  pre_interview_form_sent?:    boolean;      // HR clicked "Send Pre-Interview Form"
-  pre_interview_form_sent_at?: Date | null;
-  pre_joining_form_sent?:      boolean;      // automatically true when offer is sent
-  pre_joining_form_sent_at?:   Date | null;
+  prejoining_form_data?: Record<string, unknown> | null;
+  prejoining_form_status?: 'Not_Started' | 'Draft' | 'Submitted' | null;
+  prejoining_submitted_at?: Date | null;
+  pre_joining_form_sent?: boolean;      // automatically true when offer is sent
+  pre_joining_form_sent_at?: Date | null;
 
   // ── Aptitude test ─────────────────────────────────────────────────────────
-  aptitude_score?:          number | null;
-  aptitude_attempted_at?:   Date | null;
-  aptitude_time_taken?:     number | null;       // seconds
+  aptitude_score?: number | null;
+  aptitude_attempted_at?: Date | null;
+  aptitude_time_taken?: number | null;       // seconds
+  aptitude_test_sent?: boolean;      // HR clicked "Send Aptitude Test"
+  aptitude_test_sent_at?: Date | null;
 
   // ── Audit ─────────────────────────────────────────────────────────────────
-  created_by?:              number | null;
-  updated_by?:              number | null;
-  deleted_by?:              number | null;
-  created_at?:              Date;
-  updated_at?:              Date;
-  deleted_at?:              Date | null;
+  created_by?: number | null;
+  updated_by?: number | null;
+  deleted_by?: number | null;
+  created_at?: Date;
+  updated_at?: Date;
+  deleted_at?: Date | null;
 }
 
 type CandidateCreationAttributes = Optional<
@@ -142,213 +139,211 @@ type CandidateCreationAttributes = Optional<
 
 export class Candidate
   extends Model<CandidateAttributes, CandidateCreationAttributes>
-  implements CandidateAttributes
-{
-  public id!:                       number;
-  public company_id!:               number;
-  public job_id!:                   number | null;
-  public candidate_name!:           string;
-  public email!:                    string | null;
-  public phone_number!:             string | null;
-  public gender!:                   CandidateGender | null;
-  public date_of_birth!:            Date | null;
-  public current_company_name!:     string | null;
+  implements CandidateAttributes {
+  public id!: number;
+  public company_id!: number;
+  public job_id!: number | null;
+  public candidate_name!: string;
+  public email!: string | null;
+  public phone_number!: string | null;
+  public gender!: CandidateGender | null;
+  public date_of_birth!: Date | null;
+  public current_company_name!: string | null;
   public current_company_designation!: string | null;
-  public qualification!:            string | null;
-  public location!:                 string | null;
-  public total_experience!:         number | null;
-  public relevant_experience!:      number | null;
-  public apply_department!:         string | null;
-  public apply_designation!:        string | null;
-  public current_salary!:           number | null;
-  public expected_salary!:          number | null;
-  public notice_period!:            number | null;
-  public immediate_joiner!:         boolean;
-  public expected_joining_date!:    Date | null;
-  public own_vehicle!:              boolean;
-  public source!:                   CandidateSource | null;
-  public reference_source!:         string | null;
-  public remarks!:                  string | null;
-  public resume_url!:               string | null;
-  public status!:                   CandidateStatus;
-  public interview_date!:           Date | null;
-  public interview_time!:           string | null;
-  public interview_type!:           InterviewType | null;
-  public interview_link!:           string | null;
-  public interview_instructions!:   string | null;
-  public interview_accepted!:       boolean | null;
-  public interview_response_at!:    Date | null;
-  public interview_result_by!:       number | null;
-  public interview_result_mode!:     'Online' | 'Offline' | null;
-  public interview_result_date!:     Date | null;
+  public qualification!: string | null;
+  public location!: string | null;
+  public total_experience!: number | null;
+  public relevant_experience!: number | null;
+  public apply_department!: string | null;
+  public apply_designation!: string | null;
+  public current_salary!: number | null;
+  public expected_salary!: number | null;
+  public notice_period!: number | null;
+  public immediate_joiner!: boolean;
+  public expected_joining_date!: Date | null;
+  public own_vehicle!: boolean;
+  public source!: CandidateSource | null;
+  public reference_source!: string | null;
+  public remarks!: string | null;
+  public resume_url!: string | null;
+  public status!: CandidateStatus;
+  public interview_date!: Date | null;
+  public interview_time!: string | null;
+  public interview_type!: InterviewType | null;
+  public interview_link!: string | null;
+  public interview_instructions!: string | null;
+  public interview_accepted!: boolean | null;
+  public interview_response_at!: Date | null;
+  public interview_result_by!: number | null;
+  public interview_result_mode!: 'Online' | 'Offline' | null;
+  public interview_result_date!: Date | null;
   public interview_result_feedback!: string | null;
-  public candidate_decision!:        'Select' | 'Reject' | 'On_Hold' | null;
-  public decision_reason!:           string | null;
-  public decision_joining_date!:     Date | null;
-  public reschedule_requested!:     boolean;
-  public reschedule_reason!:        string | null;
-  public reschedule_status!:        RescheduleStatus | null;
+  public candidate_decision!: 'Select' | 'Reject' | 'On_Hold' | null;
+  public decision_reason!: string | null;
+  public decision_joining_date!: Date | null;
+  public reschedule_requested!: boolean;
+  public reschedule_reason!: string | null;
+  public reschedule_status!: RescheduleStatus | null;
   public reschedule_proposed_date!: Date | null;
   public reschedule_proposed_time!: string | null;
-  public offered_ctc!:             number | null;
-  public offer_letter_url!:        string | null;
-  public offer_sent_at!:           Date | null;
-  public offer_accepted!:          boolean | null;
-  public offer_valid_till!:        Date | null;
-  public confirmed_joining_date!:  Date | null;
-  public hired_at!:                Date | null;
-  public converted_employee_id!:   number | null;
-  public withdrawal_reason!:       string | null;
-  public withdrawn_at!:            Date | null;
-  public portal_password_hash!:     string | null;
-  public portal_access_token!:      string | null;
-  public portal_token_expires!:     Date | null;
-  public is_portal_user!:           boolean;
-  public portal_last_login!:        Date | null;
-  public prejoining_form_data!:     Record<string, unknown> | null;
-  public prejoining_form_status!:   'Not_Started' | 'Draft' | 'Submitted' | null;
-  public prejoining_submitted_at!:  Date | null;
-  public preinterview_form_data!:        Record<string, unknown> | null;
-  public preinterview_form_status!:      'Not_Started' | 'Draft' | 'Submitted' | null;
-  public preinterview_submitted_at!:     Date | null;
-  public aptitude_test_sent!:          boolean;
-  public aptitude_test_sent_at!:       Date | null;
-  public pre_interview_form_sent!:     boolean;
-  public pre_interview_form_sent_at!:  Date | null;
-  public pre_joining_form_sent!:       boolean;
-  public pre_joining_form_sent_at!:    Date | null;
-  public aptitude_score!:           number | null;
-  public aptitude_attempted_at!:    Date | null;
-  public aptitude_time_taken!:      number | null;
-  public created_by!:               number | null;
-  public updated_by!:               number | null;
-  public deleted_by!:               number | null;
-  public readonly created_at!:      Date;
-  public readonly updated_at!:      Date;
-  public readonly deleted_at!:      Date | null;
+  public offered_ctc!: number | null;
+  public offer_letter_url!: string | null;
+  public offer_sent_at!: Date | null;
+  public offer_accepted!: boolean | null;
+  public offer_valid_till!: Date | null;
+  public confirmed_joining_date!: Date | null;
+  public hired_at!: Date | null;
+  public converted_employee_id!: number | null;
+  public withdrawal_reason!: string | null;
+  public withdrawn_at!: Date | null;
+  public portal_password_hash!: string | null;
+  public portal_access_token!: string | null;
+  public portal_token_expires!: Date | null;
+  public is_portal_user!: boolean;
+  public portal_last_login!: Date | null;
+  public preinterview_form_data!: Record<string, unknown> | null;
+  public preinterview_form_status!: 'Not_Started' | 'Draft' | 'Submitted' | null;
+  public preinterview_submitted_at!: Date | null;
+  public pre_interview_form_sent!: boolean;
+  public pre_interview_form_sent_at!: Date | null;
+
+  public prejoining_form_data!: Record<string, unknown> | null;
+  public prejoining_form_status!: 'Not_Started' | 'Draft' | 'Submitted' | null;
+  public prejoining_submitted_at!: Date | null;
+  public pre_joining_form_sent!: boolean;
+  public pre_joining_form_sent_at!: Date | null;
+
+  public aptitude_score!: number | null;
+  public aptitude_attempted_at!: Date | null;
+  public aptitude_time_taken!: number | null;
+  public aptitude_test_sent!: boolean;
+  public aptitude_test_sent_at!: Date | null;
+  public created_by!: number | null;
+  public updated_by!: number | null;
+  public deleted_by!: number | null;
+  public readonly created_at!: Date;
+  public readonly updated_at!: Date;
+  public readonly deleted_at!: Date | null;
 }
 
 Candidate.init(
   {
-    id:            { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-    company_id:    { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
-    job_id:        { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
+    id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
+    company_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+    job_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
 
-    candidate_name:           { type: DataTypes.STRING(200), allowNull: false },
-    email:                    { type: DataTypes.STRING(255), allowNull: true, validate: { isEmail: true } },
-    phone_number:             { type: DataTypes.STRING(20),  allowNull: true },
+    candidate_name: { type: DataTypes.STRING(200), allowNull: false },
+    email: { type: DataTypes.STRING(255), allowNull: true, validate: { isEmail: true } },
+    phone_number: { type: DataTypes.STRING(20), allowNull: true },
     gender: {
-      type: DataTypes.ENUM('Male','Female','Other','Prefer not to say'),
+      type: DataTypes.ENUM('Male', 'Female', 'Other', 'Prefer not to say'),
       allowNull: true,
     },
-    date_of_birth:            { type: DataTypes.DATEONLY, allowNull: true },
-    current_company_name:     { type: DataTypes.STRING(200), allowNull: true },
+    date_of_birth: { type: DataTypes.DATEONLY, allowNull: true },
+    current_company_name: { type: DataTypes.STRING(200), allowNull: true },
     current_company_designation: { type: DataTypes.STRING(200), allowNull: true },
-    qualification:            { type: DataTypes.STRING(200), allowNull: true },
-    location:                 { type: DataTypes.STRING(200), allowNull: true },
-    total_experience:         { type: DataTypes.DECIMAL(5,1), allowNull: true },
-    relevant_experience:      { type: DataTypes.DECIMAL(5,1), allowNull: true },
-    
-    current_salary:           { type: DataTypes.DECIMAL(12,2), allowNull: true },
-    expected_salary:          { type: DataTypes.DECIMAL(12,2), allowNull: true },
-    apply_department:         { type: DataTypes.STRING(200), allowNull: true },   
-    apply_designation:        { type: DataTypes.STRING(200), allowNull: true }, 
+    qualification: { type: DataTypes.STRING(200), allowNull: true },
+    location: { type: DataTypes.STRING(200), allowNull: true },
+    total_experience: { type: DataTypes.DECIMAL(5, 1), allowNull: true },
+    relevant_experience: { type: DataTypes.DECIMAL(5, 1), allowNull: true },
 
-    notice_period:            { type: DataTypes.INTEGER, allowNull: true },
-    immediate_joiner:         { type: DataTypes.BOOLEAN, defaultValue: false },
-    expected_joining_date:    { type: DataTypes.DATEONLY, allowNull: true },
-    own_vehicle:              { type: DataTypes.BOOLEAN, defaultValue: false },
+    current_salary: { type: DataTypes.DECIMAL(12, 2), allowNull: true },
+    expected_salary: { type: DataTypes.DECIMAL(12, 2), allowNull: true },
+    apply_department: { type: DataTypes.STRING(200), allowNull: true },
+    apply_designation: { type: DataTypes.STRING(200), allowNull: true },
+
+    notice_period: { type: DataTypes.INTEGER, allowNull: true },
+    immediate_joiner: { type: DataTypes.BOOLEAN, defaultValue: false },
+    expected_joining_date: { type: DataTypes.DATEONLY, allowNull: true },
+    own_vehicle: { type: DataTypes.BOOLEAN, defaultValue: false },
 
     source: {
-      type: DataTypes.ENUM('Naukri','LinkedIn','CollarCheck','Referral','Walk-in','Indeed','Direct','Other'),
+      type: DataTypes.ENUM('Naukri', 'LinkedIn', 'CollarCheck', 'Referral', 'Walk-in', 'Indeed', 'Direct', 'Other'),
       allowNull: true,
     },
-    reference_source:         { type: DataTypes.STRING(300), allowNull: true },
-    remarks:                  { type: DataTypes.TEXT, allowNull: true },
-    resume_url:               { type: DataTypes.STRING(500), allowNull: true },
+    reference_source: { type: DataTypes.STRING(300), allowNull: true },
+    remarks: { type: DataTypes.TEXT, allowNull: true },
+    resume_url: { type: DataTypes.STRING(500), allowNull: true },
 
     status: {
-      type: DataTypes.ENUM('Applied','Shortlisted','Interview_Scheduled','Technical','HR_Round','Interview_Result','Offered','Hired','Rejected','Withdrawn','On_Hold'),
+      type: DataTypes.ENUM('Applied', 'Shortlisted', 'Interview_Scheduled', 'Technical', 'HR_Round', 'Interview_Result', 'Offered', 'Hired', 'Rejected', 'Withdrawn', 'On_Hold'),
       defaultValue: 'Applied',
       allowNull: false,
     },
 
     // ── Interview ──────────────────────────────────────────────────────────
-    interview_date:           { type: DataTypes.DATEONLY, allowNull: true },
-    interview_time:           { type: DataTypes.STRING(5), allowNull: true },
-    interview_type:           { type: DataTypes.ENUM('Online','Offline','Phone'), allowNull: true },
-    interview_link:           { type: DataTypes.STRING(500), allowNull: true },
-    interview_instructions:   { type: DataTypes.TEXT, allowNull: true },
-    interview_accepted:       { type: DataTypes.BOOLEAN, allowNull: true },
-    interview_response_at:    { type: DataTypes.DATE, allowNull: true },
+    interview_date: { type: DataTypes.DATEONLY, allowNull: true },
+    interview_time: { type: DataTypes.STRING(5), allowNull: true },
+    interview_type: { type: DataTypes.ENUM('Online', 'Offline', 'Phone'), allowNull: true },
+    interview_link: { type: DataTypes.STRING(500), allowNull: true },
+    interview_instructions: { type: DataTypes.TEXT, allowNull: true },
+    interview_accepted: { type: DataTypes.BOOLEAN, allowNull: true },
+    interview_response_at: { type: DataTypes.DATE, allowNull: true },
 
-    interview_result_by:       { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
-    interview_result_mode:     { type: DataTypes.ENUM('Online','Offline'), allowNull: true },
-    interview_result_date:     { type: DataTypes.DATE, allowNull: true },
+    interview_result_by: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
+    interview_result_mode: { type: DataTypes.ENUM('Online', 'Offline'), allowNull: true },
+    interview_result_date: { type: DataTypes.DATE, allowNull: true },
     interview_result_feedback: { type: DataTypes.TEXT, allowNull: true },
-    candidate_decision:        { type: DataTypes.ENUM('Select','Reject','On_Hold'), allowNull: true },
-    decision_reason:           { type: DataTypes.TEXT, allowNull: true },
-    decision_joining_date:     { type: DataTypes.DATEONLY, allowNull: true },
+    candidate_decision: { type: DataTypes.ENUM('Select', 'Reject', 'On_Hold'), allowNull: true },
+    decision_reason: { type: DataTypes.TEXT, allowNull: true },
+    decision_joining_date: { type: DataTypes.DATEONLY, allowNull: true },
 
     // ── Reschedule ─────────────────────────────────────────────────────────
-    reschedule_requested:     { type: DataTypes.BOOLEAN, defaultValue: false },
-    reschedule_reason:        { type: DataTypes.TEXT, allowNull: true },
-    reschedule_status:        { type: DataTypes.ENUM('Pending','Approved','Rejected'), allowNull: true },
+    reschedule_requested: { type: DataTypes.BOOLEAN, defaultValue: false },
+    reschedule_reason: { type: DataTypes.TEXT, allowNull: true },
+    reschedule_status: { type: DataTypes.ENUM('Pending', 'Approved', 'Rejected'), allowNull: true },
     reschedule_proposed_date: { type: DataTypes.DATEONLY, allowNull: true },
     reschedule_proposed_time: { type: DataTypes.STRING(5), allowNull: true },
 
-    offered_ctc:             { type: DataTypes.DECIMAL(12,2), allowNull: true },
-    offer_letter_url:        { type: DataTypes.STRING(500), allowNull: true },
-    offer_sent_at:           { type: DataTypes.DATE, allowNull: true },
-    offer_accepted:          { type: DataTypes.BOOLEAN, allowNull: true },
-    offer_valid_till:        { type: DataTypes.DATE, allowNull: true },
-    confirmed_joining_date:  { type: DataTypes.DATEONLY, allowNull: true },
-    hired_at:                { type: DataTypes.DATE, allowNull: true },
-    converted_employee_id:   { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
-    withdrawal_reason:       { type: DataTypes.TEXT, allowNull: true },
-    withdrawn_at:            { type: DataTypes.DATE, allowNull: true },
+    offered_ctc: { type: DataTypes.DECIMAL(12, 2), allowNull: true },
+    offer_letter_url: { type: DataTypes.STRING(500), allowNull: true },
+    offer_sent_at: { type: DataTypes.DATE, allowNull: true },
+    offer_accepted: { type: DataTypes.BOOLEAN, allowNull: true },
+    offer_valid_till: { type: DataTypes.DATE, allowNull: true },
+    confirmed_joining_date: { type: DataTypes.DATEONLY, allowNull: true },
+    hired_at: { type: DataTypes.DATE, allowNull: true },
+    converted_employee_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
+    withdrawal_reason: { type: DataTypes.TEXT, allowNull: true },
+    withdrawn_at: { type: DataTypes.DATE, allowNull: true },
 
     // ── Portal ─────────────────────────────────────────────────────────────
-    portal_password_hash:     { type: DataTypes.STRING(255), allowNull: true },
-    portal_access_token:      { type: DataTypes.STRING(255), allowNull: true },
-    portal_token_expires:     { type: DataTypes.DATE, allowNull: true },
-    is_portal_user:           { type: DataTypes.BOOLEAN, defaultValue: false },
-    portal_last_login:        { type: DataTypes.DATE, allowNull: true },
+    portal_password_hash: { type: DataTypes.STRING(255), allowNull: true },
+    portal_access_token: { type: DataTypes.STRING(255), allowNull: true },
+    portal_token_expires: { type: DataTypes.DATE, allowNull: true },
+    is_portal_user: { type: DataTypes.BOOLEAN, defaultValue: false },
+    portal_last_login: { type: DataTypes.DATE, allowNull: true },
+
+    // ── Pre-interview ───────────────────────────────────────────────────────────
+    preinterview_form_data: { type: DataTypes.JSON, allowNull: true },
+    preinterview_form_status: { type: DataTypes.ENUM('Not_Started', 'Draft', 'Submitted'), allowNull: true, defaultValue: 'Not_Started', },
+    preinterview_submitted_at: { type: DataTypes.DATE, allowNull: true },
+    pre_interview_form_sent: { type: DataTypes.BOOLEAN, defaultValue: false },
+    pre_interview_form_sent_at: { type: DataTypes.DATE, allowNull: true },
 
     // ── Pre-join ───────────────────────────────────────────────────────────
-    prejoining_form_data:     { type: DataTypes.JSON, allowNull: true },
-    prejoining_form_status:   { type: DataTypes.ENUM('Not_Started','Draft','Submitted'), allowNull: true, defaultValue: 'Not_Started' },
-    prejoining_submitted_at:  { type: DataTypes.DATE, allowNull: true },
-    preinterview_form_data:        { type: DataTypes.JSON, allowNull: true },
-    preinterview_form_status: {
-      type: DataTypes.ENUM('Not_Started','Draft','Submitted'),
-      allowNull: true,
-      defaultValue: 'Not_Started',
-    },
-    preinterview_submitted_at:     { type: DataTypes.DATE, allowNull: true },
-
-    aptitude_test_sent:          { type: DataTypes.BOOLEAN, defaultValue: false },
-    aptitude_test_sent_at:       { type: DataTypes.DATE, allowNull: true },
-    pre_interview_form_sent:     { type: DataTypes.BOOLEAN, defaultValue: false },
-    pre_interview_form_sent_at:  { type: DataTypes.DATE, allowNull: true },
-    pre_joining_form_sent:       { type: DataTypes.BOOLEAN, defaultValue: false },
-    pre_joining_form_sent_at:    { type: DataTypes.DATE, allowNull: true },
+    prejoining_form_data: { type: DataTypes.JSON, allowNull: true },
+    prejoining_form_status: { type: DataTypes.ENUM('Not_Started', 'Draft', 'Submitted'), allowNull: true, defaultValue: 'Not_Started' },
+    prejoining_submitted_at: { type: DataTypes.DATE, allowNull: true },
+    pre_joining_form_sent: { type: DataTypes.BOOLEAN, defaultValue: false },
+    pre_joining_form_sent_at: { type: DataTypes.DATE, allowNull: true },
 
     // ── Aptitude ───────────────────────────────────────────────────────────
-    aptitude_score:           { type: DataTypes.DECIMAL(5,2), allowNull: true },
-    aptitude_attempted_at:    { type: DataTypes.DATE, allowNull: true },
-    aptitude_time_taken:      { type: DataTypes.INTEGER, allowNull: true },
+    aptitude_score: { type: DataTypes.DECIMAL(5, 2), allowNull: true },
+    aptitude_attempted_at: { type: DataTypes.DATE, allowNull: true },
+    aptitude_time_taken: { type: DataTypes.INTEGER, allowNull: true },
+    aptitude_test_sent: { type: DataTypes.BOOLEAN, defaultValue: false },
+    aptitude_test_sent_at: { type: DataTypes.DATE, allowNull: true },
 
     // ── Audit ──────────────────────────────────────────────────────────────
-    created_by:               { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
-    updated_by:               { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
-    deleted_by:               { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
+    created_by: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
+    updated_by: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
+    deleted_by: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
   },
   {
     sequelize,
-    tableName:  'candidates',
-    modelName:  'Candidate',
-    paranoid:   true,
+    tableName: 'candidates',
+    modelName: 'Candidate',
+    paranoid: true,
     indexes: [
       { fields: ['company_id'] },
       { fields: ['status'] },

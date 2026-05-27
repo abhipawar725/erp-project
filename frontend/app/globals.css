@@ -1,9 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* ═══ NexHR Design System Tokens ═══ */
 :root {
   --bg: #f5f6f8;
@@ -57,7 +53,6 @@ html, body {
   font-family: var(--font);
   font-size: 13px;
   line-height: 1.5;
-  overflow: hidden;
 }
 
 /* ═══ SHELL ═══ */

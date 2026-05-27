@@ -10,7 +10,7 @@ import {
   persistReducer,
 } from "redux-persist";
 
-import storage from "redux-persist/lib/storage"; // localStorage for web
+import storage from "./storage";
 
 /**
  * =========================

@@ -222,6 +222,9 @@ export default function CandidateDetailPage() {
             <ActionBar />
             {canManage && (
               <>
+                <button className="btn btn-sec btn-sm" onClick={() => router.push(`/ats/${id}/forms`)}>
+                  📋 View Forms
+                </button>
                 <button className="btn btn-sec btn-sm" onClick={() => setMoveOpen(true)}>Move Stage</button>
                 <button className="btn btn-sec btn-sm" onClick={() => setEditOpen(true)}>Edit</button>
                 {c.status !== 'Hired' && c.status !== 'Withdrawn' && (
@@ -436,9 +439,21 @@ export default function CandidateDetailPage() {
             {/* ── Experience ───────────────────────────────────────── */}
             <SectionCard title="Experience">
               <InfoRow label="Current Company"  value={c.current_company_name} />
-              <InfoRow label="Current Designation" value={c.current_company_designation} />
+              <InfoRow label="Last Designation" value={c.last_company_designation} />
               <InfoRow label="Total Experience" value={c.total_experience != null ? `${c.total_experience} years` : null} />
               <InfoRow label="Relevant Exp."   value={c.relevant_experience != null ? `${c.relevant_experience} years` : null} />
+              {c.skills && c.skills.length > 0 && (
+                <div style={{ paddingTop: 10 }}>
+                  <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 6 }}>Skills</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {c.skills.map((s: string) => (
+                      <span key={s} style={{ background: 'var(--blue-lt)', border: '1px solid var(--blue-md)', color: 'var(--blue)', borderRadius: 99, padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </SectionCard>
 
             {/* ── Sourcing ─────────────────────────────────────────── */}
@@ -562,8 +577,8 @@ export default function CandidateDetailPage() {
               <InfoRow label="Portal access"  value={<Chip variant={c.is_portal_user ? 'green' : 'gray'}>{c.is_portal_user ? '✓ Active' : 'Not granted'}</Chip>} />
               {c.portal_last_login && <InfoRow label="Last login" value={formatDate(c.portal_last_login)} />}
               <InfoRow label="Pre-join form" value={
-                <Chip variant={c.preinterview_form_status === 'Submitted' ? 'green' : c.preinterview_form_status === 'Draft' ? 'amber' : 'gray'}>
-                  {c.preinterview_form_status === 'Submitted' ? '✓ Submitted' : c.preinterview_form_status === 'Draft' ? '📝 Draft' : 'Not started'}
+                <Chip variant={c.prejoin_form_status === 'Submitted' ? 'green' : c.prejoin_form_status === 'Draft' ? 'amber' : 'gray'}>
+                  {c.prejoin_form_status === 'Submitted' ? '✓ Submitted' : c.prejoin_form_status === 'Draft' ? '📝 Draft' : 'Not started'}
                 </Chip>
               } />
               {canManage && !c.is_portal_user && (

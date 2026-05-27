@@ -1,72 +1,72 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAppDispatch } from '../../../store';
-import { setPageTitle } from '../../../store/slices/uiSlice';
-import { AppShell } from '../../../layouts/AppLayout';
-import { StatCard } from '../../../components/ui/StatCard';
-import { Chip } from '../../../components/ui/Chip';
-import { Modal } from '../../../components/ui/Modal';
-import { CandidateFormModal } from '../../../features/candidates/components/CandidateFormModal';
-import { BulkUploadModal } from '../../../features/candidates/components/BulkUploadModal';
-import { StatusMoveModal } from '../../../features/candidates/components/StatusMoveModal';
-import { InterviewSchedulerModal } from '../../../features/candidates/components/InterviewSchedulerModal';
-import { InterviewResultModal } from '../../../features/candidates/components/InterviewResultModal';
-import { OfferLetterModal } from '../../../features/candidates/components/OfferLetterModal';
-import { WithdrawModal } from '../../../features/candidates/components/WithdrawModal';
+import { useRouter }           from 'next/navigation';
+import { useAppDispatch }      from '../../../store';
+import { setPageTitle }        from '../../../store/slices/uiSlice';
+import { AppShell }            from '../../../layouts/AppLayout';
+import { StatCard }            from '../../../components/ui/StatCard';
+import { Chip }                from '../../../components/ui/Chip';
+import { Modal }               from '../../../components/ui/Modal';
+import { CandidateFormModal }     from '../../../features/candidates/components/CandidateFormModal';
+import { BulkUploadModal }        from '../../../features/candidates/components/BulkUploadModal';
+import { StatusMoveModal }        from '../../../features/candidates/components/StatusMoveModal';
+import { InterviewSchedulerModal }  from '../../../features/candidates/components/InterviewSchedulerModal';
+import { InterviewResultModal }    from '../../../features/candidates/components/InterviewResultModal';
+import { OfferLetterModal }          from '../../../features/candidates/components/OfferLetterModal';
+import { WithdrawModal }             from '../../../features/candidates/components/WithdrawModal';
 import {
   useCandidates, useCandidateStats, useDeleteCandidate,
 } from '../../../features/candidates/hooks/useCandidates';
-import { usePermission } from '../../../features/auth/hooks/usePermission';
-import { useDebounce } from '../../../hooks/useDebounce';
-import type { Candidate } from '../../../features/candidates/types/candidate.types';
+import { usePermission }       from '../../../features/auth/hooks/usePermission';
+import { useDebounce }         from '../../../hooks/useDebounce';
+import type { Candidate }      from '../../../features/candidates/types/candidate.types';
 import {
   ALL_STATUSES, ALL_SOURCES,
   STATUS_COLORS, STATUS_LABEL, SOURCE_EMOJI, PIPELINE_STAGES,
 } from '../../../features/candidates/types/candidate.types';
-import { formatDate } from '../../../utils/formatters';
+import { formatDate }          from '../../../utils/formatters';
 
 export default function ATSPage() {
   const dispatch = useAppDispatch();
-  const router = useRouter();
+  const router   = useRouter();
   const { isHR, isAdmin, isManager } = usePermission();
   const canManage = isHR || isAdmin || isManager;
 
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [sourceFilter, setSourceFilter] = useState('');
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
-  const [formOpen, setFormOpen] = useState(false);
-  const [bulkOpen, setBulkOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<Candidate | null>(null);
-  const [moveTarget, setMoveTarget] = useState<Candidate | null>(null);
-  const [scheduleTarget, setScheduleTarget] = useState<Candidate | null>(null);
-  const [resultTarget, setResultTarget] = useState<Candidate | null>(null);
-  const [offerTarget, setOfferTarget] = useState<Candidate | null>(null);
+  const [search,         setSearch]         = useState('');
+  const [statusFilter,   setStatusFilter]   = useState('');
+  const [sourceFilter,   setSourceFilter]   = useState('');
+  const [viewMode,       setViewMode]       = useState<'list' | 'kanban'>('list');
+  const [formOpen,       setFormOpen]       = useState(false);
+  const [bulkOpen,       setBulkOpen]       = useState(false);
+  const [editTarget,     setEditTarget]     = useState<Candidate | null>(null);
+  const [moveTarget,     setMoveTarget]     = useState<Candidate | null>(null);
+  const [scheduleTarget,  setScheduleTarget]  = useState<Candidate | null>(null);
+  const [resultTarget,   setResultTarget]   = useState<Candidate | null>(null);
+  const [offerTarget,    setOfferTarget]    = useState<Candidate | null>(null);
   const [withdrawTarget, setWithdrawTarget] = useState<Candidate | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Candidate | null>(null);
-  const [page, setPage] = useState(1);
+  const [deleteTarget,   setDeleteTarget]   = useState<Candidate | null>(null);
+  const [page,           setPage]           = useState(1);
 
   const debouncedSearch = useDebounce(search, 380);
-  const deleteMutation = useDeleteCandidate();
+  const deleteMutation  = useDeleteCandidate();
 
   const { data, isLoading } = useCandidates({
     page, limit: 20,
     search: debouncedSearch || undefined,
-    status: statusFilter || undefined,
-    source: sourceFilter || undefined,
+    status: statusFilter   || undefined,
+    source: sourceFilter   || undefined,
   });
 
   const { data: stats } = useCandidateStats();
   const candidates = data?.data ?? [];
-  const meta = (data as any)?.meta;
+  const meta       = (data as any)?.meta;
 
   useEffect(() => {
     dispatch(setPageTitle({ title: 'Candidate Sourcing', breadcrumb: 'Recruitment' }));
   }, [dispatch]);
 
   const openCreate = () => { setEditTarget(null); setFormOpen(true); };
-  const openEdit = (c: Candidate) => { setEditTarget(c); setFormOpen(true); };
+  const openEdit   = (c: Candidate) => { setEditTarget(c); setFormOpen(true); };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -94,9 +94,9 @@ export default function ATSPage() {
   const downloadErrorCSV = (errors: { row: number; name: string; reason: string }[]) => {
     const csv = ['Row,Name,Reason', ...errors.map(e => `${e.row},"${e.name}","${e.reason}"`)].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
     a.download = 'bulk_upload_errors.csv';
     a.click();
     URL.revokeObjectURL(url);
@@ -112,7 +112,7 @@ export default function ATSPage() {
     return (
       <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 12 }}>
         {PIPELINE_STAGES.map(stage => {
-          const col = STATUS_COLORS[stage];
+          const col   = STATUS_COLORS[stage];
           const cards = grouped[stage] || [];
           return (
             <div key={stage} style={{ minWidth: 220, maxWidth: 240, flexShrink: 0 }}>
@@ -202,7 +202,7 @@ export default function ATSPage() {
           <div className="ph-r">
             {/* View toggle */}
             <div style={{ display: 'flex', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 2, gap: 2 }}>
-              {([['list', '☰ List'], ['kanban', '⊞ Kanban']] as const).map(([v, label]) => (
+              {([['list','☰ List'],['kanban','⊞ Kanban']] as const).map(([v, label]) => (
                 <button key={v} onClick={() => setViewMode(v)} style={{ padding: '4px 12px', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: viewMode === v ? 'var(--surface)' : 'transparent', color: viewMode === v ? 'var(--ink)' : 'var(--ink4)', boxShadow: viewMode === v ? 'var(--sh)' : 'none', fontFamily: 'var(--font)', transition: 'all .1s' }}>
                   {label}
                 </button>
@@ -220,10 +220,10 @@ export default function ATSPage() {
         {/* ── Stats ──────────────────────────────────────────────────────── */}
         {stats && (
           <div className="g4 mb14">
-            <StatCard label="Total Candidates" value={stats.summary.total} color="var(--blue)" />
-            <StatCard label="Active in Pipeline" value={stats.summary.active} color="var(--purple)" />
-            <StatCard label="Hired" value={stats.summary.hired} color="var(--green)" />
-            <StatCard label="This Month" value={stats.summary.thisMonth} color="var(--teal)" />
+            <StatCard label="Total Candidates"  value={stats.summary.total}      color="var(--blue)"   />
+            <StatCard label="Active in Pipeline" value={stats.summary.active}     color="var(--purple)" />
+            <StatCard label="Hired"              value={stats.summary.hired}      color="var(--green)"  />
+            <StatCard label="This Month"         value={stats.summary.thisMonth}  color="var(--teal)"   />
           </div>
         )}
 
@@ -236,7 +236,7 @@ export default function ATSPage() {
               {stats.sources.length > 0 && (
                 <span style={{ color: 'var(--ink4)' }}>
                   Top source: <strong style={{ color: 'var(--ink)' }}>
-                    {stats.sources.sort((a, b) => b.count - a.count)[0]?.source}
+                    {stats.sources.sort((a,b) => b.count - a.count)[0]?.source}
                   </strong>
                 </span>
               )}
@@ -345,14 +345,14 @@ export default function ATSPage() {
                 <tbody>
                   {isLoading
                     ? Array.from({ length: 6 }).map((_, i) => (
-                      <tr key={i}>
-                        {Array.from({ length: 9 }).map((_, j) => (
-                          <td key={j}><div className="skeleton" style={{ height: 13, width: 80 }} /></td>
-                        ))}
-                      </tr>
-                    ))
+                        <tr key={i}>
+                          {Array.from({ length: 9 }).map((_, j) => (
+                            <td key={j}><div className="skeleton" style={{ height: 13, width: 80 }} /></td>
+                          ))}
+                        </tr>
+                      ))
                     : candidates.length === 0
-                      ? (
+                    ? (
                         <tr>
                           <td colSpan={canManage ? 10 : 9} style={{ textAlign: 'center', padding: '48px 0', color: 'var(--ink4)' }}>
                             <div style={{ fontSize: 28, marginBottom: 12 }}>🔍</div>
@@ -366,7 +366,7 @@ export default function ATSPage() {
                           </td>
                         </tr>
                       )
-                      : candidates.map(c => (
+                    : candidates.map(c => (
                         <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => router.push(`/ats/${c.id}`)}>
 
                           {/* Name + company + location */}
@@ -400,53 +400,14 @@ export default function ATSPage() {
 
                           {/* Expected CTC */}
                           <td style={{ fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600 }}>
-                            {(() => {
-                              const currentSalary =
-                                typeof c.current_salary === 'number'
-                                  ? c.current_salary
-                                  : Number(c.current_salary);
-
-                              const expectedSalary =
-                                typeof c.expected_salary === 'number'
-                                  ? c.expected_salary
-                                  : Number(c.expected_salary);
-
-                              const hasCurrentSalary = Number.isFinite(currentSalary);
-                              const hasExpectedSalary = Number.isFinite(expectedSalary);
-
-                              const canCalculateHike =
-                                hasCurrentSalary &&
-                                hasExpectedSalary &&
-                                currentSalary > 0;
-
-                              return (
-                                <>
-                                  {hasExpectedSalary ? (
-                                    `${((expectedSalary * 12) / 100000).toFixed(1)}L`
-                                  ) : (
-                                    <span style={{ color: 'var(--ink4)' }}>—</span>
-                                  )}
-
-                                  {canCalculateHike && (
-                                    <div
-                                      style={{
-                                        fontSize: 9,
-                                        color:
-                                          expectedSalary > currentSalary
-                                            ? 'var(--green)'
-                                            : 'var(--red)',
-                                      }}
-                                    >
-                                      {(
-                                        ((expectedSalary - currentSalary) / currentSalary) *
-                                        100
-                                      ).toFixed(0)}
-                                      % hike
-                                    </div>
-                                  )}
-                                </>
-                              );
-                            })()}
+                            {c.expected_salary
+                              ? `₹${((c.expected_salary * 12) / 100000).toFixed(1)}L`
+                              : <span style={{ color: 'var(--ink4)' }}>—</span>}
+                            {c.current_salary && c.expected_salary && (
+                              <div style={{ fontSize: 9, color: Number(c.expected_salary) > Number(c.current_salary) ? 'var(--green)' : 'var(--red)' }}>
+                                {(((Number(c.expected_salary) - Number(c.current_salary)) / Number(c.current_salary)) * 100).toFixed(0)}% hike
+                              </div>
+                            )}
                           </td>
 
                           {/* Notice */}
@@ -457,16 +418,17 @@ export default function ATSPage() {
                           {/* Source */}
                           <td>
                             {c.source
-                              ? <Chip variant="blue">{c.source}</Chip>
+                              ? <Chip variant="blue">{SOURCE_EMOJI[c.source] || ''} {c.source}</Chip>
                               : <span style={{ color: 'var(--ink4)' }}>—</span>}
                           </td>
 
                           {/* Resume */}
                           <td onClick={e => e.stopPropagation()}>
                             {c.resume_url
-                              ? <a href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${c.resume_url}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: 'var(--blue)', fontWeight: 600, textDecoration: 'none' }}>📄 View</a>
+                              ? <a href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api','')}${c.resume_url}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: 'var(--blue)', fontWeight: 600, textDecoration: 'none' }}>📄 View</a>
                               : <span style={{ fontSize: 11, color: 'var(--ink4)' }}>—</span>}
                           </td>
+
 
                           {/* Stage */}
                           <td><StatusBadge status={c.status} /></td>
@@ -475,9 +437,9 @@ export default function ATSPage() {
                           {canManage && (
                             <td onClick={e => e.stopPropagation()}>
                               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                                <Chip variant="gray" onClick={() => openEdit(c)}>Edit</Chip>
+                                <Chip variant="gray"   onClick={() => openEdit(c)}>Edit</Chip>
                                 <Chip variant="purple" onClick={() => setMoveTarget(c)}>Move</Chip>
-                                <Chip variant="red" onClick={() => setDeleteTarget(c)}>Delete</Chip>
+                                <Chip variant="red"    onClick={() => setDeleteTarget(c)}>Delete</Chip>
                               </div>
                             </td>
                           )}

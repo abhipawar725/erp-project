@@ -42,10 +42,10 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
-          <div className="sb-mark" style={{ width: 40, height: 40, fontSize: 14 }}>NX</div>
+          <div className="sb-mark" style={{ width: 40, height: 40, fontSize: 14 }}>UNG</div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-.3px' }}>
-              UNG ERP
+              UNG HRMS
             </div>
             <div style={{ fontSize: 11, color: 'var(--ink4)' }}>Enterprise Suite</div>
           </div>

@@ -310,7 +310,7 @@ export default function PrejoinFormPage() {
   }, [p3.same_address, p3.pr_house_type, p3.pr_house_no, p3.pr_street, p3.pr_area, p3.pr_city, p3.pr_district, p3.pr_state, p3.pr_pin]);
 
   const saveMutation = useMutation({
-    mutationFn: (isDraft: boolean) => portalService.savePrejoin(
+    mutationFn: (isDraft: boolean) => portalService.savePreinterview(
       { p1, p2, p3, p4, family, refs, p7, p8, photo },
       isDraft,
     ),

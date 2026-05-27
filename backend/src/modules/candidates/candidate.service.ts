@@ -137,7 +137,7 @@ export class CandidateService {
       remarks:                  dto.remarks?.trim()           || null,
       job_id:                   dto.job_id                ?? null,
       status:                   'Applied',
-      preinterview_form_status:      'Not_Started',
+      preinterview_form_status: 'Not_Started',
       created_by:               createdBy                 ?? null,
     });
 
@@ -362,7 +362,7 @@ export class CandidateService {
   }
 
   // ─── Pre-joining form ─────────────────────────────────────────────────────
-  async savePrejoinForm(id: number, companyId: number, data: Record<string, unknown>, isDraft: boolean) {
+  async savePreInterviewForm(id: number, companyId: number, data: Record<string, unknown>, isDraft: boolean) {
     const candidate = await this.getById(id, companyId);
     const update: any = {
       prejoin_form_data:   data,
@@ -657,6 +657,34 @@ export class CandidateService {
     await candidate.update(update);
     await logActivity({ companyId, userId: undefined, action: isDraft ? 'PREJOINING_DRAFT_SAVED' : 'PREJOINING_SUBMITTED', module: 'candidates', entityId: id });
     return candidate;
+  }
+
+    // ─── Get pre-interview form data (HR view) ────────────────────────────────
+  async getPreInterviewForm(id: number, companyId: number) {
+    const candidate = await this.getById(id, companyId);
+    return {
+      candidate_name:       candidate.candidate_name,
+      candidate_id:         candidate.id,
+      apply_designation:     candidate.apply_designation,
+      status:               candidate.status,
+      form_status:          candidate.preinterview_form_status || 'Not_Started',
+      submitted_at:         candidate.preinterview_submitted_at,
+      form_data:            candidate.preinterview_form_data || null,
+    };
+  }
+
+  // ─── Get pre-joining form data (HR view) ─────────────────────────────────
+  async getPreJoiningForm(id: number, companyId: number) {
+    const candidate = await this.getById(id, companyId);
+    return {
+      candidate_name:       candidate.candidate_name,
+      candidate_id:         candidate.id,
+      apply_designation:     candidate.apply_designation,
+      status:               candidate.status,
+      form_status:          candidate.prejoining_form_status || 'Not_Started',
+      submitted_at:         candidate.prejoining_submitted_at,
+      form_data:            candidate.prejoining_form_data || null,
+    };
   }
 
   // ─── Bulk upload ─────────────────────────────────────────────────────────

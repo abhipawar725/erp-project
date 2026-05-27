@@ -19,60 +19,24 @@ interface NavSection {
 }
 
 const NAV_SECTIONS: NavSection[] = [
-  {
-    label: 'Overview',
-    items: [{ id: 'dashboard', label: 'Dashboard', icon: '⬡', href: '/dashboard' }],
-  },
+  // {
+  //   label: 'Overview',
+  //   items: [{ id: 'dashboard', label: 'Dashboard', icon: '⬡', href: '/dashboard' }],
+  // },
   {
     label: 'Talent Acquisition',
     items: [
       { id: 'ats', label: 'Sourcing (ATS)', icon: '⇧', href: '/ats' },
       { id: 'ats-tests', label: 'Aptitude Tests', icon: '🧠', href: '/ats-tests' },
-      { id: 'pipeline', label: 'Pipeline / Kanban', icon: '▤', href: '/pipeline', count: 23 },
-      { id: 'interviews', label: 'Interviews', icon: '📅', href: '/interviews', count: 7 },
-      { id: 'evaluation', label: 'Evaluation Forms', icon: '★', href: '/evaluation' },
-      { id: 'pool', label: 'Candidate Pool', icon: '◙', href: '/pool' },
     ],
   },
-  {
-    label: 'Offer & Onboarding',
-    items: [
-      { id: 'offers', label: 'Offer Management', icon: '◎', href: '/offers', count: 5 },
-      { id: 'prejoin', label: 'Pre-Joining Portal', icon: '⬢', href: '/prejoin', count: 3 },
-      { id: 'onboarding', label: 'Onboarding', icon: '▶', href: '/onboarding' },
-    ],
-  },
-  {
-    label: 'Lifecycle',
-    items: [{ id: 'exit', label: 'Exit & FNF', icon: '↗', href: '/exit', count: 2 }],
-  },
-  {
-    label: 'Operations',
-    items: [
-      { id: 'payroll', label: 'Payroll', icon: '₹', href: '/payroll' },
-      { id: 'attendance', label: 'Attendance', icon: '◔', href: '/attendance' },
-      { id: 'leaves', label: 'Leave Management', icon: '◑', href: '/leaves', count: 9 },
-      { id: 'assets', label: 'Assets', icon: '☇', href: '/assets' },
-      { id: 'emails', label: 'Template Management', icon: '📄', href: '/emails' },
-    ],
-  },
+
   {
     label: 'People & Performance',
     items: [
       { id: 'employees', label: 'Employees', icon: '👥', href: '/employees' },
       { id: 'departments', label: 'Departments', icon: '🏢', href: '/departments' },
       { id: 'designations', label: 'Designations', icon: '🎯', href: '/designations' },
-      { id: 'kra', label: 'KRA / KPI', icon: '◆', href: '/kra' },
-      { id: 'tasks', label: 'Tasks & Workflows', icon: '□', href: '/tasks', count: 12 },
-    ],
-  },
-  {
-    label: 'Intelligence',
-    items: [
-      { id: 'analytics', label: 'Analytics & Reports', icon: '📊', href: '/analytics' },
-      { id: 'compliance', label: 'Compliance & Audit', icon: '🛡', href: '/compliance' },
-      { id: 'settings', label: 'Settings & RBAC', icon: '⚙', href: '/settings' },
-      { id: 'roleperm', label: 'Roles & Permissions', icon: '🔒', href: '/roleperm' },
     ],
   },
 ];
@@ -103,15 +67,15 @@ export function Sidebar() {
     <div id="sb" className={collapsed ? 'slim' : ''}>
       {/* Logo */}
       <div className="sb-top">
-        <div className="sb-mark">NX</div>
+        <div className="sb-mark">UNG</div>
         <div className="sb-wordmark">
-          <div className="sb-app">NexHR ERP</div>
+          <div className="sb-app">UNG HRMS </div>
           <div className="sb-tagline">Enterprise Suite</div>
         </div>
       </div>
 
       {/* Role switcher — visual only, actual role from server */}
-      <div className="role-sw">
+      {/* <div className="role-sw">
         <div className="role-tabs">
           {['HR', 'Admin', 'Mgr', 'Emp'].map((r) => (
             <div
@@ -122,14 +86,14 @@ export function Sidebar() {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Company selector */}
-      <div className="sb-co">
+      {/* <div className="sb-co">
         <div className="co-dot" />
         <div className="co-name">Nexgen Solutions Pvt Ltd</div>
         <div className="co-arr">▼</div>
-      </div>
+      </div> */}
 
       {/* Navigation */}
       <div className="sb-nav">

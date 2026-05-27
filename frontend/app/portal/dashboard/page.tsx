@@ -131,12 +131,12 @@ export default function PortalDashboard() {
       <div style={{ minHeight: '100vh', background: '#f5f6f8' }}>
 
         {/* ── Top bar ─────────────────────────────────────────── */}
-        <div className="topbar">
+        <div className="topbar bg-red-500">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1e56d9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>NX</div>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1e56d9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>UNG</div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#0f1623' }}>Candidate Portal</div>
-              <div style={{ fontSize: 10, color: '#94a3b8' }}>NexHR ERP</div>
+              <div style={{ fontSize: 10, color: '#94a3b8' }}>UNG HRMS</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -341,7 +341,7 @@ export default function PortalDashboard() {
                     border: c.preinterview_form_status === 'Submitted' ? '1px solid #e0e4ec' : 'none',
                     flexShrink: 0,
                   }}
-                  onClick={() => router.push('/portal/prejoining')}
+                  onClick={() => router.push('/portal/preinterview')}
                 >
                   {c.preinterview_form_status === 'Submitted' ? 'View Submitted Form' : c.preinterview_form_status === 'Draft' ? 'Continue Form' : 'Start Form →'}
                 </button>

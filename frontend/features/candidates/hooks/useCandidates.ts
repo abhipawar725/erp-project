@@ -127,7 +127,7 @@ export function useHandleReschedule(id: number) {
 export function useGrantPortalAccess(id: number) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (password?: string) => candidateService.grantPortalAccess(id, password),
+    mutationFn: (data: { password?: string; send_email?: boolean }) => candidateService.grantPortalAccess(id, data),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: KEYS.detail(id) });
       const data = res.data as any;

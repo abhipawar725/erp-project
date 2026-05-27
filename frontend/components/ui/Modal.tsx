@@ -1,5 +1,6 @@
 'use client';
 import { ReactNode, useEffect } from 'react';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   open: boolean;
@@ -24,9 +25,13 @@ export function Modal({ open, onClose, title, subtitle, children, footer, width 
   return (
     <div
       className={`modal-bg${open ? ' open' : ''}`}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="modal" style={{ width }}>
+        <button type='button' 
+        onClick={onClose} 
+        style={{position: 'absolute', top: '10px', right: '10px', border: 0, background: 'transparent', zIndex: 1, cursor: 'pointer'}}>
+          <X size={18} />
+          </button>
         <div className="modal-ttl">{title}</div>
         {subtitle && <div className="modal-sub">{subtitle}</div>}
         <div>{children}</div>
