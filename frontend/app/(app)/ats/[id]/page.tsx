@@ -17,6 +17,7 @@ import { HireCandidateModal }      from '../../../../features/candidates/compone
 import { WithdrawModal }           from '../../../../features/candidates/components/WithdrawModal';
 import { PreInterviewFormModal }   from '../../../../features/candidates/components/PreInterviewFormModal';
 import { AptitudeTestSendModal }   from '../../../../features/candidates/components/AptitudeTestSendModal';
+import { GrantPortalAccessModal }  from '../../../../features/candidates/components/GrantPortalAccessModal';
 
 // Hooks
 import {
@@ -81,6 +82,7 @@ export default function CandidateDetailPage() {
   const [hireOpen,          setHireOpen]           = useState(false);
   const [withdrawOpen,      setWithdrawOpen]       = useState(false);
   const [preFormOpen,       setPreFormOpen]        = useState(false);
+  const [portalOpen,        setPortalOpen]         = useState(false);
   const [aptitudeOpen,      setAptitudeOpen]       = useState(false);
   const [deleteOpen,        setDeleteOpen]         = useState(false);
 
@@ -439,21 +441,9 @@ export default function CandidateDetailPage() {
             {/* ── Experience ───────────────────────────────────────── */}
             <SectionCard title="Experience">
               <InfoRow label="Current Company"  value={c.current_company_name} />
-              <InfoRow label="Last Designation" value={c.last_company_designation} />
+              <InfoRow label="Last Designation" value={c.current_company_designation} />
               <InfoRow label="Total Experience" value={c.total_experience != null ? `${c.total_experience} years` : null} />
               <InfoRow label="Relevant Exp."   value={c.relevant_experience != null ? `${c.relevant_experience} years` : null} />
-              {c.skills && c.skills.length > 0 && (
-                <div style={{ paddingTop: 10 }}>
-                  <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 6 }}>Skills</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                    {c.skills.map((s: string) => (
-                      <span key={s} style={{ background: 'var(--blue-lt)', border: '1px solid var(--blue-md)', color: 'var(--blue)', borderRadius: 99, padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </SectionCard>
 
             {/* ── Sourcing ─────────────────────────────────────────── */}
@@ -576,26 +566,29 @@ export default function CandidateDetailPage() {
             <SectionCard title="Candidate Portal">
               <InfoRow label="Portal access"  value={<Chip variant={c.is_portal_user ? 'green' : 'gray'}>{c.is_portal_user ? '✓ Active' : 'Not granted'}</Chip>} />
               {c.portal_last_login && <InfoRow label="Last login" value={formatDate(c.portal_last_login)} />}
-              <InfoRow label="Pre-join form" value={
-                <Chip variant={c.prejoin_form_status === 'Submitted' ? 'green' : c.prejoin_form_status === 'Draft' ? 'amber' : 'gray'}>
-                  {c.prejoin_form_status === 'Submitted' ? '✓ Submitted' : c.prejoin_form_status === 'Draft' ? '📝 Draft' : 'Not started'}
+              <InfoRow label="Pre-interview form" value={
+                <Chip variant={c.preinterview_form_status === 'Submitted' ? 'green' : c.preinterview_form_status === 'Draft' ? 'amber' : 'gray'}>
+                  {c.preinterview_form_status === 'Submitted' ? '✓ Submitted' : c.preinterview_form_status === 'Draft' ? '📝 Draft' : 'Not started'}
                 </Chip>
               } />
-              {canManage && !c.is_portal_user && (
-                <button className="btn btn-sec btn-sm" style={{ marginTop: 10, width: '100%' }} onClick={() => setPreFormOpen(true)}>
-                  🌐 Grant Portal Access &amp; Send Form
-                </button>
-              )}
+              <InfoRow label="Pre-interview sent" value={
+                c.pre_interview_form_sent
+                  ? <Chip variant="green">✓ Sent {c.pre_interview_form_sent_at ? formatDate(c.pre_interview_form_sent_at) : ''}</Chip>
+                  : <Chip variant="gray">Not sent</Chip>
+              } />
+              <div style={{ display:'flex', gap:8, marginTop:10, flexWrap:'wrap' }}>
+                {canManage && (
+                  <button className="btn btn-sec btn-sm" onClick={() => setPortalOpen(true)} style={{ flex:1 }}>
+                    {c.is_portal_user ? '🔑 Reset Portal Password' : '🌐 Grant Portal Access'}
+                  </button>
+                )}
+              </div>
               <InfoRow label="Aptitude test sent" value={
                 c.aptitude_test_sent
                   ? <Chip variant="green">✓ Sent {c.aptitude_test_sent_at ? formatDate(c.aptitude_test_sent_at) : ''}</Chip>
                   : <Chip variant="gray">Not sent</Chip>
               } />
-              <InfoRow label="Pre-interview form" value={
-                c.pre_interview_form_sent
-                  ? <Chip variant="green">✓ Sent {c.pre_interview_form_sent_at ? formatDate(c.pre_interview_form_sent_at) : ''}</Chip>
-                  : <Chip variant="gray">Not sent</Chip>
-              } />
+
               <InfoRow label="Pre-joining form" value={
                 c.pre_joining_form_sent
                   ? <Chip variant="green">✓ Unlocked</Chip>
@@ -644,6 +637,12 @@ export default function CandidateDetailPage() {
         onClose={() => setAptitudeOpen(false)}
         candidate={c}
       />
+
+      <GrantPortalAccessModal
+        open={portalOpen}
+        onClose={() => setPortalOpen(false)}
+        candidate={c}
+      />      
 
       <PreInterviewFormModal
         open={preFormOpen}
