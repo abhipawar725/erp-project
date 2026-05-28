@@ -638,7 +638,6 @@ export const mailer = {
 </p>`;
 
     const html = emailShell(
-      subject,
       `${body}
 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:20px;">
   <tr>
@@ -661,6 +660,7 @@ export const mailer = {
   For security, please change your password after first login. Keep your credentials confidential.
   If you did not expect this email, please contact HR.
 </p>`,
+      subject,
     );
 
     return sendMail({ to, subject, html });

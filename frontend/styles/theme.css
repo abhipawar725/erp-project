@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/* LIGHT THEME */
+:root {
+  --bg: #f8f7fa;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+
+  --text: #0f172a;
+  --text-muted: #64748b;
+
+  --primary: #7c3aed;
+  --primary-hover: #6d28d9;
+
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #f59e0b;
+  --info: #0284c7;
+
+  --border: #e2e8f0;
+
+  --card-shadow:
+    0 1px 2px rgba(0,0,0,.04),
+    0 6px 24px rgba(0,0,0,.04);
+
+  --radius: 16px;
+
+  --font-sans:
+    Inter,
+    sans-serif;
+}
+
+/* DARK THEME */
+.dark {
+  --bg: #25293c;
+  --surface: #111827;
+  --surface-2: #1e293b;
+
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+
+  --primary: #8b5cf6;
+  --primary-hover: #7c3aed;
+
+  --success: #22c55e;
+  --danger: #ff4c51;
+  --warning: #fbbf24;
+  --info: #38bdf8;
+
+  --border: #334155;
+
+  --card-shadow:0 0.125rem 0.5rem 0 rgba(47, 43, 61, 0.12);
+}
+
+/* BASE */
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+/* SCROLLBAR */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+/* COMMON COMPONENTS */
+
+/* Cards */
+.card-ui {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border-radius: 12px;
+  transition: .2s;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* Badges */
+.badge-success {
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+}
+
+.badge-danger {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+}
+
+/* Inputs */
+.input-ui {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 12px;
+}
+
+.input-ui:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Tables */
+.table-ui {
+  background: var(--surface);
+}
+
+.table-ui th {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.table-ui td {
+  border-top: 1px solid var(--border);
+}
+
+/* Modal */
+.modal-ui {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+}

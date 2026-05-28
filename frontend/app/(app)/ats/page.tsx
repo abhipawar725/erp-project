@@ -1,7 +1,6 @@
 'use client';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { InputText } from 'primereact/inputtext';
 import { FilterMatchMode } from 'primereact/api';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -18,6 +17,7 @@ import { InterviewSchedulerModal } from '../../../features/candidates/components
 import { InterviewResultModal } from '../../../features/candidates/components/InterviewResultModal';
 import { OfferLetterModal } from '../../../features/candidates/components/OfferLetterModal';
 import { WithdrawModal } from '../../../features/candidates/components/WithdrawModal';
+import { useUploadResume } from '../../../features/candidates/hooks/useCandidates'
 import {
   useCandidates, useCandidateStats, useDeleteCandidate,
 } from '../../../features/candidates/hooks/useCandidates';
@@ -29,6 +29,7 @@ import {
   STATUS_COLORS, STATUS_LABEL, SOURCE_EMOJI, PIPELINE_STAGES,
 } from '../../../features/candidates/types/candidate.types';
 import { formatDate } from '../../../utils/formatters';
+import { Dropdown } from 'primereact/dropdown';
 
 export default function ATSPage() {
   const dispatch = useAppDispatch();
@@ -82,6 +83,76 @@ export default function ATSPage() {
       matchMode: FilterMatchMode.CONTAINS,
     },
   });
+
+  const ResumeColumn = ({ c, canManage }: any) => {
+    const resumeMutation = useUploadResume(c.id);
+
+    return (
+      <div onClick={(e) => e.stopPropagation()}>
+        {c.resume_url ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+            }}
+          >
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${c.resume_url}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  fontSize: 11,
+                  color: 'var(--blue)',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                }}
+              >
+                View / Download
+              </a>
+          </div>
+        ) : (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '10px 0',
+            }}
+          >
+            <div
+              style={{
+                fontSize: 12,
+                color: 'var(--ink4)',
+                marginBottom: 10,
+              }}
+            >
+              No resume uploaded
+            </div>
+
+            {canManage && (
+              <label style={{ cursor: 'pointer' }}>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) resumeMutation.mutate(f);
+                  }}
+                />
+
+                <span className="btn btn-sec btn-sm">
+                  {resumeMutation.isPending
+                    ? 'Uploading...'
+                    : '↑ Upload Resume'}
+                </span>
+              </label>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const debouncedSearch = useDebounce(search, 380);
   const deleteMutation = useDeleteCandidate();
@@ -225,6 +296,25 @@ export default function ATSPage() {
     );
   };
 
+  const sourceFilterTemplate = (options: any) => {
+    return (
+      <Dropdown
+        value={options.value}
+        options={[
+          { label: 'All', value: null },
+          ...ALL_SOURCES.map((s) => ({
+            label: `${SOURCE_EMOJI[s] || ''} ${s}`,
+            value: s,
+          })),
+        ]}
+        onChange={(e) => options.filterApplyCallback(e.value)}
+        placeholder="Select Source"
+        className="p-column-filter"
+        showClear
+      />
+    );
+  };
+
   return (
     <AppShell onAddNew={canManage ? openCreate : undefined}>
       <div className="pg-enter">
@@ -327,24 +417,6 @@ export default function ATSPage() {
               onChange={e => { setSearch(e.target.value); setPage(1); }}
             />
           </div>
-          <InputText
-            placeholder="Global Search..."
-            value={globalFilter}
-            onChange={(e) => {
-              const value = e.target.value;
-
-              setGlobalFilter(value);
-
-              setFilters((prev) => ({
-                ...prev,
-                global: {
-                  ...prev.global,
-                  value,
-                },
-              }));
-            }}
-            className="w-72"
-          />
 
           <select
             value={statusFilter}
@@ -380,207 +452,203 @@ export default function ATSPage() {
 
         {/* ── LIST ───────────────────────────────────────────────────────── */}
         {viewMode === 'list' && (
-          <div className="card">
+          <DataTable
+            value={candidates}
+            loading={isLoading}
+            paginator
+            rows={20}
+            stripedRows
+            showGridlines
+            removableSort
+            rowHover
+            dataKey="id"
 
-            <DataTable
-              value={candidates}
-              loading={isLoading}
-              paginator
-              rows={20}
-              stripedRows
-              showGridlines
-              removableSort
-              rowHover
-              dataKey="id"
+            filters={filters}
+            filterDisplay="row"
+            onFilter={(e) => {
+              setFilters(e.filters);
 
-              filters={filters}
-              filterDisplay="row"
-              onFilter={(e) => {
-                setFilters(e.filters);
+              const globalValue =
+                (e.filters.global as any)?.value || '';
 
-                const globalValue =
-                  (e.filters.global as any)?.value || '';
+              setSearch(globalValue);
+            }}
 
-                setSearch(globalValue);
-              }}
+            globalFilterFields={[
+              'candidate_name',
+              'email',
+              'phone_number',
+              'current_company_name',
+              'location',
+              'source',
+              'status',
+            ]}
 
-              globalFilterFields={[
-                'candidate_name',
-                'email',
-                'phone_number',
-                'current_company_name',
-                'location',
-                'source',
-                'status',
-              ]}
+            emptyMessage="No candidates found"
 
-              emptyMessage="No candidates found"
+            tableStyle={{ minWidth: '1200px' }}
 
-              tableStyle={{ minWidth: '1200px' }}
+            className="p-datatable-sm"
 
-              className="p-datatable-sm"
+            onRowClick={(e) => {
+              router.push(`/ats/${e.data.id}`);
+            }}
+          >
 
-              onRowClick={(e) => {
-                router.push(`/ats/${e.data.id}`);
-              }}
-            >
+            {/* Candidate */}
 
-              {/* Candidate */}
-
-              <Column
-                field="candidate_name"
-                header="Candidate"
-                sortable
-                filter
-                filterPlaceholder="Search candidate"
-                body={(c) => (
-                  <div>
-                    <div style={{
-                      fontWeight: 700,
-                      color: 'var(--ink)',
-                    }}>
-                      {c.candidate_name}
-                    </div>
-
-                    {c.current_company_name && (
-                      <div style={{
-                        fontSize: 10,
-                        color: 'var(--ink4)',
-                      }}>
-                        {c.current_company_name}
-
-                        {c.current_company_designation &&
-                          ` · ${c.current_company_designation}`}
-                      </div>
-                    )}
-
-                    {c.location && (
-                      <div style={{
-                        fontSize: 10,
-                        color: 'var(--ink4)',
-                      }}>
-                        📍 {c.location}
-                      </div>
-                    )}
-
-                    {c.immediate_joiner && (
-                      <div style={{
-                        fontSize: 9,
-                        color: 'var(--green)',
-                        fontWeight: 700,
-                      }}>
-                        ⚡ IMMEDIATE
-                      </div>
-                    )}
-                  </div>
-                )}
-              />
-
-              {/* Contact */}
-
-              <Column
-                field="email"
-                header="Contact"
-                sortable
-                filter
-                filterPlaceholder="Search contact"
-                body={(c) => (
-                  <div>
-                    {c.email && (
-                      <div style={{ fontSize: 11 }}>
-                        {c.email}
-                      </div>
-                    )}
-
-                    {c.phone_number && (
-                      <div style={{
-                        fontSize: 11,
-                        color: 'var(--ink4)',
-                      }}>
-                        {c.phone_number}
-                      </div>
-                    )}
-                  </div>
-                )}
-              />
-
-              {/* Experience */}
-
-              <Column
-                field="total_experience"
-                header="Experience"
-                sortable
-                filter
-                body={(c) => (
-                  <div style={{ textAlign: 'center' }}>
-                    {c.total_experience != null
-                      ? (
-                        <>
-                          <span style={{
-                            fontFamily: 'var(--mono)',
-                            fontWeight: 700,
-                            color: 'var(--blue)',
-                          }}>
-                            {c.total_experience} yr
-                          </span>
-
-                          {c.relevant_experience != null && (
-                            <div style={{
-                              fontSize: 10,
-                              color: 'var(--ink4)',
-                            }}>
-                              {c.relevant_experience}yr rel.
-                            </div>
-                          )}
-                        </>
-                      )
-                      : <span style={{ color: 'var(--ink4)' }}>—</span>}
-                  </div>
-                )}
-              />
-
-              {/* Expected Salary */}
-
-              <Column
-                field="expected_salary"
-                header="Expected CTC"
-                sortable
-                filter
-                body={(c) => (
+            <Column
+              field="candidate_name"
+              header="Candidate"
+              sortable
+              filter
+              body={(c) => (
+                <div>
                   <div style={{
-                    fontFamily: 'var(--mono)',
-                    fontSize: 12,
-                    fontWeight: 600,
+                    fontWeight: 700,
+                    color: 'var(--ink)',
                   }}>
-                    {c.expected_salary
-                      ? `₹${((Number(c.expected_salary) * 12) / 100000).toFixed(1)}L`
-                      : <span style={{ color: 'var(--ink4)' }}>—</span>}
-
-                    {c.current_salary && c.expected_salary && (
-                      <div style={{
-                        fontSize: 9,
-                        color:
-                          Number(c.expected_salary) >
-                            Number(c.current_salary)
-                            ? 'var(--green)'
-                            : 'var(--red)',
-                      }}>
-                        {(
-                          (
-                            (Number(c.expected_salary) -
-                              Number(c.current_salary)) /
-                            Number(c.current_salary)
-                          ) * 100
-                        ).toFixed(0)}% hike
-                      </div>
-                    )}
+                    {c.candidate_name}
                   </div>
-                )}
-              />
 
-              {/* Notice */}
+                  {c.current_company_name && (
+                    <div style={{
+                      fontSize: 10,
+                      color: 'var(--ink4)',
+                    }}>
+                      {c.current_company_name}
 
-              <Column
+                      {c.current_company_designation &&
+                        ` · ${c.current_company_designation}`}
+                    </div>
+                  )}
+
+                  {c.location && (
+                    <div style={{
+                      fontSize: 10,
+                      color: 'var(--ink4)',
+                    }}>
+                      📍 {c.location}
+                    </div>
+                  )}
+
+                  {c.immediate_joiner && (
+                    <div style={{
+                      fontSize: 9,
+                      color: 'var(--green)',
+                      fontWeight: 700,
+                    }}>
+                      ⚡ IMMEDIATE
+                    </div>
+                  )}
+                </div>
+              )}
+            />
+
+            {/* Contact */}
+
+            <Column
+              field="email"
+              header="Contact"
+              sortable
+              filter
+              body={(c) => (
+                <div>
+                  {c.email && (
+                    <div style={{ fontSize: 11 }}>
+                      {c.email}
+                    </div>
+                  )}
+
+                  {c.phone_number && (
+                    <div style={{
+                      fontSize: 11,
+                      color: 'var(--ink4)',
+                    }}>
+                      {c.phone_number}
+                    </div>
+                  )}
+                </div>
+              )}
+            />
+
+            {/* Experience */}
+
+            <Column
+              field="total_experience"
+              header="Experience"
+              sortable
+              filter
+              body={(c) => (
+                <div style={{ textAlign: 'center' }}>
+                  {c.total_experience != null
+                    ? (
+                      <>
+                        <span style={{
+                          fontFamily: 'var(--mono)',
+                          fontWeight: 700,
+                          color: 'var(--blue)',
+                        }}>
+                          {c.total_experience} yr
+                        </span>
+
+                        {c.relevant_experience != null && (
+                          <div style={{
+                            fontSize: 10,
+                            color: 'var(--ink4)',
+                          }}>
+                            {c.relevant_experience}yr rel.
+                          </div>
+                        )}
+                      </>
+                    )
+                    : <span style={{ color: 'var(--ink4)' }}>—</span>}
+                </div>
+              )}
+            />
+
+            {/* Expected Salary */}
+
+            <Column
+              field="expected_salary"
+              header="Expected CTC"
+              sortable
+              filter
+              body={(c) => (
+                <div style={{
+                  fontFamily: 'var(--mono)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}>
+                  {c.expected_salary
+                    ? `₹${((Number(c.expected_salary) * 12) / 100000).toFixed(1)}L`
+                    : <span style={{ color: 'var(--ink4)' }}>—</span>}
+
+                  {c.current_salary && c.expected_salary && (
+                    <div style={{
+                      fontSize: 9,
+                      color:
+                        Number(c.expected_salary) >
+                          Number(c.current_salary)
+                          ? 'var(--green)'
+                          : 'var(--red)',
+                    }}>
+                      {(
+                        (
+                          (Number(c.expected_salary) -
+                            Number(c.current_salary)) /
+                          Number(c.current_salary)
+                        ) * 100
+                      ).toFixed(0)}% hike
+                    </div>
+                  )}
+                </div>
+              )}
+            />
+
+            {/* Notice */}
+
+            {/* <Column
                 field="notice_period"
                 header="Notice"
                 sortable
@@ -595,123 +663,96 @@ export default function ATSPage() {
                       : '—'}
                   </span>
                 )}
-              />
+              /> */}
 
-              {/* Source */}
+            {/* Source */}
 
-              <Column
-                field="source"
-                header="Source"
-                sortable
-                filter
-                filterPlaceholder="Filter source"
-                body={(c) => (
-                  <>
-                    {c.source
-                      ? (
-                        <Chip variant="blue">
-                          {SOURCE_EMOJI[c.source] || ''} {c.source}
-                        </Chip>
-                      )
-                      : (
-                        <span style={{ color: 'var(--ink4)' }}>
-                          —
-                        </span>
-                      )}
-                  </>
-                )}
-              />
-
-              {/* Resume */}
-
-              <Column
-                header="Resume"
-                body={(c) => (
-                  <>
-                    {c.resume_url
-                      ? (
-                        <a
-                          href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${c.resume_url}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            fontSize: 11,
-                            color: 'var(--blue)',
-                            fontWeight: 600,
-                            textDecoration: 'none',
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          📄 View
-                        </a>
-                      )
-                      : (
-                        <span style={{
-                          fontSize: 11,
-                          color: 'var(--ink4)',
-                        }}>
-                          —
-                        </span>
-                      )}
-                  </>
-                )}
-              />
-
-              {/* Stage */}
-
-              <Column
-                field="status"
-                header="Stage"
-                sortable
-                filter
-                filterPlaceholder="Filter stage"
-                body={(c) => (
-                  <StatusBadge status={c.status} />
-                )}
-              />
-
-              {/* Actions */}
-
-              {canManage && (
-                <Column
-                  header="Actions"
-                  exportable={false}
-                  body={(c) => (
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: 4,
-                        flexWrap: 'wrap',
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Chip
-                        variant="gray"
-                        onClick={() => openEdit(c)}
-                      >
-                        Edit
+            <Column
+              field="source"
+              header="Source"
+              sortable
+              filter
+              body={(c) => (
+                <>
+                  {c.source
+                    ? (
+                      <Chip variant="blue">
+                        {SOURCE_EMOJI[c.source] || ''} {c.source}
                       </Chip>
+                    )
+                    : (
+                      <span style={{ color: 'var(--ink4)' }}>
+                        —
+                      </span>
+                    )}
+                </>
+              )}
+            />
+            {/* Resume */}
 
-                      <Chip
-                        variant="purple"
-                        onClick={() => setMoveTarget(c)}
-                      >
-                        Move
-                      </Chip>
-
-                      <Chip
-                        variant="red"
-                        onClick={() => setDeleteTarget(c)}
-                      >
-                        Delete
-                      </Chip>
-                    </div>
-                  )}
+            <Column
+              header="Resume"
+              style={{ minWidth: 140 }}
+              body={(c) => (
+                <ResumeColumn
+                  c={c}
+                  canManage={canManage}
                 />
               )}
+            />
+            {/* Stage */}
 
-            </DataTable>
-          </div>
+            <Column
+              field="status"
+              header="Stage"
+              sortable
+              filter
+              body={(c) => (
+                <StatusBadge status={c.status} />
+              )}
+            />
+
+            {/* Actions */}
+
+            {canManage && (
+              <Column
+                header="Actions"
+                exportable={false}
+                body={(c) => (
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 4,
+                      flexWrap: 'wrap',
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Chip
+                      variant="gray"
+                      onClick={() => openEdit(c)}
+                    >
+                      Edit
+                    </Chip>
+
+                    <Chip
+                      variant="purple"
+                      onClick={() => setMoveTarget(c)}
+                    >
+                      Move
+                    </Chip>
+
+                    <Chip
+                      variant="red"
+                      onClick={() => setDeleteTarget(c)}
+                    >
+                      Delete
+                    </Chip>
+                  </div>
+                )}
+              />
+            )}
+
+          </DataTable>
         )}
       </div>
 

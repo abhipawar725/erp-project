@@ -175,7 +175,7 @@ export const portalService = {
       { form_data, is_draft },
     ),
 
-  savePrejoin: (form_data: Record<string, unknown>, is_draft: boolean) =>
+  savePreinterview: (form_data: Record<string, unknown>, is_draft: boolean) =>
     portalClient.post<unknown, ApiResponse<Candidate>>(
       '/candidates/portal/prejoin',
       { form_data, is_draft },

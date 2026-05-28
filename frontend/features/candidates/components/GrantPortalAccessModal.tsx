@@ -1,27 +1,27 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Modal }               from '../../../components/ui/Modal';
+import { Modal } from '../../../components/ui/Modal';
 import { useGrantPortalAccess } from '../hooks/useCandidates';
-import type { Candidate }       from '../types/candidate.types';
+import type { Candidate } from '../types/candidate.types';
 
 interface Props {
-  open:      boolean;
-  onClose:   () => void;
+  open: boolean;
+  onClose: () => void;
   candidate: Candidate | null;
 }
 
 export function GrantPortalAccessModal({ open, onClose, candidate }: Props) {
-  const [customPwd,    setCustomPwd]    = useState('');
+  const [customPwd, setCustomPwd] = useState('');
   const [useCustomPwd, setUseCustomPwd] = useState(false);
-  const [sendEmail,    setSendEmail]    = useState(true);
-  const [showResult,   setShowResult]   = useState(false);
-  const [resultData,   setResultData]   = useState<{
+  const [sendEmail, setSendEmail] = useState(true);
+  const [showResult, setShowResult] = useState(false);
+  const [resultData, setResultData] = useState<{
     temp_password: string; email_sent: boolean; is_new_access: boolean;
   } | null>(null);
 
   const grantMutation = useGrantPortalAccess(candidate?.id ?? 0);
-  const isBusy        = grantMutation.isPending;
-  const isNewUser     = !candidate?.is_portal_user;
+  const isBusy = grantMutation.isPending;
+  const isNewUser = !candidate?.is_portal_user;
 
   // Reset on open
   useEffect(() => {
@@ -35,12 +35,21 @@ export function GrantPortalAccessModal({ open, onClose, candidate }: Props) {
   }, [open]);
 
   const handleGrant = async () => {
-    const res = await grantMutation.mutateAsync({
-      password:   useCustomPwd && customPwd.trim() ? customPwd.trim() : undefined,
+    console.log('useCustomPwd =>', useCustomPwd);
+  console.log('customPwd =>', customPwd);
+
+    const payload: any = {
       send_email: sendEmail,
-    });
+    };
+
+    if (useCustomPwd && customPwd.trim()) {
+      payload.password = customPwd.trim();
+    }
+
+    const res = await grantMutation.mutateAsync(payload);
     setResultData(res.data);
     setShowResult(true);
+
   };
 
   const handleDone = () => {
@@ -110,9 +119,9 @@ export function GrantPortalAccessModal({ open, onClose, candidate }: Props) {
               Portal Login Credentials
             </div>
             {[
-              { label: 'Portal URL',        value: `${typeof window !== 'undefined' ? window.location.origin : ''}/portal/login` },
-              { label: 'Username / Email',  value: candidate.email },
-              { label: 'Password',          value: resultData.temp_password },
+              { label: 'Portal URL', value: `${typeof window !== 'undefined' ? window.location.origin : ''}/portal/login` },
+              { label: 'Username / Email', value: candidate.email },
+              { label: 'Password', value: resultData.temp_password },
             ].map(row => (
               <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--border)', fontSize: 12, gap: 10 }}>
                 <span style={{ color: 'var(--ink4)', fontWeight: 500, flexShrink: 0 }}>{row.label}</span>

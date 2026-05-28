@@ -1,0 +1,67 @@
+/* DATATABLE */
+
+.p-datatable {
+  overflow: hidden;
+}
+
+.p-datatable-header {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.p-datatable-thead>tr>th {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  border-color: var(--border);
+  font-size: 12px;
+}
+
+.p-datatable-tbody>tr {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.p-datatable-tbody>tr>td {
+  border-color: var(--border);
+  font-size: 11px;
+}
+
+/* INPUTS */
+
+.p-inputtext,
+.p-dropdown,
+.p-calendar,
+.p-multiselect {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.p-inputtext {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+/* DIALOG */
+
+.p-dialog {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 24px;
+}
+
+.p-dialog-header {
+  border-bottom: 1px solid var(--border);
+}
+
+/* BUTTON */
+
+.p-button {
+  background: var(--primary);
+  border: none;
+}
+
+.p-button:hover {
+  background: var(--primary-hover);
+}

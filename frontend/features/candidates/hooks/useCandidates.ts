@@ -247,17 +247,49 @@ export function useDeleteCandidate() {
 }
 
 // ─── Resume upload ────────────────────────────────────────────────────────────
+// export function useUploadResume(id: number) {
+//   const qc = useQueryClient();
+//   return useMutation({
+//     mutationFn: (file: File) => candidateService.uploadResume(id, file),
+//     onSuccess: () => {
+//       qc.invalidateQueries({ queryKey: KEYS.detail(id) });
+//       showToast('✓ Resume uploaded');
+//     },
+//     onError: (err: any) => showToast(err?.message || 'Upload failed'),
+//   });
+// }
+
 export function useUploadResume(id: number) {
   const qc = useQueryClient();
+
   return useMutation({
-    mutationFn: (file: File) => candidateService.uploadResume(id, file),
+    mutationFn: (file: File) =>
+      candidateService.uploadResume(id, file),
+
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: KEYS.detail(id) });
+      // detail page refresh
+      qc.invalidateQueries({
+        queryKey: KEYS.detail(id),
+      });
+
+      // table/list refresh
+      qc.invalidateQueries({
+        queryKey: KEYS.list(),
+      });
+
+      // optional global candidates refresh
+      qc.invalidateQueries({
+        queryKey: ['candidates'],
+      });
+
       showToast('✓ Resume uploaded');
     },
-    onError: (err: any) => showToast(err?.message || 'Upload failed'),
+
+    onError: (err: any) =>
+      showToast(err?.message || 'Upload failed'),
   });
 }
+
 
 // ─── Bulk upload ──────────────────────────────────────────────────────────────
 export function useBulkUpload() {

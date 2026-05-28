@@ -154,6 +154,20 @@ export function rbacCheck(module: string, action: string) {
   };
 }
 
+
+// ─── authorize — alias for rbacCheck (preferred name in route files) ──────────
+/**
+ * Middleware factory that checks whether the authenticated user's role
+ * has the given permission slug.
+ *
+ * Usage:
+ *   router.get('/', authenticate, authorize('roles', 'read'), handler);
+ *   router.post('/', authenticate, authorize('roles', 'write'), handler);
+ *
+ * Equivalent to rbacCheck() — kept as a named alias for readability.
+ */
+export const authorize = rbacCheck;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // attachFieldPermissions — injects field-level rules into req
 // ─────────────────────────────────────────────────────────────────────────────

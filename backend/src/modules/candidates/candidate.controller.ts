@@ -419,7 +419,6 @@ export async function handleReschedule(req: Request, res: Response, next: NextFu
 export async function grantPortalAccess(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { password, send_email = true } = req.body;
-
     const candidate = await Candidate.findOne({
       where: { id: parseInt(req.params.id, 10), company_id: req.user!.companyId },
     });

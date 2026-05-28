@@ -1,5 +1,5 @@
 'use client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/api/auth.service';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -33,6 +33,8 @@ export function useAuth() {
     },
   });
 
+  const meQuery = useQuery({queryKey: ['me'], queryFn: () => authService.getMe(), enabled: isAuthenticated})
+
   return {
     user,
     isAuthenticated,
@@ -40,5 +42,7 @@ export function useAuth() {
     logout: logoutMutation.mutate,
     isLoggingIn: loginMutation.isPending,
     loginError: loginMutation.error,
+    me: meQuery.data,
+    isLoadingMe: meQuery.isLoading,
   };
 }

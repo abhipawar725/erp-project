@@ -27,7 +27,7 @@ export function AppShell({ children, onAddNew }: AppShellProps) {
   return (
     <div id="shell">
       <Sidebar />
-      <div id="main">
+      <div id="main" className='pt-20'>
         <Topbar onAddNew={onAddNew} />
         <div id="content">
           {children}

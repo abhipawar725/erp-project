@@ -1,23 +1,23 @@
 'use client';
-import { useState }   from 'react';
-import { Modal }      from '../../../components/ui/Modal';
+import { useState } from 'react';
+import { Modal } from '../../../components/ui/Modal';
 import { useMoveStatus } from '../hooks/useCandidates';
 import {
-  ALL_STATUSES, STATUS_COLORS, STATUS_LABEL,
+  ALL_STATUSES, STATUS_COLORS, STATUS_LABEL, STATUS_ORDER, TERMINAL_STATUSES,
   type CandidateStatus, type Candidate,
 } from '../types/candidate.types';
 
 interface Props {
-  open:          boolean;
-  onClose:       () => void;
-  candidate:     Candidate | null;
+  open: boolean;
+  onClose: () => void;
+  candidate: Candidate | null;
   /** Called when HR selects Interview_Result so the result form can open */
   onInterviewResult?: () => void;
 }
 
 export function StatusMoveModal({ open, onClose, candidate, onInterviewResult }: Props) {
   const [selectedStatus, setSelectedStatus] = useState<CandidateStatus | ''>('');
-  const [remarks,        setRemarks]        = useState('');
+  const [remarks, setRemarks] = useState('');
   const moveMutation = useMoveStatus();
 
   const handleMove = async () => {
@@ -54,8 +54,8 @@ export function StatusMoveModal({ open, onClose, candidate, onInterviewResult }:
             {moveMutation.isPending
               ? 'Moving…'
               : selectedStatus === 'Interview_Result'
-              ? '→ Move & Record Result'
-              : '→ Move'}
+                ? '→ Move & Record Result'
+                : '→ Move'}
           </button>
         </>
       }
@@ -66,34 +66,50 @@ export function StatusMoveModal({ open, onClose, candidate, onInterviewResult }:
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
           {ALL_STATUSES.map(s => {
-            const c         = STATUS_COLORS[s];
-            const isCurrent  = s === currentStatus;
+            const c = STATUS_COLORS[s];
+            const currentOrder = currentStatus ? STATUS_ORDER[currentStatus] : 0;
+            const statusOrder = STATUS_ORDER[s];
+            const isCurrent = s === currentStatus;
+            const isPreviousStage = statusOrder < currentOrder && !['Rejected', 'Withdrawn', 'On_Hold'].includes(s);
+            const isTerminalCurrent =
+              currentStatus &&
+              TERMINAL_STATUSES.includes(currentStatus);
+            const disabled =
+              isTerminalCurrent
+                ? s !== currentStatus
+                : isCurrent || isPreviousStage;
             const isSelected = s === selectedStatus;
-            const isResult   = s === 'Interview_Result';
+            const isResult = s === 'Interview_Result';
 
             return (
               <button
                 key={s}
                 type="button"
-                disabled={isCurrent}
+                disabled={disabled}
                 onClick={() => setSelectedStatus(s)}
                 style={{
-                  padding:      '6px 12px',
+                  padding: '6px 12px',
                   borderRadius: 99,
-                  fontSize:     11,
-                  fontWeight:   600,
-                  cursor:       isCurrent ? 'not-allowed' : 'pointer',
-                  opacity:      isCurrent ? .45 : 1,
-                  fontFamily:   'var(--font)',
-                  transition:   'all .1s',
-                  border:       `1px solid ${isSelected ? c.text : isCurrent ? 'var(--border)' : c.border}`,
-                  background:   isSelected ? c.text : isCurrent ? 'var(--surface2)' : c.bg,
-                  color:        isSelected ? '#fff' : isCurrent ? 'var(--ink4)' : c.text,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: disabled ? 'not-allowed' : 'pointer',
+                  opacity: disabled ? .45 : 1,
+                  fontFamily: 'var(--font)',
+                  transition: 'all .1s',
+                  border: `1px solid ${isSelected ? c.text : isCurrent ? 'var(--border)' : c.border}`,
+                  background: isSelected ? c.text : isCurrent ? 'var(--surface2)' : c.bg,
+                  color: isSelected ? '#fff' : isCurrent ? 'var(--ink4)' : c.text,
                   // Highlight Interview_Result with a subtle glow
-                  boxShadow:    isResult && isSelected ? `0 0 0 3px ${c.border}` : undefined,
+                  boxShadow: isResult && isSelected ? `0 0 0 3px ${c.border}` : undefined,
                 }}
               >
-                {isCurrent ? `${STATUS_LABEL[s]} (current)` : STATUS_LABEL[s]}
+                {
+                  isCurrent
+                    ? `${STATUS_LABEL[s]} (current)`
+                    : isPreviousStage
+                      ? `✓ ${STATUS_LABEL[s]}`
+                      : STATUS_LABEL[s]
+                }
                 {isResult && !isCurrent && ' 🎯'}
               </button>
             );

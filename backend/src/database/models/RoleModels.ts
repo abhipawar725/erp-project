@@ -129,3 +129,26 @@ FieldPermission.init(
     indexes: [{ unique: true, fields: ['role_id', 'module', 'field_name'] }],
   },
 );
+
+// ─── RolePermission — join table: roles ↔ permissions ────────────────────────
+
+export class RolePermission extends Model {
+  public id!:            number;
+  public role_id!:       number;
+  public permission_id!: number;
+}
+
+RolePermission.init(
+  {
+    id:            { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
+    role_id:       { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+    permission_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+  },
+  {
+    sequelize,
+    tableName:  'role_permissions',
+    modelName:  'RolePermission',
+    timestamps: false,
+    indexes: [{ unique: true, fields: ['role_id', 'permission_id'] }],
+  },
+);

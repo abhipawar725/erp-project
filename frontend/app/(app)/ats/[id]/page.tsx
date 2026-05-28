@@ -14,10 +14,10 @@ import { InterviewSchedulerModal } from '../../../../features/candidates/compone
 import { InterviewResultModal }    from '../../../../features/candidates/components/InterviewResultModal';
 import { OfferLetterModal }        from '../../../../features/candidates/components/OfferLetterModal';
 import { HireCandidateModal }      from '../../../../features/candidates/components/HireCandidateModal';
+import { GrantPortalAccessModal }  from '../../../../features/candidates/components/GrantPortalAccessModal';
 import { WithdrawModal }           from '../../../../features/candidates/components/WithdrawModal';
 import { PreInterviewFormModal }   from '../../../../features/candidates/components/PreInterviewFormModal';
 import { AptitudeTestSendModal }   from '../../../../features/candidates/components/AptitudeTestSendModal';
-import { GrantPortalAccessModal }  from '../../../../features/candidates/components/GrantPortalAccessModal';
 
 // Hooks
 import {
@@ -82,9 +82,9 @@ export default function CandidateDetailPage() {
   const [hireOpen,          setHireOpen]           = useState(false);
   const [withdrawOpen,      setWithdrawOpen]       = useState(false);
   const [preFormOpen,       setPreFormOpen]        = useState(false);
+  const [deleteOpen,        setDeleteOpen]         = useState(false);
   const [portalOpen,        setPortalOpen]         = useState(false);
   const [aptitudeOpen,      setAptitudeOpen]       = useState(false);
-  const [deleteOpen,        setDeleteOpen]         = useState(false);
 
   const { data: candidate, isLoading, isError } = useCandidate(id);
   const deleteMutation  = useDeleteCandidate();
@@ -127,56 +127,122 @@ export default function CandidateDetailPage() {
 
   // ─── Status-driven action buttons ────────────────────────────────────────
   const ActionBar = () => {
-    if (!canManage) return null;
-    return (
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        {/* Aptitude test — available at ANY stage */}
-        <button className="btn btn-sec btn-sm" onClick={() => setAptitudeOpen(true)}>
-          🧠 {c.aptitude_test_sent ? 'Resend Test' : 'Send Aptitude Test'}
-        </button>
+  const btns: React.ReactNode[] = [];
 
-        {/* Schedule interview — when shortlisted */}
-        {c.status === 'Shortlisted' && (
-          <button className="btn btn-sec btn-sm" onClick={() => setScheduleOpen(true)}>📅 Schedule Interview</button>
-        )}
+  // ── Aptitude test (all stages)
+  btns.push(
+    <button
+      key="aptitude"
+      className="btn btn-sec btn-sm"
+      onClick={() => setAptitudeOpen(true)}
+    >
+      🧠 {c.aptitude_test_sent ? 'Resend Test' : 'Send Aptitude Test'}
+    </button>
+  );
 
-        {/* Reschedule + pre-interview form — when scheduled */}
-        {c.status === 'Interview_Scheduled' && (
-          <>
-            <button className="btn btn-sec btn-sm" onClick={() => setScheduleOpen(true)}>📅 Reschedule</button>
-            {c.interview_accepted === true && (
-              <button
-                className="btn btn-sec btn-sm"
-                style={c.pre_interview_form_sent ? { color: 'var(--green)', borderColor: 'var(--green-bd)' } : {}}
-                onClick={() => setPreFormOpen(true)}
-              >
-                📋 {c.pre_interview_form_sent ? 'Resend Pre-Interview Form' : 'Send Pre-Interview Form'}
-              </button>
-            )}
-          </>
-        )}
-
-        {/* Record result */}
-        {c.status === 'Interview_Result' && (
-          <button className="btn btn-pri btn-sm" style={{ background: 'var(--teal)', borderColor: 'var(--teal)' }} onClick={() => setResultOpen(true)}>
-            🎯 Record Result
-          </button>
-        )}
-
-        {/* Offer + Hire — when offered */}
-        {c.status === 'Offered' && (
-          <>
-            <button className="btn btn-sec btn-sm" onClick={() => setOfferOpen(true)}>
-              ✉ {c.offer_sent_at ? 'Resend Offer' : 'Send Offer Letter'}
-            </button>
-            <button className="btn btn-pri btn-sm" style={{ background: 'var(--green)', borderColor: 'var(--green)' }} onClick={() => setHireOpen(true)}>
-              🎉 Confirm Hire
-            </button>
-          </>
-        )}
-      </div>
+  // ── Shortlisted
+  if (c.status === 'Shortlisted' && canManage) {
+    btns.push(
+      <button
+        key="schedule"
+        className="btn btn-sec btn-sm"
+        onClick={() => setScheduleOpen(true)}
+      >
+        📅 Schedule Interview
+      </button>
     );
-  };
+  }
+
+  // ── Interview scheduled
+  if (c.status === 'Interview_Scheduled' && canManage) {
+    btns.push(
+      <button
+        key="reschedule"
+        className="btn btn-sec btn-sm"
+        onClick={() => setScheduleOpen(true)}
+      >
+        📅 Reschedule
+      </button>
+    );
+
+    if (c.interview_accepted === true) {
+      btns.push(
+        <button
+          key="preform"
+          className="btn btn-sec btn-sm"
+          style={
+            c.pre_interview_form_sent
+              ? { color: 'var(--green)', borderColor: 'var(--green-bd)' }
+              : {}
+          }
+          onClick={() => setPreFormOpen(true)}
+        >
+          📋 {c.pre_interview_form_sent
+            ? 'Resend Pre-Interview Form'
+            : 'Send Pre-Interview Form'}
+        </button>
+      );
+    }
+  }
+
+  // ── Interview result
+  if (c.status === 'Interview_Result' && canManage) {
+    btns.push(
+      <button
+        key="result"
+        className="btn btn-pri btn-sm"
+        style={{
+          background: 'var(--teal)',
+          borderColor: 'var(--teal)',
+        }}
+        onClick={() => setResultOpen(true)}
+      >
+        🎯 Record Result
+      </button>
+    );
+  }
+
+  // ── Offered
+  if (c.status === 'Offered' && canManage) {
+    btns.push(
+      <button
+        key="offer"
+        className="btn btn-sec btn-sm"
+        onClick={() => setOfferOpen(true)}
+      >
+        ✉ {c.offer_sent_at ? 'Resend Offer' : 'Send Offer Letter'}
+      </button>
+    );
+
+    btns.push(
+      <button
+        key="hire"
+        className="btn btn-pri btn-sm"
+        style={{
+          background: 'var(--green)',
+          borderColor: 'var(--green)',
+        }}
+        onClick={() => setHireOpen(true)}
+      >
+        🎉 Confirm Hire
+      </button>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: 8,
+        flexWrap: 'wrap',
+        alignItems: 'center',
+      }}
+    >
+      {btns}
+    </div>
+  );
+};
+
 
   return (
     <AppShell>
@@ -221,12 +287,9 @@ export default function CandidateDetailPage() {
 
           <div className="ph-r">
             <button className="btn btn-sec btn-sm" onClick={() => router.push('/ats')}>← Back</button>
-            <ActionBar />
+            {canManage && <ActionBar />}
             {canManage && (
               <>
-                <button className="btn btn-sec btn-sm" onClick={() => router.push(`/ats/${id}/forms`)}>
-                  📋 View Forms
-                </button>
                 <button className="btn btn-sec btn-sm" onClick={() => setMoveOpen(true)}>Move Stage</button>
                 <button className="btn btn-sec btn-sm" onClick={() => setEditOpen(true)}>Edit</button>
                 {c.status !== 'Hired' && c.status !== 'Withdrawn' && (
@@ -636,13 +699,13 @@ export default function CandidateDetailPage() {
         open={aptitudeOpen}
         onClose={() => setAptitudeOpen(false)}
         candidate={c}
-      />
+      />      
 
       <GrantPortalAccessModal
         open={portalOpen}
         onClose={() => setPortalOpen(false)}
         candidate={c}
-      />      
+      />       
 
       <PreInterviewFormModal
         open={preFormOpen}

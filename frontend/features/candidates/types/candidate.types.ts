@@ -8,6 +8,27 @@ export type CandidateSource =
 
 export type CandidateGender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';
 
+export const STATUS_ORDER: Record<CandidateStatus, number> = {
+  Applied: 1,
+  Shortlisted: 2,
+  Interview_Scheduled: 3,
+  Technical: 4,
+  HR_Round: 5,
+  Interview_Result: 6,
+  Offered: 7,
+  Hired: 8,
+  Rejected: 99,
+  Withdrawn: 99,
+  On_Hold: 50,
+};
+ 
+export const TERMINAL_STATUSES: CandidateStatus[] = [
+  'Hired',
+  'Rejected',
+  'Withdrawn',
+];
+
+
 export interface Candidate {
     id: number; 
   company_id: number; 

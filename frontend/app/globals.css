@@ -46,8 +46,6 @@
   --sh3: 0 10px 24px rgba(0,0,0,.08), 0 4px 10px rgba(0,0,0,.07);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
 html, body {
   height: 100%;
   background: var(--bg);
@@ -58,7 +56,6 @@ html, body {
 }
 
 .p-datatable {
-  border-radius: 14px;
   overflow: hidden;
 }
 
@@ -210,12 +207,12 @@ div#sb.slim {
 div#sb.slim + #main {
     margin-left: 0;
 }
-#topbar {
+/* #topbar {
   height: 52px; min-height: 52px;
   background: var(--surface); border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px;
   padding: 0 18px; box-shadow: var(--sh); z-index: 10; flex-shrink: 0;
-}
+} */
 .tb-tog {
   background: none; border: 1px solid var(--border);
   color: var(--ink3); cursor: pointer; font-size: 15px;
@@ -348,7 +345,7 @@ div#sb.slim + #main {
 .cgr { background: var(--surface2); color: var(--ink3); border-color: var(--border); }
 
 /* ─── Table ─── */
-.tw { overflow-x: auto; }
+ .tw { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; min-width: 480px; }
 thead th {
   padding: 8px 14px; text-align: left; font-size: 10px; font-weight: 700;
@@ -358,7 +355,7 @@ thead th {
 tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--ink3); vertical-align: middle; }
 tbody td strong { color: var(--ink); font-weight: 600; }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover td { background: var(--surface2); cursor: pointer; }
+tbody tr:hover td { background: var(--surface2); cursor: pointer; } 
 
 /* ─── Progress Bar ─── */
 .pb { background: var(--surface3); border-radius: 99px; height: 4px; overflow: hidden; margin-top: 4px; }

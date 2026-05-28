@@ -10,6 +10,8 @@ import candidateRoutes     from '../modules/candidates/candidate.routes';
 import aptitudeRoutes      from '../modules/ats-tests/aptitude.routes';
 import notificationRoutes  from '../modules/notifications/notification.routes';
 import logsRoutes          from '../modules/compliance/activity.routes';
+import emailTemplateRoutes from '../modules/email-templates/emailTemplate.routes';
+import rbacRoutes          from '../modules/form-builder/formBuilder.routes';
 
 const router = Router();
 
@@ -26,5 +28,7 @@ router.use('/candidates',    candidateRoutes);
 router.use('/aptitude',      aptitudeRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/logs',          logsRoutes);
+router.use('/email-templates', emailTemplateRoutes);
+router.use('/rbac',            rbacRoutes);
 
 export default router;
