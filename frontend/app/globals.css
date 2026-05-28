@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
+@import "tailwindcss";
+
 /* ═══ NexHR Design System Tokens ═══ */
 :root {
   --bg: #f5f6f8;
@@ -53,6 +55,29 @@ html, body {
   font-family: var(--font);
   font-size: 13px;
   line-height: 1.5;
+}
+
+.p-datatable {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.p-datatable .p-datatable-header {
+  background: transparent;
+  border: none;
+}
+
+.p-datatable .p-column-header-content {
+  gap: 6px;
+}
+
+.p-column-filter input {
+  width: 100%;
+  font-size: 12px;
+}
+
+.p-paginator {
+  border: none !important;
 }
 
 /* ═══ SHELL ═══ */
