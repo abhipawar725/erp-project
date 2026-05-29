@@ -6,15 +6,15 @@
 
 .p-datatable-header {
   background: var(--surface);
-  border-color: var(--border);
+border-color: var(--border);
 }
 
-.p-datatable-thead>tr>th {
+/* .p-datatable-thead>tr>th {
   background: var(--surface-2);
   color: var(--text-muted);
   border-color: var(--border);
   font-size: 12px;
-}
+} */
 
 .p-datatable-tbody>tr {
   background: var(--surface);

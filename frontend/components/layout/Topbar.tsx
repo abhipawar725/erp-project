@@ -65,7 +65,7 @@ export function Topbar({ onAddNew }: TopbarProps) {
 
         <div className="tb-r">
           <div className={`rb ${ROLE_BADGE[role]}`}>{ROLE_LABEL[role]}</div>
-          <button className="btn btn-sec btn-sm">↓ Export</button>
+          {/* <button className="btn btn-sec btn-sm">↓ Export</button> */}
           {onAddNew && (
             <button className="btn btn-pri btn-sm" onClick={onAddNew}>+ Add New</button>
           )}

@@ -229,7 +229,7 @@ export function StepEmployment({
 
         {/* MANAGER */}
 
-        <div
+        {/* <div
           className="fg"
           style={{
             gridColumn: '1 / -1',
@@ -281,7 +281,7 @@ export function StepEmployment({
               }
             </span>
           )}
-        </div>
+        </div> */}
 
         {/* EMPLOYMENT TYPE */}
 

@@ -6,7 +6,7 @@ const inter = Inter({
 });
 import "./globals.css";
 import "@/styles/theme.css";
-import "@/styles/primereact-overrides.css";
+// import "@/styles/primereact-overrides.css";
 import "primeicons/primeicons.css";
 
 import { ReduxProvider } from '../providers/ReduxProvider';

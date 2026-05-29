@@ -504,7 +504,9 @@ export default function CandidateDetailPage() {
             {/* ── Experience ───────────────────────────────────────── */}
             <SectionCard title="Experience">
               <InfoRow label="Current Company"  value={c.current_company_name} />
-              <InfoRow label="Last Designation" value={c.current_company_designation} />
+              <InfoRow label="Current Designation" value={c.current_company_designation} />
+              <InfoRow label="Applied Department" value={c.apply_department} />
+              <InfoRow label="Applied Designation" value={c.apply_designation} />
               <InfoRow label="Total Experience" value={c.total_experience != null ? `${c.total_experience} years` : null} />
               <InfoRow label="Relevant Exp."   value={c.relevant_experience != null ? `${c.relevant_experience} years` : null} />
             </SectionCard>

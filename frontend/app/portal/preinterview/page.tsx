@@ -12,7 +12,7 @@ interface RefRow     { name: string; occupation: string; contact: string; addres
 // ─── Steps ───────────────────────────────────────────────────────────────────
 const STEPS = [
   { id: 'personal',    label: 'Personal',      icon: '01' },
-  { id: 'job',         label: 'Job Details',   icon: '02' },
+  // { id: 'job',         label: 'Job Details',   icon: '02' },
   { id: 'address',     label: 'Address',       icon: '03' },
   { id: 'transport',   label: 'Transport',     icon: '04' },
   { id: 'family',      label: 'Family',        icon: '05' },
@@ -379,11 +379,11 @@ export default function PrejoinFormPage() {
       else if (!/^[+\d\s\-()]{7,15}$/.test(p1.mobile)) e.mobile = 'Invalid mobile number';
       if (p1.email && !/^[^@]+@[^@]+\.[^@]+$/.test(p1.email)) e.email = 'Invalid email address';
       if (p1.aadhaar && !/^\d{4}\s?\d{4}\s?\d{4}$/.test(p1.aadhaar)) e.aadhaar = 'Aadhaar must be 12 digits';
-      if (p1.pan && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(p1.pan)) e.pan = 'Invalid PAN format (e.g. ABCDE1234F)';
+      // if (p1.pan && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(p1.pan)) e.pan = 'Invalid PAN format (e.g. ABCDE1234F)';
     }
-    if (id === 'job') {
-      if (!p2.position.trim())    e.position     = 'Position is required';
-    }
+    // if (id === 'job') {
+    //   if (!p2.position.trim())    e.position     = 'Position is required';
+    // }
     if (id === 'address') {
       if (!p3.pr_city.trim())     e.pr_city      = 'City is required';
       if (!p3.pr_state)           e.pr_state     = 'State is required';
@@ -474,8 +474,8 @@ export default function PrejoinFormPage() {
       <div style={{ minHeight:'100vh', background:'var(--bg)' }}>
         <div className="topbar">
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:32, height:32, borderRadius:8, background:'var(--bl)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:600, color:'#fff' }}>NX</div>
-            <span style={{ fontFamily:'var(--fs)', fontSize:16, color:'var(--ink)' }}>NexHR</span>
+            <div style={{ width:32, height:32, borderRadius:8, background:'var(--bl)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:600, color:'#fff' }}>UNG</div>
+            <span style={{ fontFamily:'var(--fs)', fontSize:16, color:'var(--ink)' }}>UNG HRMS</span>
           </div>
         </div>
         <div className="wrap">
@@ -503,13 +503,13 @@ export default function PrejoinFormPage() {
         {/* ── Top bar ──────────────────────────────────────── */}
         <div className="topbar">
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:32, height:32, borderRadius:8, background:'var(--bl)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:600, color:'#fff' }}>NX</div>
-            <span style={{ fontFamily:'var(--fs)', fontSize:16, color:'var(--ink)' }}>NexHR · Candidate Portal</span>
+            <div style={{ width:32, height:32, borderRadius:8, background:'var(--bl)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:600, color:'#fff' }}>UNG</div>
+            <span style={{ fontFamily:'var(--fs)', fontSize:16, color:'var(--ink)' }}>UNG HRMS · Candidate Portal</span>
           </div>
           <div style={{ display:'flex', gap:8 }}>
-            <button className="btn btn-sec" style={{ fontSize:12, padding:'6px 12px' }} onClick={() => saveMutation.mutate(true)} disabled={saveMutation.isPending}>
+            {/* <button className="btn btn-sec" style={{ fontSize:12, padding:'6px 12px' }} onClick={() => saveMutation.mutate(true)} disabled={saveMutation.isPending}>
               {saveMutation.isPending ? '…' : '↑ Save Draft'}
-            </button>
+            </button> */}
             <button className="btn btn-sec" style={{ fontSize:12, padding:'6px 12px' }} onClick={() => router.push('/portal/dashboard')}>← Dashboard</button>
           </div>
         </div>
@@ -517,7 +517,7 @@ export default function PrejoinFormPage() {
         <div className="wrap">
 
           {/* ── Company header ──────────────────────────────── */}
-          <div className="co-header">
+          {/* <div className="co-header">
             <div className="co-logo">
               {companyInfo?.logo_url
                 ? <img src={companyInfo.logo_url} alt="logo" />
@@ -531,7 +531,7 @@ export default function PrejoinFormPage() {
               <div className="ref-label">Reference ID</div>
               <div className="ref-val">{refId}</div>
             </div>
-          </div>
+          </div> */}
 
           {/* ── Form title ──────────────────────────────────── */}
           <h1 className="form-title">Candidate Pre-Interview Declaration Form</h1>
@@ -617,7 +617,7 @@ export default function PrejoinFormPage() {
           )}
 
           {/* ══ STEP 2: JOB DETAILS ═══════════════════════════ */}
-          {step === 'job' && (
+          {/* {step === 'job' && (
             <>
               <div className="card">
                 <div className="card-title">Job Application Details</div>
@@ -636,7 +636,6 @@ export default function PrejoinFormPage() {
                   <div className="fg"><Label t="Reason for Job Change" /><input placeholder="Growth, relocation, etc." value={p2.reason_for_change} onChange={F2('reason_for_change')} /></div>
                 </div>
 
-                {/* Salary cards */}
                 <div className="divider" />
                 <div className="section-label">Salary Details</div>
                 <div className="g2">
@@ -667,7 +666,7 @@ export default function PrejoinFormPage() {
                 <button className="btn btn-pri" onClick={next}>Next: Address →</button>
               </div>
             </>
-          )}
+          )} */}
 
           {/* ══ STEP 3: ADDRESS ════════════════════════════════ */}
           {step === 'address' && (

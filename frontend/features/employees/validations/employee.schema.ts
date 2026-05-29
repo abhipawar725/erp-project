@@ -80,7 +80,6 @@ export const statutorySchema = z.object({
     .or(z.literal('')),
   pan_number: z
     .string()
-    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'PAN format: ABCDE1234F')
     .optional()
     .or(z.literal('')),
   passport_number: z.string().max(30).optional().or(z.literal('')),
@@ -103,7 +102,6 @@ export const bankSchema = z.object({
     .or(z.literal('')),
   ifsc_code: z
     .string()
-    .regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'IFSC format: ABCD0123456')
     .toUpperCase()
     .optional()
     .or(z.literal('')),
