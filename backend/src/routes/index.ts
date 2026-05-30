@@ -12,6 +12,10 @@ import notificationRoutes  from '../modules/notifications/notification.routes';
 import logsRoutes          from '../modules/compliance/activity.routes';
 import emailTemplateRoutes from '../modules/email-templates/emailTemplate.routes';
 import rbacRoutes          from '../modules/form-builder/formBuilder.routes';
+import { userPermissionsRouter } from '../modules/user-permissions/userPermissions.controller';
+// import { assetRouter } from '../modules/assets/asset.controller';
+import { permissionGroupRouter } from '../modules/permission-groups/permissionGroups.controller';
+import { superAdminRouter }      from '../modules/super-admin/superAdmin.controller';
 
 const router = Router();
 
@@ -30,5 +34,9 @@ router.use('/notifications', notificationRoutes);
 router.use('/logs',          logsRoutes);
 router.use('/email-templates', emailTemplateRoutes);
 router.use('/rbac',            rbacRoutes);
+router.use('/user-permissions', userPermissionsRouter);
+// router.use('/assets', assetRouter);
+router.use('/permission-groups', permissionGroupRouter);
+router.use('/super', superAdminRouter);
 
 export default router;

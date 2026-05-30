@@ -122,6 +122,8 @@ export interface CandidateAttributes {
   aptitude_time_taken?: number | null;       // seconds
   aptitude_test_sent?: boolean;      // HR clicked "Send Aptitude Test"
   aptitude_test_sent_at?: Date | null;
+  aptitude_test_id?: number | null;
+
 
   // ── Audit ─────────────────────────────────────────────────────────────────
   created_by?: number | null;
@@ -218,6 +220,7 @@ export class Candidate
   public aptitude_time_taken!: number | null;
   public aptitude_test_sent!: boolean;
   public aptitude_test_sent_at!: Date | null;
+  public aptitude_test_id!: number | null;
   public created_by!: number | null;
   public updated_by!: number | null;
   public deleted_by!: number | null;
@@ -333,6 +336,7 @@ Candidate.init(
     aptitude_time_taken: { type: DataTypes.INTEGER, allowNull: true },
     aptitude_test_sent: { type: DataTypes.BOOLEAN, defaultValue: false },
     aptitude_test_sent_at: { type: DataTypes.DATE, allowNull: true },
+    aptitude_test_id: { type: DataTypes.INTEGER, allowNull: true },
 
     // ── Audit ──────────────────────────────────────────────────────────────
     created_by: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },

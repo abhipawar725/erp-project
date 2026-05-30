@@ -2,11 +2,12 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 
 export interface JwtPayload {
-  userId: number;
-  companyId: number;
-  roleId: number;
-  roleSlug: string;
-  email: string;
+  userId:        number;
+  companyId:     number;
+  roleId:        number;
+  roleSlug:      string;
+  email:         string;
+  isSuperAdmin:  boolean;   // ← added
 }
 
 export function generateAccessToken(payload: JwtPayload): string {

@@ -14,7 +14,7 @@ import {
   getPreInterviewForm, getPreJoiningForm,
   portalLogin, portalMagicLink, portalVerifyMagic,
   portalAuthenticate, portalGetProfile, portalGetCompanyInfo, portalSavePreJoining,
-  portalRespondInterview, portalRequestReschedule, portalSavePreinterview,
+  portalRespondInterview, portalRequestReschedule, portalSavePreinterview,sendPreJoiningFormLink
 } from './candidate.controller';
 import {
   listCandidateValidation, createCandidateValidation,
@@ -105,6 +105,7 @@ router.post('/:id/send-pre-interview',    authenticate, idValidation,           
 router.post('/:id/send-aptitude-test',     authenticate, idValidation,             validate, sendAptitudeTestLink);
 router.get('/:id/form/pre-interview',       authenticate, idValidation,             validate, getPreInterviewForm);
 router.get('/:id/form/pre-joining',         authenticate, idValidation,             validate, getPreJoiningForm);
+router.post('/:id/send-pre-joining',        authenticate, idValidation,             validate, sendPreJoiningFormLink);
 
 // ─── Candidate portal routes (portal JWT) ────────────────────────────────────
 router.post('/portal/login',        portalLoginValidation, validate, portalLogin);

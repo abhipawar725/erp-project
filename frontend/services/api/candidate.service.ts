@@ -1,5 +1,5 @@
-import apiClient   from '../../services/api/client';
-import axios       from 'axios';
+import apiClient from '../../services/api/client';
+import axios from 'axios';
 import type { ApiResponse } from '../../types/api.types';
 import type {
   Candidate, CandidateStats, CreateCandidateDto,
@@ -28,10 +28,10 @@ export const candidateService = {
     apiClient.patch<unknown, ApiResponse<Candidate>>(`/candidates/${id}/status`, { status, remarks }),
 
   scheduleInterview: (id: number, data: {
-    interview_date:          string;
-    interview_time:          string;
-    interview_type:          string;
-    interview_link?:         string;
+    interview_date: string;
+    interview_time: string;
+    interview_type: string;
+    interview_link?: string;
     interview_instructions?: string;
   }) => apiClient.patch<unknown, ApiResponse<Candidate>>(`/candidates/${id}/interview`, data),
 
@@ -54,13 +54,13 @@ export const candidateService = {
 
 
   submitInterviewResult: (id: number, data: {
-    interview_result_by:        number;
-    interview_result_mode:      'Online' | 'Offline';
-    interview_result_date:      string;
+    interview_result_by: number;
+    interview_result_mode: 'Online' | 'Offline';
+    interview_result_date: string;
     interview_result_feedback?: string;
-    candidate_decision:         'Select' | 'Reject' | 'On_Hold';
-    decision_reason?:           string;
-    decision_joining_date?:     string;
+    candidate_decision: 'Select' | 'Reject' | 'On_Hold';
+    decision_reason?: string;
+    decision_joining_date?: string;
   }) => apiClient.patch<unknown, ApiResponse<Candidate>>(`/candidates/${id}/interview-result`, data),
 
 
@@ -94,6 +94,12 @@ export const candidateService = {
 
   sendPreInterviewForm: (id: number) =>
     apiClient.post<unknown, ApiResponse<{ sent: boolean }>>(`/candidates/${id}/send-pre-interview`),
+
+  sendPreJoiningFormLink: (id: number) =>
+    apiClient.post<unknown, ApiResponse<{ sent: boolean; email: string }>>(
+      `/candidates/${id}/send-pre-joining`,
+      {},
+    ),
 
   bulkUpload: (file: File) => {
     const form = new FormData();
@@ -175,9 +181,17 @@ export const portalService = {
       { form_data, is_draft },
     ),
 
-  savePreinterview: (form_data: Record<string, unknown>, is_draft: boolean) =>
-    portalClient.post<unknown, ApiResponse<Candidate>>(
-      '/candidates/portal/prejoin',
+  savePreinterview: (
+    form_data: Record<string, unknown>,
+    is_draft: boolean
+  ) => {
+
+    console.log('FORM DATA =>', form_data);
+    console.log('IS DRAFT =>', is_draft);
+
+    return portalClient.post(
+      '/candidates/portal/preinterview',
       { form_data, is_draft },
-    ),
+    );
+  },
 };

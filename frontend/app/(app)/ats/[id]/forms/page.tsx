@@ -84,8 +84,17 @@ function NotFilled({ msg }: { msg: string }) {
 // ─── Pre-Interview Form Renderer ──────────────────────────────────────────────
 
 function PreInterviewFormView({ data }: { data: any }) {
-  const fd = data.form_data;
-  if (!fd) return <NotFilled msg="The candidate has not filled the pre-interview declaration form yet." />;
+  let fd: any = null;
+
+  try {
+    fd =
+      typeof data.form_data === 'string'
+        ? JSON.parse(data.form_data)
+        : data.form_data;
+  } catch (err) {
+    console.error('Invalid form_data JSON', err);
+    return <NotFilled msg="Invalid form data." />;
+  }  
 
   const p1 = fd.p1 || {};
   const p2 = fd.p2 || {};
@@ -264,8 +273,17 @@ function PreInterviewFormView({ data }: { data: any }) {
 // ─── Pre-Joining Form Renderer ────────────────────────────────────────────────
 
 function PreJoiningFormView({ data }: { data: any }) {
-  const fd = data.form_data;
-  if (!fd) return <NotFilled msg="The candidate has not filled the pre-joining form yet." />;
+  let fd: any = null;
+
+  try {
+    fd =
+      typeof data.form_data === 'string'
+        ? JSON.parse(data.form_data)
+        : data.form_data;
+  } catch (err) {
+    console.error('Invalid form_data JSON', err);
+    return <NotFilled msg="Invalid form data." />;
+  }  
 
   const s1 = fd.s1 || {};
   const s2 = fd.s2 || {};

@@ -16,6 +16,8 @@ import { PayrollRun, Payslip } from './PayrollModels';
 import { Notification } from './Notification';
 import { ActivityLog } from './ActivityLog';
 import { Role, Permission, FieldPermission } from './RoleModels';
+import { PermissionGroup, GroupPermission, UserGroup } from './PermissionGroups';
+import { UserModulePermission, UserFieldPermission } from './UserPermission';
 
 // IMPORTANT
 import './Associations';
@@ -29,5 +31,6 @@ export {
   AptitudeTest, AptitudeQuestion, CandidateAnswer,
   PayrollRun, Payslip,
   Notification, ActivityLog,
-  Role, Permission, FieldPermission,
+  Role, Permission, FieldPermission,PermissionGroup, GroupPermission, UserGroup,
+  UserModulePermission, UserFieldPermission
 };

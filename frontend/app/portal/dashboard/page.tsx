@@ -131,12 +131,12 @@ export default function PortalDashboard() {
       <div style={{ minHeight: '100vh', background: '#f5f6f8' }}>
 
         {/* ── Top bar ─────────────────────────────────────────── */}
-        <div className="topbar bg-red-500">
+        <div className="topbar">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1e56d9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>UNG</div>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1e56d9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>NX</div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#0f1623' }}>Candidate Portal</div>
-              <div style={{ fontSize: 10, color: '#94a3b8' }}>UNG HRMS</div>
+              <div style={{ fontSize: 10, color: '#94a3b8' }}>NexHR ERP</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -207,7 +207,7 @@ export default function PortalDashboard() {
           </div>
 
           {/* ── Interview card ───────────────────────────────── */}
-          {c.status === 'Interview_Scheduled' && c.interview_date && (
+          {!isTerminal && c.status === 'Interview_Scheduled' && c.interview_date && (
             <div className="card" style={{ borderColor: '#c7d9fb' }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#7c3aed', marginBottom: 14 }}>📅 Interview Scheduled</div>
 
@@ -277,7 +277,7 @@ export default function PortalDashboard() {
               Show ONLY when HR has sent it (aptitude_test_sent=true)
               and candidate has NOT yet attempted it
               ══════════════════════════════════════════════════════ */}
-          {showAptitudeTest && (
+          {!isTerminal && showAptitudeTest && (
             <div className="card" style={{ borderColor: '#c7d9fb', borderLeftWidth: 4, borderLeftColor: '#7c3aed' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
                 <div>
@@ -298,7 +298,7 @@ export default function PortalDashboard() {
           )}
 
           {/* Aptitude completed notice */}
-          {c.aptitude_attempted_at && (
+          {!isTerminal && c.aptitude_attempted_at && (
             <div className="card" style={{ borderColor: '#86efac' }}>
               <div style={{ fontSize: 12, color: '#15803d', fontWeight: 700 }}>
                 ✓ Aptitude test completed on {formatDate(c.aptitude_attempted_at)}
@@ -316,7 +316,7 @@ export default function PortalDashboard() {
               - candidate accepted (interview_accepted = true)
               - HR clicked "Send Pre-Interview Form" (pre_interview_form_sent = true)
               ══════════════════════════════════════════════════════ */}
-          {showPreInterviewForm && (
+          {!isTerminal && showPreInterviewForm && (
             <div className="card" style={{ borderColor: '#fcd34d', borderLeftWidth: 4, borderLeftColor: '#f59e0b' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
                 <div>
@@ -353,7 +353,7 @@ export default function PortalDashboard() {
               RULE 3: Pre-Joining Form
               Show ONLY when HR sent the offer (pre_joining_form_sent = true)
               ══════════════════════════════════════════════════════ */}
-          {showPreJoinForm && (
+          {!isTerminal && showPreJoinForm && (
             <div className="card" style={{ borderColor: '#86efac', borderLeftWidth: 4, borderLeftColor: '#15803d' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
                 <div>
@@ -421,7 +421,7 @@ export default function PortalDashboard() {
         </div>
 
         {/* ── Reschedule overlay ───────────────────────────── */}
-        {reschedModal && (
+        {!isTerminal && reschedModal && (
           <Overlay onClose={() => setReschedModal(false)}>
             <div style={{ background: '#fff', border: '1px solid #e0e4ec', borderRadius: 12, padding: '24px 28px', width: 440, maxWidth: '95vw', boxShadow: '0 8px 32px rgba(0,0,0,.18)' }}>
               <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: '#0f1623' }}>🔄 Request Reschedule</div>

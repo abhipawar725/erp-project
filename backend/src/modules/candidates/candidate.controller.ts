@@ -610,7 +610,7 @@ export async function portalSavePreinterview(req: Request, res: Response, next: 
     const { candidateId, companyId } = (req as any).portalCandidate;
     const isDraft = req.body.is_draft !== false;
     const data = await candidateService.savePreInterviewForm(candidateId, companyId, req.body.form_data, isDraft);
-    sendResponse(res, { data, message: isDraft ? 'Draft saved successfully' : 'Pre-joining form submitted successfully' });
+    sendResponse(res, { data, message: isDraft ? 'Draft saved successfully' : 'Pre-interview form submitted successfully' });
   } catch (e) { next(e); }
 }
 
@@ -634,5 +634,16 @@ export async function getPreJoiningForm(req: Request, res: Response, next: NextF
       req.user!.companyId,
     );
     sendResponse(res, { data, message: 'Pre-joining form fetched' });
+  } catch (e) { next(e); }
+}
+
+export async function sendPreJoiningFormLink(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const data = await candidateService.sendPreJoiningFormLink(
+      parseInt(req.params.id, 10),
+      req.user!.companyId,
+      req.user!.userId,
+    );
+    sendResponse(res, { data, message: `Pre-joining form link sent to ${data.email}` });
   } catch (e) { next(e); }
 }

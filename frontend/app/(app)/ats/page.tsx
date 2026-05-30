@@ -578,7 +578,6 @@ export default function ATSPage() {
               field="total_experience"
               header="Experience"
               sortable
-              filter
               body={(c) => (
                 <div style={{ textAlign: 'center' }}>
                   {c.total_experience != null
@@ -613,7 +612,6 @@ export default function ATSPage() {
               field="expected_salary"
               header="Expected CTC"
               sortable
-              filter
               body={(c) => (
                 <div style={{
                   fontFamily: 'var(--mono)',

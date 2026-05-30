@@ -14,8 +14,7 @@ interface RoleAttributes {
 
 export class Role
   extends Model<RoleAttributes, Optional<RoleAttributes, 'id' | 'is_system'>>
-  implements RoleAttributes
-{
+  implements RoleAttributes {
   public id!: number;
   public company_id!: number;
   public name!: string;
@@ -57,8 +56,7 @@ interface PermissionAttributes {
 
 export class Permission
   extends Model<PermissionAttributes, Optional<PermissionAttributes, 'id'>>
-  implements PermissionAttributes
-{
+  implements PermissionAttributes {
   public id!: number;
   public module!: string;
   public action!: string;
@@ -94,8 +92,7 @@ interface FieldPermissionAttributes {
 
 export class FieldPermission
   extends Model<FieldPermissionAttributes, Optional<FieldPermissionAttributes, 'id' | 'can_view' | 'can_edit' | 'can_print' | 'can_download' | 'can_copy' | 'is_masked'>>
-  implements FieldPermissionAttributes
-{
+  implements FieldPermissionAttributes {
   public id!: number;
   public role_id!: number;
   public module!: string;
@@ -133,22 +130,27 @@ FieldPermission.init(
 // ─── RolePermission — join table: roles ↔ permissions ────────────────────────
 
 export class RolePermission extends Model {
-  public id!:            number;
-  public role_id!:       number;
+  public id!: number;
+  public role_id!: number;
   public permission_id!: number;
 }
 
 RolePermission.init(
   {
-    id:            { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-    role_id:       { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+    id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
+    role_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
     permission_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
   },
   {
     sequelize,
-    tableName:  'role_permissions',
-    modelName:  'RolePermission',
+    tableName: 'role_permissions',
+    modelName: 'RolePermission',
     timestamps: false,
-    indexes: [{ unique: true, fields: ['role_id', 'permission_id'] }],
+    indexes: [
+      {
+        unique: true,
+        fields: ['role_id', 'permission_id']
+      }
+    ]
   },
 );

@@ -6,7 +6,6 @@ interface DepartmentAttributes {
   company_id: number;
   name: string;
   code?: string | null;
-  head_id?: number | null;
   parent_id?: number | null;
   is_active: boolean;
   created_by?: number | null;
@@ -14,17 +13,15 @@ interface DepartmentAttributes {
   deleted_by?: number | null;
 }
 
-interface DepartmentCreationAttributes extends Optional<DepartmentAttributes, 'id' | 'is_active'> {}
+interface DepartmentCreationAttributes extends Optional<DepartmentAttributes, 'id' | 'is_active'> { }
 
 export class Department
   extends Model<DepartmentAttributes, DepartmentCreationAttributes>
-  implements DepartmentAttributes
-{
+  implements DepartmentAttributes {
   public id!: number;
   public company_id!: number;
   public name!: string;
   public code!: string | null;
-  public head_id!: number | null;
   public parent_id!: number | null;
   public is_active!: boolean;
   public created_by!: number | null;
@@ -41,7 +38,6 @@ Department.init(
     company_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
     name: { type: DataTypes.STRING(200), allowNull: false },
     code: { type: DataTypes.STRING(20), allowNull: true },
-    head_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
     parent_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
     is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
     created_by: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
@@ -53,6 +49,15 @@ Department.init(
     tableName: 'departments',
     modelName: 'Department',
     paranoid: true,
-    indexes: [{ fields: ['company_id'] }],
+    indexes: [
+      {
+        unique: true,
+        fields: ['company_id', 'name']
+      },
+      {
+        unique: true,
+        fields: ['company_id', 'code']
+      }
+    ]
   },
 );

@@ -1,23 +1,24 @@
 'use client';
-import { useEffect, useState }  from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAppDispatch }       from '../../../../store';
-import { setPageTitle }         from '../../../../store/slices/uiSlice';
-import { AppShell }             from '../../../../layouts/AppLayout';
-import { Chip }                 from '../../../../components/ui/Chip';
-import { Modal }                from '../../../../components/ui/Modal';
+import { useAppDispatch } from '../../../../store';
+import { setPageTitle } from '../../../../store/slices/uiSlice';
+import { AppShell } from '../../../../layouts/AppLayout';
+import { Chip } from '../../../../components/ui/Chip';
+import { Modal } from '../../../../components/ui/Modal';
 
 // Feature components
-import { CandidateFormModal }      from '../../../../features/candidates/components/CandidateFormModal';
-import { StatusMoveModal }         from '../../../../features/candidates/components/StatusMoveModal';
+import { CandidateFormModal } from '../../../../features/candidates/components/CandidateFormModal';
+import { StatusMoveModal } from '../../../../features/candidates/components/StatusMoveModal';
 import { InterviewSchedulerModal } from '../../../../features/candidates/components/InterviewSchedulerModal';
-import { InterviewResultModal }    from '../../../../features/candidates/components/InterviewResultModal';
-import { OfferLetterModal }        from '../../../../features/candidates/components/OfferLetterModal';
-import { HireCandidateModal }      from '../../../../features/candidates/components/HireCandidateModal';
-import { GrantPortalAccessModal }  from '../../../../features/candidates/components/GrantPortalAccessModal';
-import { WithdrawModal }           from '../../../../features/candidates/components/WithdrawModal';
-import { PreInterviewFormModal }   from '../../../../features/candidates/components/PreInterviewFormModal';
-import { AptitudeTestSendModal }   from '../../../../features/candidates/components/AptitudeTestSendModal';
+import { InterviewResultModal } from '../../../../features/candidates/components/InterviewResultModal';
+import { OfferLetterModal } from '../../../../features/candidates/components/OfferLetterModal';
+import { HireCandidateModal } from '../../../../features/candidates/components/HireCandidateModal';
+import { GrantPortalAccessModal } from '../../../../features/candidates/components/GrantPortalAccessModal';
+import { WithdrawModal } from '../../../../features/candidates/components/WithdrawModal';
+import { PreInterviewFormModal } from '../../../../features/candidates/components/PreInterviewFormModal';
+import { AptitudeTestSendModal } from '../../../../features/candidates/components/AptitudeTestSendModal';
+import { PreJoiningFormModal } from '../../../../features/candidates/components/PreJoiningFormModal';
 
 // Hooks
 import {
@@ -66,29 +67,30 @@ function fmtSalary(monthly: number | null | undefined) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function CandidateDetailPage() {
-  const params   = useParams();
-  const router   = useRouter();
+  const params = useParams();
+  const router = useRouter();
   const dispatch = useAppDispatch();
-  const id       = parseInt(params.id as string, 10);
+  const id = parseInt(params.id as string, 10);
   const { isHR, isAdmin, isManager } = usePermission();
   const canManage = isHR || isAdmin || isManager;
 
   // Modal open states
-  const [editOpen,          setEditOpen]          = useState(false);
-  const [moveOpen,          setMoveOpen]           = useState(false);
-  const [scheduleOpen,      setScheduleOpen]       = useState(false);
-  const [resultOpen,        setResultOpen]         = useState(false);
-  const [offerOpen,         setOfferOpen]          = useState(false);
-  const [hireOpen,          setHireOpen]           = useState(false);
-  const [withdrawOpen,      setWithdrawOpen]       = useState(false);
-  const [preFormOpen,       setPreFormOpen]        = useState(false);
-  const [deleteOpen,        setDeleteOpen]         = useState(false);
-  const [portalOpen,        setPortalOpen]         = useState(false);
-  const [aptitudeOpen,      setAptitudeOpen]       = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [moveOpen, setMoveOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [resultOpen, setResultOpen] = useState(false);
+  const [offerOpen, setOfferOpen] = useState(false);
+  const [hireOpen, setHireOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [preFormOpen, setPreFormOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [portalOpen, setPortalOpen] = useState(false);
+  const [aptitudeOpen, setAptitudeOpen] = useState(false);
+  const [preJoiningOpen, setPreJoiningOpen] = useState(false);
 
   const { data: candidate, isLoading, isError } = useCandidate(id);
-  const deleteMutation  = useDeleteCandidate();
-  const resumeMutation  = useUploadResume(id);
+  const deleteMutation = useDeleteCandidate();
+  const resumeMutation = useUploadResume(id);
 
   useEffect(() => {
     if (candidate) {
@@ -122,126 +124,139 @@ export default function CandidateDetailPage() {
     );
   }
 
-  const c           = candidate;
+  const c = candidate;
   const statusColor = STATUS_COLORS[c.status as CandidateStatus];
 
   // ─── Status-driven action buttons ────────────────────────────────────────
   const ActionBar = () => {
-  const btns: React.ReactNode[] = [];
+    const btns: React.ReactNode[] = [];
 
-  // ── Aptitude test (all stages)
-  btns.push(
-    <button
-      key="aptitude"
-      className="btn btn-sec btn-sm"
-      onClick={() => setAptitudeOpen(true)}
-    >
-      🧠 {c.aptitude_test_sent ? 'Resend Test' : 'Send Aptitude Test'}
-    </button>
-  );
-
-  // ── Shortlisted
-  if (c.status === 'Shortlisted' && canManage) {
+    // ── Aptitude test (all stages)
     btns.push(
       <button
-        key="schedule"
+        key="aptitude"
         className="btn btn-sec btn-sm"
-        onClick={() => setScheduleOpen(true)}
+        onClick={() => setAptitudeOpen(true)}
       >
-        📅 Schedule Interview
-      </button>
-    );
-  }
-
-  // ── Interview scheduled
-  if (c.status === 'Interview_Scheduled' && canManage) {
-    btns.push(
-      <button
-        key="reschedule"
-        className="btn btn-sec btn-sm"
-        onClick={() => setScheduleOpen(true)}
-      >
-        📅 Reschedule
+        🧠 {c.aptitude_test_sent ? 'Resend Test' : 'Send Aptitude Test'}
       </button>
     );
 
-    if (c.interview_accepted === true) {
+    // -- view forms 
+    if (c.preinterview_form_status === 'Submitted' && canManage) {
       btns.push(
         <button
-          key="preform"
+          key="forms"
           className="btn btn-sec btn-sm"
-          style={
-            c.pre_interview_form_sent
-              ? { color: 'var(--green)', borderColor: 'var(--green-bd)' }
-              : {}
-          }
-          onClick={() => setPreFormOpen(true)}
+          onClick={() => router.push(`/ats/${id}/forms`)}
         >
-          📋 {c.pre_interview_form_sent
-            ? 'Resend Pre-Interview Form'
-            : 'Send Pre-Interview Form'}
+          View Forms
         </button>
       );
     }
-  }
 
-  // ── Interview result
-  if (c.status === 'Interview_Result' && canManage) {
-    btns.push(
-      <button
-        key="result"
-        className="btn btn-pri btn-sm"
+    // ── Shortlisted
+    if (c.status === 'Shortlisted' && canManage) {
+      btns.push(
+        <button
+          key="schedule"
+          className="btn btn-sec btn-sm"
+          onClick={() => setScheduleOpen(true)}
+        >
+          📅 Schedule Interview
+        </button>
+      );
+    }
+
+    // ── Interview scheduled
+    if (c.status === 'Interview_Scheduled' && canManage) {
+      btns.push(
+        <button
+          key="reschedule"
+          className="btn btn-sec btn-sm"
+          onClick={() => setScheduleOpen(true)}
+        >
+          📅 Reschedule
+        </button>
+      );
+
+      if (c.interview_accepted === true) {
+        btns.push(
+          <button
+            key="preform"
+            className="btn btn-sec btn-sm"
+            style={
+              c.pre_interview_form_sent
+                ? { color: 'var(--green)', borderColor: 'var(--green-bd)' }
+                : {}
+            }
+            onClick={() => setPreFormOpen(true)}
+          >
+            📋 {c.pre_interview_form_sent
+              ? 'Resend Pre-Interview Form'
+              : 'Send Pre-Interview Form'}
+          </button>
+        );
+      }
+    }
+
+    // ── Interview result
+    if (c.status === 'Interview_Result' && canManage) {
+      btns.push(
+        <button
+          key="result"
+          className="btn btn-pri btn-sm"
+          style={{
+            background: 'var(--teal)',
+            borderColor: 'var(--teal)',
+          }}
+          onClick={() => setResultOpen(true)}
+        >
+          🎯 Record Result
+        </button>
+      );
+    }
+
+    // ── Offered
+    if (c.status === 'Offered' && canManage) {
+      btns.push(
+        <button
+          key="offer"
+          className="btn btn-sec btn-sm"
+          onClick={() => setOfferOpen(true)}
+        >
+          ✉ {c.offer_sent_at ? 'Resend Offer' : 'Send Offer Letter'}
+        </button>
+      );
+
+      btns.push(
+        <button
+          key="hire"
+          className="btn btn-pri btn-sm"
+          style={{
+            background: 'var(--green)',
+            borderColor: 'var(--green)',
+          }}
+          onClick={() => setHireOpen(true)}
+        >
+          🎉 Confirm Hire
+        </button>
+      );
+    }
+
+    return (
+      <div
         style={{
-          background: 'var(--teal)',
-          borderColor: 'var(--teal)',
+          display: 'flex',
+          gap: 8,
+          flexWrap: 'wrap',
+          alignItems: 'center',
         }}
-        onClick={() => setResultOpen(true)}
       >
-        🎯 Record Result
-      </button>
+        {btns}
+      </div>
     );
-  }
-
-  // ── Offered
-  if (c.status === 'Offered' && canManage) {
-    btns.push(
-      <button
-        key="offer"
-        className="btn btn-sec btn-sm"
-        onClick={() => setOfferOpen(true)}
-      >
-        ✉ {c.offer_sent_at ? 'Resend Offer' : 'Send Offer Letter'}
-      </button>
-    );
-
-    btns.push(
-      <button
-        key="hire"
-        className="btn btn-pri btn-sm"
-        style={{
-          background: 'var(--green)',
-          borderColor: 'var(--green)',
-        }}
-        onClick={() => setHireOpen(true)}
-      >
-        🎉 Confirm Hire
-      </button>
-    );
-  }
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 8,
-        flexWrap: 'wrap',
-        alignItems: 'center',
-      }}
-    >
-      {btns}
-    </div>
-  );
-};
+  };
 
 
   return (
@@ -272,9 +287,9 @@ export default function CandidateDetailPage() {
                     {STATUS_LABEL[c.status as CandidateStatus] || c.status}
                   </span>
                 )}
-                {c.source        && <Chip variant="blue">{SOURCE_EMOJI[c.source] || ''} {c.source}</Chip>}
+                {c.source && <Chip variant="blue">{SOURCE_EMOJI[c.source] || ''} {c.source}</Chip>}
                 {c.immediate_joiner && <Chip variant="green">⚡ Immediate</Chip>}
-                {c.is_portal_user   && <Chip variant="teal">🌐 Portal</Chip>}
+                {c.is_portal_user && <Chip variant="teal">🌐 Portal</Chip>}
                 {c.hired_at && c.converted_employee_id && (
                   <Chip variant="green" onClick={() => router.push(`/employees/${c.converted_employee_id}`)}>
                     👤 View Employee →
@@ -350,13 +365,13 @@ export default function CandidateDetailPage() {
                     </button>
                   )}
                 </div>
-                <InfoRow label="Date"       value={formatDate(c.interview_date)} />
-                <InfoRow label="Time"       value={c.interview_time || '—'} />
-                <InfoRow label="Format"     value={c.interview_type || '—'} />
-                <InfoRow label="Response"   value={
-                  c.interview_accepted === null  ? <Chip variant="amber">Awaiting</Chip> :
-                  c.interview_accepted           ? <Chip variant="green">Accepted ✓</Chip> :
-                                                   <Chip variant="red">Declined ✗</Chip>
+                <InfoRow label="Date" value={formatDate(c.interview_date)} />
+                <InfoRow label="Time" value={c.interview_time || '—'} />
+                <InfoRow label="Format" value={c.interview_type || '—'} />
+                <InfoRow label="Response" value={
+                  c.interview_accepted === null ? <Chip variant="amber">Awaiting</Chip> :
+                    c.interview_accepted ? <Chip variant="green">Accepted ✓</Chip> :
+                      <Chip variant="red">Declined ✗</Chip>
                 } />
                 {c.interview_link && (
                   <div style={{ marginTop: 8 }}>
@@ -398,8 +413,8 @@ export default function CandidateDetailPage() {
                   {c.candidate_decision === 'Select' ? '✓ Selected' : c.candidate_decision === 'Reject' ? '✗ Rejected' : '⏸ On Hold'} — Interview Result
                 </div>
                 {c.interview_result_date && <InfoRow label="Interview date" value={new Date(c.interview_result_date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })} />}
-                {c.interview_result_mode  && <InfoRow label="Mode"          value={c.interview_result_mode} />}
-                {c.decision_joining_date  && <InfoRow label="Joining date"  value={formatDate(c.decision_joining_date)} />}
+                {c.interview_result_mode && <InfoRow label="Mode" value={c.interview_result_mode} />}
+                {c.decision_joining_date && <InfoRow label="Joining date" value={formatDate(c.decision_joining_date)} />}
                 {c.decision_reason && (
                   <div style={{ marginTop: 10, background: 'var(--surface2)', borderRadius: 'var(--r)', padding: '8px 12px', fontSize: 12, color: 'var(--ink)', lineHeight: 1.6 }}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink4)', display: 'block', marginBottom: 3 }}>REASON</span>
@@ -429,10 +444,10 @@ export default function CandidateDetailPage() {
                     </button>
                   )}
                 </div>
-                {c.offered_ctc && <InfoRow label="Offered CTC (mo)"    value={fmtSalary(c.offered_ctc)} />}
-                {c.confirmed_joining_date && <InfoRow label="Joining date"  value={formatDate(c.confirmed_joining_date)} />}
-                {c.offer_valid_till        && <InfoRow label="Offer valid till" value={new Date(c.offer_valid_till).toLocaleDateString('en-IN', { dateStyle: 'medium' })} />}
-                {c.offer_sent_at && <InfoRow label="Offer sent"        value={new Date(c.offer_sent_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })} />}
+                {c.offered_ctc && <InfoRow label="Offered CTC (mo)" value={fmtSalary(c.offered_ctc)} />}
+                {c.confirmed_joining_date && <InfoRow label="Joining date" value={formatDate(c.confirmed_joining_date)} />}
+                {c.offer_valid_till && <InfoRow label="Offer valid till" value={new Date(c.offer_valid_till).toLocaleDateString('en-IN', { dateStyle: 'medium' })} />}
+                {c.offer_sent_at && <InfoRow label="Offer sent" value={new Date(c.offer_sent_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })} />}
                 {c.offer_letter_url && (
                   <div style={{ marginTop: 8 }}>
                     <a href={c.offer_letter_url} target="_blank" rel="noopener noreferrer"
@@ -492,28 +507,28 @@ export default function CandidateDetailPage() {
 
             {/* ── Personal ─────────────────────────────────────────── */}
             <SectionCard title="Personal Details">
-              <InfoRow label="Email"        value={c.email ? <a href={`mailto:${c.email}`} style={{ color: 'var(--blue)' }}>{c.email}</a> : null} />
-              <InfoRow label="Phone"        value={c.phone_number ? <a href={`tel:${c.phone_number}`} style={{ color: 'var(--blue)' }}>{c.phone_number}</a> : null} />
-              <InfoRow label="Gender"       value={c.gender} />
+              <InfoRow label="Email" value={c.email ? <a href={`mailto:${c.email}`} style={{ color: 'var(--blue)' }}>{c.email}</a> : null} />
+              <InfoRow label="Phone" value={c.phone_number ? <a href={`tel:${c.phone_number}`} style={{ color: 'var(--blue)' }}>{c.phone_number}</a> : null} />
+              <InfoRow label="Gender" value={c.gender} />
               <InfoRow label="Date of Birth" value={formatDate(c.date_of_birth)} />
-              <InfoRow label="Location"     value={c.location} />
+              <InfoRow label="Location" value={c.location} />
               <InfoRow label="Qualification" value={c.qualification} />
-              <InfoRow label="Own Vehicle"  value={c.own_vehicle ? '✓ Yes' : '✗ No'} />
+              <InfoRow label="Own Vehicle" value={c.own_vehicle ? '✓ Yes' : '✗ No'} />
             </SectionCard>
 
             {/* ── Experience ───────────────────────────────────────── */}
             <SectionCard title="Experience">
-              <InfoRow label="Current Company"  value={c.current_company_name} />
+              <InfoRow label="Current Company" value={c.current_company_name} />
               <InfoRow label="Current Designation" value={c.current_company_designation} />
               <InfoRow label="Applied Department" value={c.apply_department} />
               <InfoRow label="Applied Designation" value={c.apply_designation} />
               <InfoRow label="Total Experience" value={c.total_experience != null ? `${c.total_experience} years` : null} />
-              <InfoRow label="Relevant Exp."   value={c.relevant_experience != null ? `${c.relevant_experience} years` : null} />
+              <InfoRow label="Relevant Exp." value={c.relevant_experience != null ? `${c.relevant_experience} years` : null} />
             </SectionCard>
 
             {/* ── Sourcing ─────────────────────────────────────────── */}
             <SectionCard title="Sourcing">
-              <InfoRow label="Source"    value={c.source ? `${SOURCE_EMOJI[c.source] || ''} ${c.source}` : null} />
+              <InfoRow label="Source" value={c.source ? `${SOURCE_EMOJI[c.source] || ''} ${c.source}` : null} />
               <InfoRow label="Reference" value={c.reference_source} />
               {c.remarks && (
                 <div style={{ marginTop: 8, background: 'var(--surface2)', borderRadius: 'var(--r)', padding: '8px 12px', fontSize: 12, color: 'var(--ink)', lineHeight: 1.6 }}>
@@ -560,7 +575,7 @@ export default function CandidateDetailPage() {
 
             {/* ── Availability ─────────────────────────────────────── */}
             <SectionCard title="Availability">
-              <InfoRow label="Notice Period"    value={c.notice_period != null ? `${c.notice_period} days` : null} />
+              <InfoRow label="Notice Period" value={c.notice_period != null ? `${c.notice_period} days` : null} />
               <InfoRow label="Expected Joining" value={formatDate(c.expected_joining_date)} />
               <InfoRow label="Immediate Joiner" value={
                 <span style={{ color: c.immediate_joiner ? 'var(--green)' : 'var(--red)', fontWeight: 700 }}>
@@ -629,7 +644,7 @@ export default function CandidateDetailPage() {
 
             {/* ── Portal ───────────────────────────────────────────── */}
             <SectionCard title="Candidate Portal">
-              <InfoRow label="Portal access"  value={<Chip variant={c.is_portal_user ? 'green' : 'gray'}>{c.is_portal_user ? '✓ Active' : 'Not granted'}</Chip>} />
+              <InfoRow label="Portal access" value={<Chip variant={c.is_portal_user ? 'green' : 'gray'}>{c.is_portal_user ? '✓ Active' : 'Not granted'}</Chip>} />
               {c.portal_last_login && <InfoRow label="Last login" value={formatDate(c.portal_last_login)} />}
               <InfoRow label="Pre-interview form" value={
                 <Chip variant={c.preinterview_form_status === 'Submitted' ? 'green' : c.preinterview_form_status === 'Draft' ? 'amber' : 'gray'}>
@@ -641,9 +656,9 @@ export default function CandidateDetailPage() {
                   ? <Chip variant="green">✓ Sent {c.pre_interview_form_sent_at ? formatDate(c.pre_interview_form_sent_at) : ''}</Chip>
                   : <Chip variant="gray">Not sent</Chip>
               } />
-              <div style={{ display:'flex', gap:8, marginTop:10, flexWrap:'wrap' }}>
+              <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
                 {canManage && (
-                  <button className="btn btn-sec btn-sm" onClick={() => setPortalOpen(true)} style={{ flex:1 }}>
+                  <button className="btn btn-sec btn-sm" onClick={() => setPortalOpen(true)} style={{ flex: 1 }}>
                     {c.is_portal_user ? '🔑 Reset Portal Password' : '🌐 Grant Portal Access'}
                   </button>
                 )}
@@ -659,11 +674,35 @@ export default function CandidateDetailPage() {
                   ? <Chip variant="green">✓ Unlocked</Chip>
                   : <Chip variant="gray">Not unlocked</Chip>
               } />
+              {c.status === 'Offered' && canManage && (
+                <button
+                  className="btn btn-sec btn-sm"
+                  style={{
+                    marginTop: 8,
+                    width: '100%',
+                    color: c.pre_joining_form_sent
+                      ? 'var(--green)'
+                      : undefined,
+                    borderColor: c.pre_joining_form_sent
+                      ? 'var(--green-bd)'
+                      : undefined,
+                  }}
+                  onClick={() => setPreJoiningOpen(true)}
+                >
+                  📝 {
+                    c.prejoining_form_status === 'Submitted'
+                      ? 'Resend Pre-Joining Form'
+                      : c.pre_joining_form_sent
+                        ? 'Resend Form Link'
+                        : 'Send Pre-Joining Form'
+                  }
+                </button>
+              )}
             </SectionCard>
 
             {/* ── Record ───────────────────────────────────────────── */}
             <SectionCard title="Record">
-              <InfoRow label="Added"   value={formatDate(c.created_at)} />
+              <InfoRow label="Added" value={formatDate(c.created_at)} />
               <InfoRow label="Updated" value={formatDate(c.updated_at)} />
             </SectionCard>
           </div>
@@ -701,13 +740,19 @@ export default function CandidateDetailPage() {
         open={aptitudeOpen}
         onClose={() => setAptitudeOpen(false)}
         candidate={c}
-      />      
+      />
 
       <GrantPortalAccessModal
         open={portalOpen}
         onClose={() => setPortalOpen(false)}
         candidate={c}
-      />       
+      />
+
+      <PreJoiningFormModal
+        open={preJoiningOpen}
+        onClose={() => setPreJoiningOpen(false)}
+        candidate={c}
+      />
 
       <PreInterviewFormModal
         open={preFormOpen}

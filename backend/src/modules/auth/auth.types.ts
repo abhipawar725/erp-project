@@ -37,6 +37,7 @@ export interface AuthUserPayload {
   employeeId: number | null;
   fullName?: string | null;
   avatarUrl?: string | null;
+  isSuperAdmin: boolean;
 }
 
 export interface AuthTokens {

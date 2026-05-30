@@ -233,6 +233,20 @@ export function useSendPreInterviewForm(id: number) {
   });
 }
 
+// ─── Send pre-joining form link ───────────────────────────────────────────────
+export function useSendPreJoiningFormLink(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => candidateService.sendPreJoiningFormLink(id),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: KEYS.detail(id) });
+      showToast(`✓ Pre-joining form link sent to ${res.data.email}`);
+    },
+    onError: (err: any) => showToast(err?.message || 'Failed to send pre-joining form link'),
+  });
+}
+
+
 // ─── Delete ───────────────────────────────────────────────────────────────────
 export function useDeleteCandidate() {
   const qc = useQueryClient();

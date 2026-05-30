@@ -361,20 +361,6 @@ export class CandidateService {
     return candidate;
   }
 
-  // ─── Pre-joining form ─────────────────────────────────────────────────────
-  async savePreInterviewForm(id: number, companyId: number, data: Record<string, unknown>, isDraft: boolean) {
-    const candidate = await this.getById(id, companyId);
-    const update: any = {
-      prejoin_form_data:   data,
-      prejoin_form_status: isDraft ? 'Draft' : 'Submitted',
-    };
-    if (!isDraft) update.prejoin_submitted_at = new Date();
-    await candidate.update(update);
-    return candidate;
-  }
-
-
-
   // ─── Submit interview result & auto-advance status ────────────────────────
   async submitInterviewResult(
     id:        number,
@@ -509,6 +495,7 @@ export class CandidateService {
 
     // Create employee record from candidate data
     const employee = await Employee.create({
+      employee_code: `EMP${Date.now()}`,
       company_id:           companyId,
       first_name:           candidate.candidate_name.split(' ')[0] || candidate.candidate_name,
       last_name:            candidate.candidate_name.split(' ').slice(1).join(' ') || '-',
@@ -598,6 +585,7 @@ export class CandidateService {
     // Mark as sent
     await candidate.update({
       aptitude_test_sent:    true,
+      aptitude_test_id: testId,
       aptitude_test_sent_at: new Date(),
     });
 
@@ -646,6 +634,19 @@ export class CandidateService {
     return { sent: true };
   }
 
+  // ─── Pre-interview form ─────────────────────────────────────────────────────
+  async savePreInterviewForm(id: number, companyId: number, data: Record<string, unknown>, isDraft: boolean) {
+    const candidate = await this.getById(id, companyId);
+    const update: any = {
+      preinterview_form_data:   data,
+      preinterview_form_status: isDraft ? 'Draft' : 'Submitted',
+    };
+    if (!isDraft) update.preinterview_submitted_at = new Date();
+    await candidate.update(update);
+    return candidate;
+  }
+
+
   // ─── Save pre-joining form (separate from pre-interview) ─────────────────
   async savePreJoiningForm(id: number, companyId: number, data: Record<string, unknown>, isDraft: boolean) {
     const candidate = await this.getById(id, companyId);
@@ -685,6 +686,51 @@ export class CandidateService {
       submitted_at:         candidate.prejoining_submitted_at,
       form_data:            candidate.prejoining_form_data || null,
     };
+  }
+
+ async sendPreJoiningFormLink(id: number, companyId: number, sentBy?: number) {
+    const candidate = await this.getById(id, companyId);
+    if (!candidate.email) throw new AppError('Candidate has no email address', 400);
+
+    // Ensure portal access exists
+    if (!candidate.is_portal_user) {
+      const crypto = await import('crypto');
+      const rawPwd = crypto.randomBytes(6).toString('hex');
+      const { hashPassword } = await import('../../utils/hash');
+      await candidate.update({
+        portal_password_hash: await hashPassword(rawPwd),
+        is_portal_user:       true,
+      });
+    }
+
+    const portalUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/portal/prejoining`;
+
+    await mailer.sendSystemNotification(
+      candidate.email,
+      'Pre-Joining Form — Action Required',
+      'Complete Your Pre-Joining Form',
+      `Dear ${candidate.candidate_name},<br/><br/>
+      Congratulations on receiving your offer! Please complete the
+      <strong>Pre-Joining & Personal Data Form</strong> on the candidate portal
+      to proceed with your onboarding.<br/><br/>
+      This form captures your personal details, address, educational history,
+      employment background, and statutory information required for HR records.`,
+      'Open Pre-Joining Form →',
+      portalUrl,
+      'green',
+    );
+
+    await candidate.update({
+      pre_joining_form_sent:    true,
+      pre_joining_form_sent_at: new Date(),
+    });
+
+    await logActivity({
+      companyId, userId: sentBy,
+      action: 'PRE_JOINING_FORM_SENT', module: 'candidates', entityId: id,
+    });
+
+    return { sent: true, email: candidate.email };
   }
 
   // ─── Bulk upload ─────────────────────────────────────────────────────────

@@ -12,7 +12,7 @@ interface RefRow     { name: string; occupation: string; contact: string; addres
 // ─── Steps ───────────────────────────────────────────────────────────────────
 const STEPS = [
   { id: 'personal',    label: 'Personal',      icon: '01' },
-  // { id: 'job',         label: 'Job Details',   icon: '02' },
+  { id: 'job',         label: 'Job Details',   icon: '02' },
   { id: 'address',     label: 'Address',       icon: '03' },
   { id: 'transport',   label: 'Transport',     icon: '04' },
   { id: 'family',      label: 'Family',        icon: '05' },
@@ -167,9 +167,9 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 .photo-circle img{width:100%;height:100%;object-fit:cover;}
 
 /* Signature pad */
-.sig-wrap{border:1px solid var(--bdr2);border-radius:var(--r);overflow:hidden;background:#fff;}
-.sig-canvas{display:block;cursor:crosshair;touch-action:none;}
-.sig-toolbar{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--bg);border-top:1px solid var(--bdr);font-size:11px;color:var(--ink4);}
+.sig-wrap{border:1px solid var(--bdr2);border-radius:var(--r);overflow:hidden;}
+.sig-canvas{display:block;cursor:crosshair;touch-action:none;width:100%;height:120px;}
+.sig-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--bg);border-top:1px solid var(--bdr);font-size:11px;color:var(--ink4);}
 
 /* Declaration */
 .decl-box{background:#fffdf5;border:1px solid #e9e0bf;border-radius:var(--r2);padding:14px 16px;font-size:12px;line-height:1.8;color:var(--ink2);max-height:180px;overflow-y:auto;margin-bottom:14px;}
@@ -214,7 +214,7 @@ export default function PrejoinFormPage() {
   const qc       = useQueryClient();
   const { token, checked } = usePortalAuth();
   const photoRef = useRef<HTMLInputElement>(null);
-  const sigRef   = useRef<HTMLCanvasElement>(null);
+  const sigCanvas = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const [sigHasData, setSigHasData] = useState(false);
   const [refId]    = useState(genRefId);
@@ -320,55 +320,41 @@ export default function PrejoinFormPage() {
     },
   });
 
-  // ─── Signature pad ────────────────────────────────────────────────────────
-  const initSig = useCallback(() => {
-    const canvas = sigRef.current;
-    if (!canvas) return;
-    canvas.width  = canvas.offsetWidth  || 400;
-    canvas.height = canvas.offsetHeight || 120;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.strokeStyle = '#1a1714';
-    ctx.lineWidth   = 2;
-    ctx.lineCap     = 'round';
-    ctx.lineJoin    = 'round';
-  }, []);
+  // ── Signature pad ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    const cv = sigCanvas.current; if (!cv) return;
+    cv.width  = cv.offsetWidth || 500;
+    cv.height = 120;
+  }, [step]);
 
-  useEffect(() => { initSig(); }, [initSig]);
-
-  const getPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
-    const rect = canvas.getBoundingClientRect();
-    const source = 'touches' in e ? e.touches[0] : (e as React.MouseEvent);
-    return { x: source.clientX - rect.left, y: source.clientY - rect.top };
+  const getPos = (e: React.MouseEvent | React.TouchEvent, cv: HTMLCanvasElement) => {
+    const rect = cv.getBoundingClientRect();
+    const src = 'touches' in e ? e.touches[0] : (e as React.MouseEvent);
+    return { x: src.clientX - rect.left, y: src.clientY - rect.top };
   };
-
   const sigStart = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    const canvas = sigRef.current; if (!canvas) return;
-    const ctx = canvas.getContext('2d'); if (!ctx) return;
+    const cv = sigCanvas.current; if (!cv) return;
+    const ctx = cv.getContext('2d'); if (!ctx) return;
     isDrawing.current = true;
-    const pos = getPos(e, canvas);
-    ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+    ctx.strokeStyle = '#1a1714'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    const p = getPos(e, cv); ctx.beginPath(); ctx.moveTo(p.x, p.y);
   };
-
   const sigMove = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     if (!isDrawing.current) return;
-    const canvas = sigRef.current; if (!canvas) return;
-    const ctx = canvas.getContext('2d'); if (!ctx) return;
-    const pos = getPos(e, canvas);
-    ctx.lineTo(pos.x, pos.y); ctx.stroke();
+    const cv = sigCanvas.current; if (!cv) return;
+    const ctx = cv.getContext('2d'); if (!ctx) return;
+    const p = getPos(e, cv); ctx.lineTo(p.x, p.y); ctx.stroke();
     setSigHasData(true);
   };
-
   const sigEnd = () => { isDrawing.current = false; };
-
   const clearSig = () => {
-    const canvas = sigRef.current; if (!canvas) return;
-    const ctx = canvas.getContext('2d'); if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const cv = sigCanvas.current; if (!cv) return;
+    cv.getContext('2d')?.clearRect(0, 0, cv.width, cv.height);
     setSigHasData(false);
   };
+
 
   // ─── Validation ───────────────────────────────────────────────────────────
   const validate = (id: StepId): boolean => {
@@ -379,11 +365,11 @@ export default function PrejoinFormPage() {
       else if (!/^[+\d\s\-()]{7,15}$/.test(p1.mobile)) e.mobile = 'Invalid mobile number';
       if (p1.email && !/^[^@]+@[^@]+\.[^@]+$/.test(p1.email)) e.email = 'Invalid email address';
       if (p1.aadhaar && !/^\d{4}\s?\d{4}\s?\d{4}$/.test(p1.aadhaar)) e.aadhaar = 'Aadhaar must be 12 digits';
-      // if (p1.pan && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(p1.pan)) e.pan = 'Invalid PAN format (e.g. ABCDE1234F)';
+      if (p1.pan && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(p1.pan)) e.pan = 'Invalid PAN format (e.g. ABCDE1234F)';
     }
-    // if (id === 'job') {
-    //   if (!p2.position.trim())    e.position     = 'Position is required';
-    // }
+    if (id === 'job') {
+      if (!p2.position.trim())    e.position     = 'Position is required';
+    }
     if (id === 'address') {
       if (!p3.pr_city.trim())     e.pr_city      = 'City is required';
       if (!p3.pr_state)           e.pr_state     = 'State is required';
@@ -474,8 +460,8 @@ export default function PrejoinFormPage() {
       <div style={{ minHeight:'100vh', background:'var(--bg)' }}>
         <div className="topbar">
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:32, height:32, borderRadius:8, background:'var(--bl)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:600, color:'#fff' }}>UNG</div>
-            <span style={{ fontFamily:'var(--fs)', fontSize:16, color:'var(--ink)' }}>UNG HRMS</span>
+            <div style={{ width:32, height:32, borderRadius:8, background:'var(--bl)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:600, color:'#fff' }}>NX</div>
+            <span style={{ fontFamily:'var(--fs)', fontSize:16, color:'var(--ink)' }}>NexHR</span>
           </div>
         </div>
         <div className="wrap">
@@ -503,13 +489,13 @@ export default function PrejoinFormPage() {
         {/* ── Top bar ──────────────────────────────────────── */}
         <div className="topbar">
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:32, height:32, borderRadius:8, background:'var(--bl)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:600, color:'#fff' }}>UNG</div>
-            <span style={{ fontFamily:'var(--fs)', fontSize:16, color:'var(--ink)' }}>UNG HRMS · Candidate Portal</span>
+            <div style={{ width:32, height:32, borderRadius:8, background:'var(--bl)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:600, color:'#fff' }}>NX</div>
+            <span style={{ fontFamily:'var(--fs)', fontSize:16, color:'var(--ink)' }}>NexHR · Candidate Portal</span>
           </div>
           <div style={{ display:'flex', gap:8 }}>
-            {/* <button className="btn btn-sec" style={{ fontSize:12, padding:'6px 12px' }} onClick={() => saveMutation.mutate(true)} disabled={saveMutation.isPending}>
+            <button className="btn btn-sec" style={{ fontSize:12, padding:'6px 12px' }} onClick={() => saveMutation.mutate(true)} disabled={saveMutation.isPending}>
               {saveMutation.isPending ? '…' : '↑ Save Draft'}
-            </button> */}
+            </button>
             <button className="btn btn-sec" style={{ fontSize:12, padding:'6px 12px' }} onClick={() => router.push('/portal/dashboard')}>← Dashboard</button>
           </div>
         </div>
@@ -517,7 +503,7 @@ export default function PrejoinFormPage() {
         <div className="wrap">
 
           {/* ── Company header ──────────────────────────────── */}
-          {/* <div className="co-header">
+          <div className="co-header">
             <div className="co-logo">
               {companyInfo?.logo_url
                 ? <img src={companyInfo.logo_url} alt="logo" />
@@ -531,7 +517,7 @@ export default function PrejoinFormPage() {
               <div className="ref-label">Reference ID</div>
               <div className="ref-val">{refId}</div>
             </div>
-          </div> */}
+          </div>
 
           {/* ── Form title ──────────────────────────────────── */}
           <h1 className="form-title">Candidate Pre-Interview Declaration Form</h1>
@@ -617,7 +603,7 @@ export default function PrejoinFormPage() {
           )}
 
           {/* ══ STEP 2: JOB DETAILS ═══════════════════════════ */}
-          {/* {step === 'job' && (
+          {step === 'job' && (
             <>
               <div className="card">
                 <div className="card-title">Job Application Details</div>
@@ -636,6 +622,7 @@ export default function PrejoinFormPage() {
                   <div className="fg"><Label t="Reason for Job Change" /><input placeholder="Growth, relocation, etc." value={p2.reason_for_change} onChange={F2('reason_for_change')} /></div>
                 </div>
 
+                {/* Salary cards */}
                 <div className="divider" />
                 <div className="section-label">Salary Details</div>
                 <div className="g2">
@@ -666,7 +653,7 @@ export default function PrejoinFormPage() {
                 <button className="btn btn-pri" onClick={next}>Next: Address →</button>
               </div>
             </>
-          )} */}
+          )}
 
           {/* ══ STEP 3: ADDRESS ════════════════════════════════ */}
           {step === 'address' && (
@@ -909,21 +896,18 @@ export default function PrejoinFormPage() {
                 <div className="card-title">Digital Signature</div>
                 <div className="card-sub">Sign in the box below using your mouse or touch.</div>
 
-                <div className="sig-wrap">
-                  <canvas
-                    ref={sigRef}
-                    className="sig-canvas"
-                    style={{ width:'100%', height:120 }}
-                    onMouseDown={sigStart} onMouseMove={sigMove} onMouseUp={sigEnd} onMouseLeave={sigEnd}
-                    onTouchStart={sigStart} onTouchMove={sigMove} onTouchEnd={sigEnd}
-                  />
-                  <div className="sig-toolbar">
-                    <span>{sigHasData ? '✓ Signature captured' : 'Draw your signature above'}</span>
-                    <button type="button" onClick={clearSig} style={{ background:'none', border:'1px solid var(--bdr2)', borderRadius:'var(--r)', padding:'3px 10px', fontSize:11, cursor:'pointer', fontFamily:'var(--fn)', color:'var(--ink3)' }}>
-                      Clear
-                    </button>
-                  </div>
+              <div className="sig-wrap">
+                <canvas ref={sigCanvas} className="sig-canvas"
+                  onMouseDown={sigStart} onMouseMove={sigMove} onMouseUp={sigEnd} onMouseLeave={sigEnd}
+                  onTouchStart={sigStart} onTouchMove={sigMove} onTouchEnd={sigEnd}
+                />
+                <div className="sig-bar">
+                  <span>{sigHasData ? '✓ Signature captured' : 'Draw your signature above'}</span>
+                  <button type="button" onClick={clearSig} style={{ background:'none', border:'1px solid var(--bdr2)', borderRadius:'var(--r)', padding:'3px 10px', fontSize:11, cursor:'pointer', fontFamily:'var(--fn)', color:'var(--ink3)' }}>
+                    Clear
+                  </button>
                 </div>
+              </div>
 
                 <div className="g3" style={{ marginTop:16 }}>
                   <div className="fg span2"><Label t="Full Name (as signature)" r /><input placeholder="Type your full name" value={p8.candidate_sig_name} onChange={e => F8('candidate_sig_name', e.target.value)} className={errors.sig_name?'err':''} /><Err k="sig_name" /></div>

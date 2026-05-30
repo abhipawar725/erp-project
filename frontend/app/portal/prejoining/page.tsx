@@ -5,14 +5,70 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { portalService } from '../../../services/api/candidate.service';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-type AR = Partial<Record<string, string>>;
+type AR = Record<string, string>;
 
-interface EduRow  { institution:string; degree:string; subject:string; from_yr:string; to_yr:string; percent:string; division:string; achievements:string; }
-interface EmpRow  { employer:string; address:string; designation:string; department:string; from_date:string; to_date:string; experience:string; gross_salary:string; reason:string; basic:string; hra:string; da:string; bonus:string; medical:string; travel:string; other:string; }
-interface LangRow { language:string; speak: boolean; read: boolean; write: boolean; }
-interface FamRow  { name:string; age:string; relation:string; occupation:string; mobile:string; dependent: boolean; emp_details:string; }
-interface ProRef  { name:string; designation:string; company:string; mobile:string; email:string; address:string; }
-interface LocRef  { name:string; occupation:string; contact:string; address:string; }
+interface EduRow {
+  institution: string;
+  degree: string;
+  subject: string;
+  from_yr: string;
+  to_yr: string;
+  percent: string;
+  division: string;
+  achievements: string;
+}
+
+interface EmpRow {
+  employer: string;
+  address: string;
+  designation: string;
+  department: string;
+  from_date: string;
+  to_date: string;
+  experience: string;
+  gross_salary: string;
+  reason: string;
+  basic: string;
+  hra: string;
+  da: string;
+  bonus: string;
+  medical: string;
+  travel: string;
+  other: string;
+}
+
+interface LangRow {
+  language: string;
+  speak: boolean;
+  read: boolean;
+  write: boolean;
+}
+
+interface FamRow {
+  name: string;
+  age: string;
+  relation: string;
+  occupation: string;
+  mobile: string;
+  dependent: boolean;
+  emp_details: string;
+}
+
+interface ProRef {
+  name: string;
+  designation: string;
+  company: string;
+  mobile: string;
+  email: string;
+  address: string;
+}
+
+interface LocRef {
+  name: string;
+  occupation: string;
+  contact: string;
+  address: string;
+}
 
 const blankEdu  = (): EduRow  => ({ institution:'', degree:'', subject:'', from_yr:'', to_yr:'', percent:'', division:'', achievements:'' });
 const blankEmp  = (): EmpRow  => ({ employer:'', address:'', designation:'', department:'', from_date:'', to_date:'', experience:'', gross_salary:'', reason:'', basic:'', hra:'', da:'', bonus:'', medical:'', travel:'', other:'' });
@@ -1143,7 +1199,7 @@ export default function PreJoiningForm() {
 
             <div className="card">
               <div className="card-title">Digital Signature</div>
-              <div className="card-sub">Sign in the box below using your mouse or finger (on touch devices).</div>
+              <div className="card-sub">Sign in the box below using your mouse or touch.</div>
               <div className="sig-wrap">
                 <canvas ref={sigCanvas} className="sig-canvas"
                   onMouseDown={sigStart} onMouseMove={sigMove} onMouseUp={sigEnd} onMouseLeave={sigEnd}

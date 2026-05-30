@@ -7,7 +7,7 @@ import { portalService } from '../../../services/api/candidate.service';
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [mode, setMode]       = useState<'password' | 'magic'>('magic');
+  const [mode, setMode]       = useState<'password' | 'magic'>('password');
   const [email, setEmail]     = useState('');
   const [password, setPassword] = useState('');
   const [magicSent, setMagicSent] = useState(false);
@@ -52,14 +52,14 @@ function LoginContent() {
         <div style={{ fontSize: 12, color: 'var(--ink4)', marginBottom: 24 }}>Track your application and interview status</div>
 
         {/* Mode tabs */}
-        <div style={{ display: 'flex', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 3, gap: 3, marginBottom: 22 }}>
-          {(['magic', 'password'] as const).map(m => (
+        {/* <div style={{ display: 'flex', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 3, gap: 3, marginBottom: 22 }}>
+          {(['password'] as const).map(m => (
             <button key={m} type="button" onClick={() => { setMode(m); setError(''); setMagicSent(false); }}
               style={{ flex: 1, padding: '7px 0', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: mode === m ? 'var(--surface)' : 'transparent', color: mode === m ? 'var(--ink)' : 'var(--ink4)', boxShadow: mode === m ? 'var(--sh)' : 'none', fontFamily: 'var(--font)', transition: 'all .1s' }}>
-              {m === 'magic' ? 'Magic Link' : 'Password'}
+              {'Password'}
             </button>
           ))}
-        </div>
+        </div> */}
 
         {error && <div style={{ background: 'var(--red-lt)', border: '1px solid var(--red-bd)', borderRadius: 'var(--r)', padding: '10px 14px', fontSize: 12, color: 'var(--red)', marginBottom: 14 }}>⚠ {error}</div>}
 

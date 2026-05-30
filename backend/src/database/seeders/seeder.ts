@@ -28,8 +28,8 @@ export async function seedDatabase(): Promise<void> {
       },
       defaults: {
         id: COMPANY_ID,
-        name: "NexHR Technologies",
-        code: "NEXHR",
+        name: "UNG HRMS",
+        code: "UNG",
         country: "India",
         fiscal_year: "Apr-Mar",
         is_active: true,
@@ -68,6 +68,21 @@ export async function seedDatabase(): Promise<void> {
         name: "Admin",
         slug: "admin",
         description: "System administrator",
+        is_system: true,
+      },
+      transaction,
+    });
+
+    const [superAdminRole] = await Role.findOrCreate({
+      where: {
+        company_id: company.id,
+        slug: "super_admin",
+      },
+      defaults: {
+        company_id: company.id,
+        name: "Super Admin",
+        slug: "super_admin",
+        description: "Platform owner with unrestricted access",
         is_system: true,
       },
       transaction,
@@ -214,6 +229,23 @@ export async function seedDatabase(): Promise<void> {
 
     logger.info("✅ Designations Seeded");
 
+    // ─── Super Admin User ─────────────────────────────────────────
+    const superAdminPassword = await hashPassword('123456');
+    await User.upsert({
+      company_id: COMPANY_ID,
+      email: 'superadmin@ung.com',
+      password_hash: superAdminPassword,
+      role_id: superAdminRole.id,
+      is_super_admin: true,
+      is_active: true,
+    },
+      {
+        transaction,
+      }
+    );
+    logger.info('✅ Super admin created: superadmin@ung.com / 123456');
+
+
     // =========================================================
     // ADMIN USER
     // =========================================================
@@ -223,7 +255,7 @@ export async function seedDatabase(): Promise<void> {
     await User.upsert(
       {
         company_id: company.id,
-        email: "admin@nexhr.com",
+        email: "admin@ung.com",
         password_hash: adminPassword,
         role_id: adminRole.id,
         is_active: true,
@@ -314,8 +346,8 @@ export async function seedDatabase(): Promise<void> {
     await transaction.commit();
 
     logger.info("🎉 Database seed completed successfully");
-    logger.info("📧 Login: admin@nexhr.com");
-    logger.info("🔑 Password: NexHR@2026");
+    logger.info("📧 Login: admin@ung.com");
+    logger.info("🔑 Password: 123456");
 
   } catch (error) {
     await transaction.rollback();

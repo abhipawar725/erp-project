@@ -147,10 +147,9 @@ export class DepartmentService {
 
   // ─── Summary stats ────────────────────────────────────────────────────────
   async getStats(companyId: number) {
-    const [total, active, withHead] = await Promise.all([
+    const [total, active] = await Promise.all([
       Department.count({ where: { company_id: companyId } }),
       Department.count({ where: { company_id: companyId, is_active: true } }),
-      Department.count({ where: { company_id: companyId, is_active: true, head_id: { [Op.ne]: null } } }),
     ]);
 
     const empCounts = await Employee.findAll({
@@ -176,8 +175,6 @@ export class DepartmentService {
       total,
       active,
       inactive: total - active,
-      withHead,
-      withoutHead: active - withHead,
       largestDeptId: largest ? Number(largest.department_id) : null,
       largestDeptCount: largest ? Number(largest.count) : 0,
     };
@@ -201,7 +198,6 @@ export class DepartmentService {
       company_id: companyId,
       name:       dto.name.trim(),
       code:       dto.code?.toUpperCase().trim() || null,
-      head_id:    dto.head_id   ?? null,
       parent_id:  dto.parent_id ?? null,
       is_active:  true,
       created_by: createdBy ?? null,
@@ -221,7 +217,7 @@ export class DepartmentService {
     const dept = await Department.findOne({ where: { id, company_id: companyId } });
     if (!dept) throw new AppError('Department not found', 404);
 
-    const before = { name: dept.name, code: dept.code, head_id: dept.head_id, is_active: dept.is_active };
+    const before = { name: dept.name, code: dept.code, is_active: dept.is_active };
 
     // Prevent self as parent
     if (dto.parent_id && dto.parent_id === id)
@@ -230,7 +226,6 @@ export class DepartmentService {
     await dept.update({
       name:       dto.name?.trim()               ?? dept.name,
       code:       dto.code?.toUpperCase().trim() ?? dept.code,
-      head_id:    dto.head_id   !== undefined ? dto.head_id   : dept.head_id,
       parent_id:  dto.parent_id !== undefined ? dto.parent_id : dept.parent_id,
       is_active:  dto.is_active !== undefined ? dto.is_active : dept.is_active,
       updated_by: updatedBy ?? null,

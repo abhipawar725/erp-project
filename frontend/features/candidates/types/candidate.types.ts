@@ -85,6 +85,7 @@ export interface Candidate {
   aptitude_score?: number | null; 
   aptitude_attempted_at?: string | null; 
   aptitude_time_taken?: number | null;
+  aptitude_test_id?: number | null;
   // Offer
   offered_ctc?: number | null;
   offer_letter_url?: string | null;

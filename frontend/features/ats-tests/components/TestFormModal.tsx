@@ -94,7 +94,7 @@ export function TestFormModal({ open, onClose, test, onCreated }: Props) {
         <textarea rows={2} placeholder="Brief description of what this test covers…" style={{ resize: 'vertical' }} {...register('description')} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, whiteSpace: 'nowrap' }}>
         <div className="fg">
           <label>Duration (min) *</label>
           <input type="number" min="1" max="180" {...register('duration_minutes', { valueAsNumber: true })} />

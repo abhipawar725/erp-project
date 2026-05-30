@@ -7,7 +7,7 @@ import { hashPassword, comparePassword } from '../../utils/hash';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../utils/jwt';
 import { AppError } from '../../middleware/errorHandler.middleware';
 import { mailer } from '../../utils/mailer';
-import { logActivity } from '../../modules/compliance/activity.module';
+import { logActivity } from '../../utils/activityLogger';
 import type {
   LoginDto,
   RegisterDto,
@@ -24,11 +24,12 @@ export class AuthService {
 
   private async buildTokens(user: User, roleSlug: string): Promise<AuthTokens> {
     const accessToken = generateAccessToken({
-      userId: user.id,
-      companyId: user.company_id,
-      roleId: user.role_id,
+      userId:       user.id,
+      companyId:    user.company_id,
+      roleId:       user.role_id,
       roleSlug,
-      email: user.email,
+      email:        user.email,
+      isSuperAdmin: user.is_super_admin ?? false,
     });
     const refreshToken = generateRefreshToken({ userId: user.id });
 
@@ -41,14 +42,15 @@ export class AuthService {
 
   private buildUserPayload(user: User, roleSlug: string, employee?: Employee | null): AuthUserPayload {
     return {
-      id: user.id,
-      email: user.email,
-      roleId: user.role_id,
+      id:           user.id,
+      email:        user.email,
+      roleId:       user.role_id,
       roleSlug,
-      companyId: user.company_id,
-      employeeId: user.employee_id ?? null,
-      fullName: employee ? `${employee.first_name} ${employee.last_name}` : null,
-      avatarUrl: employee?.avatar_url ?? null,
+      companyId:    user.company_id,
+      employeeId:   user.employee_id ?? null,
+      fullName:     employee ? `${employee.first_name} ${employee.last_name}` : null,
+      avatarUrl:    employee?.avatar_url ?? null,
+      isSuperAdmin: user.is_super_admin ?? false,
     };
   }
 
