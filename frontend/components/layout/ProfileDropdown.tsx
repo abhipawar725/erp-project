@@ -14,7 +14,7 @@ const ProfileDropdown = () => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-  const { logout, me } = useAuth();
+  const { logout } = useAuth();
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -54,11 +54,11 @@ const ProfileDropdown = () => {
 
               <div>
                 <h4 className="font-semibold text-zinc-900 dark:text-white">
-                  {me?.data?.role?.name}
+                  
                 </h4>
 
                 <p className="text-sm text-zinc-500">
-                  {me?.data?.email}
+                  
                 </p>
               </div>
             </div>

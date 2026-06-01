@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
 import { validate }    from '../../middleware/validate.middleware';
-import { authenticate } from '../../middleware/auth.middleware';
+import { authenticate } from '../../modules/auth/auth.middleware';
 import { authorize }   from '../../middleware/rbac.middleware';
 import {
   listRoles, createRole, updateRole, deleteRole,

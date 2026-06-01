@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
 import { validate }   from '../../middleware/validate.middleware';
-import { authenticate } from '../../middleware/auth.middleware';
+import { authenticate, requireCompanyContext } from "../../modules/auth/auth.middleware"
 import {
   createTest, getTests, getTest,
   addQuestion, updateQuestion, deleteQuestion,
@@ -12,10 +12,11 @@ import {
 const router = Router();
 
 // ─── HR routes ────────────────────────────────────────────────────────────────
-router.get('/', authenticate, getTests);
-router.get('/:id', authenticate, getTest);
+router.get('/', authenticate, requireCompanyContext, getTests);
+router.get('/:id', authenticate, requireCompanyContext, getTest);
 router.post('/',
   authenticate,
+  requireCompanyContext,
   [
     body('title').notEmpty().withMessage('Title required'),
     body('duration_minutes').isInt({ min: 1 }).withMessage('Duration required'),
@@ -27,6 +28,7 @@ router.post('/',
 
 router.post('/:id/questions',
   authenticate,
+  requireCompanyContext,
   [
     param('id').isInt({ min: 1 }),
     body('question_text').notEmpty(),
@@ -40,12 +42,12 @@ router.post('/:id/questions',
   addQuestion,
 );
 
-router.put('/:id/questions/:qid', authenticate, updateQuestion);
-router.delete('/:id/questions/:qid', authenticate, deleteQuestion);
+router.put('/:id/questions/:qid', authenticate, requireCompanyContext, updateQuestion);
+router.delete('/:id/questions/:qid', authenticate, requireCompanyContext, deleteQuestion);
 router.get('/:id/candidates/:candidateId/result', authenticate, getCandidateResult);
 
 // ─── Portal routes (candidate) ────────────────────────────────────────────────
-router.get('/portal/:id',        portalGetTest);
+router.get('/portal/:id', portalGetTest);
 router.post('/portal/:id/submit',
   [body('answers').isArray({ min: 1 }).withMessage('Answers required'), body('time_taken').optional().isInt()],
   validate,

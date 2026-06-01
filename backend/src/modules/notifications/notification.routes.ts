@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { param, query } from 'express-validator';
 import { validate } from '../../middleware/validate.middleware';
-import { authenticate } from '../../middleware/auth.middleware';
+import { authenticate } from '../../modules/auth/auth.middleware';
 import {
   getNotifications,
   getUnreadCount,

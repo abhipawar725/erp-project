@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, query, param } from 'express-validator';
 import { validate } from '../../middleware/validate.middleware';
-import { authenticate, authorize, requireRole } from '../../middleware/auth.middleware';
+import { authenticate, authorize, requireRole, requireCompanyContext } from '../../modules/auth/auth.middleware';
 import {
   getTodaySummary,
   getByEmployee,
@@ -13,7 +13,7 @@ import {
 
 const router = Router();
 
-router.use(authenticate);
+router.use(authenticate, requireCompanyContext,);
 
 // GET /api/attendance/today-summary
 router.get('/today-summary', getTodaySummary);

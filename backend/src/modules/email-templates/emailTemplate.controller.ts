@@ -9,14 +9,14 @@ const svc = new EmailTemplateService();
 
 export async function getBranding(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await svc.getBranding(req.user!.companyId);
+    const data = await svc.getBranding(req.user!.companyId!);
     sendResponse(res, { data, message: 'Branding fetched' });
   } catch (e) { next(e); }
 }
 
 export async function saveBranding(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await svc.saveBranding(req.user!.companyId, req.body, req.user!.userId);
+    const data = await svc.saveBranding(req.user!.companyId!, req.body, req.user!.userId);
     sendResponse(res, { data, message: 'Branding saved' });
   } catch (e) { next(e); }
 }
@@ -25,14 +25,14 @@ export async function saveBranding(req: Request, res: Response, next: NextFuncti
 
 export async function getAllTemplates(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await svc.getAllTemplates(req.user!.companyId);
+    const data = await svc.getAllTemplates(req.user!.companyId!);
     sendResponse(res, { data, message: 'Templates fetched' });
   } catch (e) { next(e); }
 }
 
 export async function getTemplate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await svc.getTemplate(req.user!.companyId, req.params.type as EmailTemplateType);
+    const data = await svc.getTemplate(req.user!.companyId!, req.params.type as EmailTemplateType);
     sendResponse(res, { data, message: 'Template fetched' });
   } catch (e) { next(e); }
 }
@@ -40,7 +40,7 @@ export async function getTemplate(req: Request, res: Response, next: NextFunctio
 export async function saveTemplate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await svc.saveTemplate(
-      req.user!.companyId,
+      req.user!.companyId!,
       req.params.type as EmailTemplateType,
       req.body,
       req.user!.userId,
@@ -52,7 +52,7 @@ export async function saveTemplate(req: Request, res: Response, next: NextFuncti
 export async function resetTemplate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await svc.resetTemplate(
-      req.user!.companyId,
+      req.user!.companyId!,
       req.params.type as EmailTemplateType,
       req.user!.userId,
     );
@@ -63,7 +63,7 @@ export async function resetTemplate(req: Request, res: Response, next: NextFunct
 export async function toggleTemplate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await svc.toggleTemplate(
-      req.user!.companyId,
+      req.user!.companyId!,
       req.params.type as EmailTemplateType,
       req.body.is_active,
       req.user!.userId,
@@ -76,7 +76,7 @@ export async function getPreview(req: Request, res: Response, next: NextFunction
   try {
     const { branding_override, body_override } = req.body;
     const data = await svc.getPreview(
-      req.user!.companyId,
+      req.user!.companyId!,
       req.params.type as EmailTemplateType,
       branding_override,
       body_override,
@@ -90,7 +90,7 @@ export async function sendTestEmail(req: Request, res: Response, next: NextFunct
     const { to_email } = req.body;
     if (!to_email) { sendError(res, 'to_email is required', 400); return; }
     const data = await svc.sendTestEmail(
-      req.user!.companyId,
+      req.user!.companyId!,
       req.params.type as EmailTemplateType,
       to_email,
     );

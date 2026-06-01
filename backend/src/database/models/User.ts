@@ -3,12 +3,12 @@ import { sequelize } from '../../config/database';
 
 interface UserAttributes {
   id:             number;
-  company_id:     number;
+  company_id:     number | null;
   employee_id?:   number | null;
   email:          string;
   password_hash:  string;
   role_id:        number;
-  is_super_admin: boolean;   // ← bypasses ALL tenant + permission checks
+  is_super_admin: boolean;
   is_active:      boolean;
   last_login_at?: Date | null;
   refresh_token?: string | null;
@@ -19,11 +19,12 @@ interface UserAttributes {
   deleted_by?:    number | null;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'is_active' | 'is_super_admin'> {}
+interface UserCreationAttributes
+  extends Optional<UserAttributes, 'id' | 'is_active' | 'is_super_admin' | 'company_id'> {}
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public id!:             number;
-  public company_id!:     number;
+  public company_id!:     number | null;
   public employee_id!:    number | null;
   public email!:          string;
   public password_hash!:  string;
@@ -44,7 +45,7 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
 
 User.init({
   id:             { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-  company_id:     { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+  company_id:     { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
   employee_id:    { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
   email:          { type: DataTypes.STRING(255), allowNull: false, unique: true, validate: { isEmail: true } },
   password_hash:  { type: DataTypes.STRING(255), allowNull: false },

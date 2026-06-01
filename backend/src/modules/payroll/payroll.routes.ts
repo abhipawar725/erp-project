@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
 import { validate } from '../../middleware/validate.middleware';
-import { authenticate, requireRole } from '../../middleware/auth.middleware';
+import { authenticate, requireRole } from '../../modules/auth/auth.middleware';
 import {
   getPayrollRuns,
   getPayrollRun,

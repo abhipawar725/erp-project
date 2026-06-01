@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validate } from '../../middleware/validate.middleware';
-import { authenticate, authorize, requireRole } from '../../middleware/auth.middleware';
+import { authenticate, authorize, requireRole } from '../../modules/auth/auth.middleware';
 import { uploadAvatar as uploadAvatarMiddleware } from '../../middleware/upload.middleware';
 import {
   getEmployees,

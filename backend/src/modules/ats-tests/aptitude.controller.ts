@@ -16,28 +16,28 @@ function getPortalPayload(req: Request): any {
 // ─── HR ────────────────────────────────────────────────────────────────────
 export async function createTest(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await aptitudeService.createTest(req.user!.companyId, req.body, req.user!.userId);
+    const data = await aptitudeService.createTest(req.user!.companyId!!, req.body, req.user!.userId);
     sendResponse(res, { data, message: 'Test created', statusCode: 201 });
   } catch (e) { next(e); }
 }
 
 export async function getTests(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await aptitudeService.getTests(req.user!.companyId);
+    const data = await aptitudeService.getTests(req.user!.companyId!!);
     sendResponse(res, { data, message: 'Tests fetched' });
   } catch (e) { next(e); }
 }
 
 export async function getTest(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await aptitudeService.getTestById(parseInt(req.params.id, 10), req.user!.companyId);
+    const data = await aptitudeService.getTestById(parseInt(req.params.id, 10), req.user!.companyId!);
     sendResponse(res, { data, message: 'Test fetched' });
   } catch (e) { next(e); }
 }
 
 export async function addQuestion(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await aptitudeService.addQuestion(parseInt(req.params.id, 10), req.user!.companyId, req.body);
+    const data = await aptitudeService.addQuestion(parseInt(req.params.id, 10), req.user!.companyId!, req.body);
     sendResponse(res, { data, message: 'Question added', statusCode: 201 });
   } catch (e) { next(e); }
 }
@@ -58,7 +58,7 @@ export async function deleteQuestion(req: Request, res: Response, next: NextFunc
 
 export async function getCandidateResult(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await aptitudeService.getCandidateResult(parseInt(req.params.id, 10), parseInt(req.params.candidateId, 10), req.user!.companyId);
+    const data = await aptitudeService.getCandidateResult(parseInt(req.params.id, 10), parseInt(req.params.candidateId, 10), req.user!.companyId!);
     sendResponse(res, { data, message: 'Result fetched' });
   } catch (e) { next(e); }
 }

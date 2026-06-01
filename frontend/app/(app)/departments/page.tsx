@@ -93,8 +93,6 @@ export default function DepartmentsPage() {
         <div className="g4 mb14">
           <StatCard label="Total" value={stats?.total     ?? '…'} color="var(--blue)"   />
           <StatCard label="Active" value={stats?.active    ?? '…'} color="var(--green)"  />
-          <StatCard label="With Head" value={stats?.withHead  ?? '…'} color="var(--teal)"   />
-          <StatCard label="Without Head" value={stats?.withoutHead ?? '…'} color="var(--amber)" />
         </div>
 
         {/* Search */}
@@ -157,7 +155,7 @@ export default function DepartmentsPage() {
                       </div>
 
                       {/* Head */}
-                      {dept.head ? (
+                      {/* {dept.head ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '8px 10px', background: 'var(--surface2)', borderRadius: 'var(--r)' }}>
                           <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg, var(--blue), var(--purple))', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>
                             {getInitials(`${dept.head.first_name} ${dept.head.last_name}`)}
@@ -173,7 +171,7 @@ export default function DepartmentsPage() {
                         <div style={{ fontSize: 11, color: 'var(--ink4)', fontStyle: 'italic', marginBottom: 12, padding: '6px 10px', background: 'var(--amber-lt)', borderRadius: 'var(--r)', border: '1px solid var(--amber-bd)' }}>
                           ⚠ No head assigned
                         </div>
-                      )}
+                      )} */}
 
                       {/* Stats row */}
                       <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>

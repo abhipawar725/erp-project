@@ -3,11 +3,23 @@ import { env } from '../config/env';
 
 export interface JwtPayload {
   userId:        number;
-  companyId:     number;
+  companyId:     number | null;
   roleId:        number;
   roleSlug:      string;
   email:         string;
-  isSuperAdmin:  boolean;   // ← added
+  isSuperAdmin:  boolean;
+  viewingCompanyId?: number | null;
+  viewingCompanyName?: string | null;
+}
+
+export function getEffectiveCompanyId(
+  payload: JwtPayload
+): number | null {
+  if (payload.isSuperAdmin) {
+    return payload.viewingCompanyId ?? null;
+  }
+
+  return payload.companyId;
 }
 
 export function generateAccessToken(payload: JwtPayload): string {

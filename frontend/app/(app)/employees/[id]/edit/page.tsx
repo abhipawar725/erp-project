@@ -26,6 +26,7 @@ import { departmentService } from '../../../../../services/api/department.servic
 import { designationService } from '../../../../../services/api/designation.service';
 
 import { employeeService } from '../../../../../services/api/employee.service';
+import { RoleGuard } from '../../../../../layouts/RoleGuard';
 
 interface SelectOption {
   value: number;
@@ -126,23 +127,20 @@ export default function EditEmployeePage() {
 
   if (isLoading) {
     return (
-      <AppShell
-        allowedRoles={[
-          'hr',
-          'admin',
-        ]}
-      >
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '60px 0',
-            color: 'var(--ink4)',
-            fontSize: 13,
-          }}
-        >
-          Loading employee data…
-        </div>
-      </AppShell>
+      <RoleGuard allowedRoles={['admin', 'hr']}>
+        <AppShell>
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '60px 0',
+              color: 'var(--ink4)',
+              fontSize: 13,
+            }}
+          >
+            Loading employee data…
+          </div>
+        </AppShell>
+      </RoleGuard>
     );
   }
 
@@ -152,36 +150,33 @@ export default function EditEmployeePage() {
 
   if (isError || !employee) {
     return (
-      <AppShell
-        allowedRoles={[
-          'hr',
-          'admin',
-        ]}
-      >
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '60px 0',
-            color: 'var(--red)',
-            fontSize: 13,
-          }}
-        >
-          Employee not found.
-
-          <span
+      <RoleGuard allowedRoles={['admin', 'hr']}>
+        <AppShell>
+          <div
             style={{
-              cursor: 'pointer',
-              color: 'var(--blue)',
-              marginLeft: 6,
+              textAlign: 'center',
+              padding: '60px 0',
+              color: 'var(--red)',
+              fontSize: 13,
             }}
-            onClick={() =>
-              router.back()
-            }
           >
-            Go back
-          </span>
-        </div>
-      </AppShell>
+            Employee not found.
+
+            <span
+              style={{
+                cursor: 'pointer',
+                color: 'var(--blue)',
+                marginLeft: 6,
+              }}
+              onClick={() =>
+                router.back()
+              }
+            >
+              Go back
+            </span>
+          </div>
+        </AppShell>
+      </RoleGuard>
     );
   }
 
@@ -230,66 +225,63 @@ export default function EditEmployeePage() {
   /* ------------------------------------------------ */
 
   return (
-    <AppShell
-      allowedRoles={[
-        'hr',
-        'admin',
-      ]}
-    >
-      <div className="pg-enter">
-        {/* HEADER */}
+    <RoleGuard allowedRoles={['admin', 'hr']}>
+      <AppShell>
+        <div className="pg-enter">
+          {/* HEADER */}
 
-        <div className="ph">
-          <div>
-            <h1>
-              Edit Employee Profile
-            </h1>
+          <div className="ph">
+            <div>
+              <h1>
+                Edit Employee Profile
+              </h1>
 
-            <p>
-              {
-                employee.employee_code
-              }{' '}
-              ·{' '}
-              {
-                employee.first_name
-              }{' '}
-              {
-                employee.last_name
-              }
-            </p>
+              <p>
+                {
+                  employee.employee_code
+                }{' '}
+                ·{' '}
+                {
+                  employee.first_name
+                }{' '}
+                {
+                  employee.last_name
+                }
+              </p>
+            </div>
+
+            <div className="ph-r">
+              <button
+                className="btn btn-sec btn-sm"
+                onClick={() =>
+                  router.push(
+                    `/employees/${id}`,
+                  )
+                }
+              >
+                ← View Profile
+              </button>
+            </div>
           </div>
 
-          <div className="ph-r">
-            <button
-              className="btn btn-sec btn-sm"
-              onClick={() =>
-                router.push(
-                  `/employees/${id}`,
-                )
-              }
-            >
-              ← View Profile
-            </button>
-          </div>
+          {/* WIZARD */}
+
+          <EmployeeWizard
+            mode="edit"
+            employee={employee}
+            departments={departments}
+            designations={
+              designations
+            }
+            managers={managers}
+            onSuccess={(emp) =>
+              router.push(
+                `/employees/${emp.id}`,
+              )
+            }
+          />
         </div>
-
-        {/* WIZARD */}
-
-        <EmployeeWizard
-          mode="edit"
-          employee={employee}
-          departments={departments}
-          designations={
-            designations
-          }
-          managers={managers}
-          onSuccess={(emp) =>
-            router.push(
-              `/employees/${emp.id}`,
-            )
-          }
-        />
-      </div>
-    </AppShell>
+      </AppShell>
+    </RoleGuard>
   );
 }

@@ -6,6 +6,7 @@ import { setPageTitle } from '../../../../store/slices/uiSlice';
 import { AppShell } from '../../../../layouts/AppLayout';
 import { EmployeeWizard } from '../../../../features/employees/components/EmployeeWizard';
 import { departmentService } from '../../../../services/api/department.service';
+import { RoleGuard } from '../../../../layouts/RoleGuard';
 
 export default function NewEmployeePage() {
   const dispatch = useAppDispatch();
@@ -24,7 +25,8 @@ export default function NewEmployeePage() {
   const departments = (deptsRes?.data || []).map((d: any) => ({ value: d.id, label: d.name }));
 
   return (
-    <AppShell allowedRoles={['hr', 'admin']}>
+    <RoleGuard allowedRoles={['admin', 'hr']}>
+    <AppShell>
       <div className="pg-enter">
         <div className="ph">
           <div>
@@ -35,5 +37,6 @@ export default function NewEmployeePage() {
         <EmployeeWizard mode="create" departments={departments} />
       </div>
     </AppShell>
+    </RoleGuard>
   );
 }

@@ -10,8 +10,8 @@ export async function getMyPermissions(req: Request, res: Response, next: NextFu
   try {
     const { userId, companyId } = req.user!;
     const [modulePerms, ...allFieldPerms] = await Promise.all([
-      svc.getModulePerms(userId, companyId),
-      ...SYSTEM_MODULES.map(m => svc.getFieldPerms(userId, companyId, m as any)),
+      svc.getModulePerms(userId, companyId!),
+      ...SYSTEM_MODULES.map(m => svc.getFieldPerms(userId, companyId!, m as any)),
     ]);
 
     const fieldPermsByModule: Record<string, any[]> = {};
@@ -27,14 +27,14 @@ export async function getMyModuleFieldPerms(req: Request, res: Response, next: N
     const { userId, companyId } = req.user!;
     const module = req.params.module as any;
     if (!SYSTEM_MODULES.includes(module)) { sendError(res, 'Invalid module', 400); return; }
-    const fields = await svc.getFieldPerms(userId, companyId, module);
+    const fields = await svc.getFieldPerms(userId, companyId!, module);
     sendResponse(res, { data: fields });
   } catch(e) { next(e); }
 }
 
 // ─── ADMIN: list all users with permission summary ────────────────────────────
 export async function listUsersPerms(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.listUsersWithPerms(req.user!.companyId) }); }
+  try { sendResponse(res, { data: await svc.listUsersWithPerms(req.user!.companyId!) }); }
   catch(e) { next(e); }
 }
 
@@ -42,7 +42,7 @@ export async function listUsersPerms(req: Request, res: Response, next: NextFunc
 export async function getUserPerms(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const targetId  = parseInt(req.params.userId, 10);
-    const companyId = req.user!.companyId;
+    const companyId = req.user!.companyId!;
     const [modulePerms, ...allFieldPerms] = await Promise.all([
       svc.getModulePerms(targetId, companyId),
       ...SYSTEM_MODULES.map(m => svc.getFieldPerms(targetId, companyId, m as any)),
@@ -57,7 +57,7 @@ export async function getUserPerms(req: Request, res: Response, next: NextFuncti
 export async function setUserModulePerms(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await svc.setModulePerms(
-      parseInt(req.params.userId, 10), req.user!.companyId,
+      parseInt(req.params.userId, 10), req.user!.companyId!,
       req.body.permissions, req.user!.userId,
     );
     sendResponse(res, { data, message: 'Module permissions saved' });
@@ -68,7 +68,7 @@ export async function setUserModulePerms(req: Request, res: Response, next: Next
 export async function setUserFieldPerms(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await svc.setFieldPerms(
-      parseInt(req.params.userId, 10), req.user!.companyId,
+      parseInt(req.params.userId, 10), req.user!.companyId!,
       req.params.module as any, req.body.fields, req.user!.userId,
     );
     sendResponse(res, { data, message: 'Field permissions saved' });
@@ -81,7 +81,7 @@ export async function copyUserPerms(req: Request, res: Response, next: NextFunct
     const data = await svc.copyPerms(
       parseInt(req.body.from_user_id, 10),
       parseInt(req.params.userId, 10),
-      req.user!.companyId,
+      req.user!.companyId!,
       req.user!.userId,
     );
     sendResponse(res, { data, message: 'Permissions copied' });
@@ -107,10 +107,10 @@ export async function getModuleFieldRegistry(req: Request, res: Response, next: 
 import { Router }   from 'express';
 import { body, param } from 'express-validator';
 import { validate } from '../../middleware/validate.middleware';
-import { authenticate } from '../../middleware/auth.middleware';
+import { authenticate, requireCompanyContext } from '../../modules/auth/auth.middleware';
 
 export const userPermissionsRouter = Router();
-userPermissionsRouter.use(authenticate);
+userPermissionsRouter.use(authenticate, requireCompanyContext);
 
 // Current user's own permissions (loaded on every page)
 userPermissionsRouter.get('/me',                              getMyPermissions);

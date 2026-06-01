@@ -5,7 +5,7 @@ import { sequelize } from '../../config/database';
 
 interface RoleAttributes {
   id: number;
-  company_id: number;
+  company_id: number | null;
   name: string;
   slug: string;
   description?: string | null;
@@ -16,7 +16,7 @@ export class Role
   extends Model<RoleAttributes, Optional<RoleAttributes, 'id' | 'is_system'>>
   implements RoleAttributes {
   public id!: number;
-  public company_id!: number;
+  public company_id!: number | null;
   public name!: string;
   public slug!: string;
   public description!: string | null;
@@ -29,7 +29,7 @@ export class Role
 Role.init(
   {
     id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-    company_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+    company_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
     name: { type: DataTypes.STRING(100), allowNull: false },
     slug: { type: DataTypes.STRING(100), allowNull: false },
     description: { type: DataTypes.TEXT, allowNull: true },

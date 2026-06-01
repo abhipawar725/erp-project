@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validate }                  from '../../middleware/validate.middleware';
-import { authenticate, requireRole } from '../../middleware/auth.middleware';
+import { authenticate, requireCompanyContext, requireRole } from '../../modules/auth/auth.middleware';
 import {
   getDesignations, getDesignationStats, getDesignation,
   createDesignation, updateDesignation, toggleDesignation, deleteDesignation,
@@ -11,7 +11,7 @@ import {
 } from './designation.validation';
 
 const router = Router();
-router.use(authenticate);
+router.use(authenticate, requireCompanyContext);
 
 // GET /api/designations?department_id=1&is_active=true|false|all&search=eng
 router.get('/', listDesignationValidation, validate, getDesignations);

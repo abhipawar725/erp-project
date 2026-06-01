@@ -347,7 +347,7 @@ export function filterFieldsByPermission<T extends Record<string, unknown>>(
 declare global {
   namespace Express {
     interface Request {
-      companyScope?: number;
+      companyScope?: number | null;
     }
   }
 }

@@ -6,7 +6,7 @@ import { Permission }      from '../../database/models/RoleModels';
 import { User }            from '../../database/models/User';
 import { Employee }        from '../../database/models/Employee';
 import { AppError }        from '../../middleware/errorHandler.middleware';
-import { authenticate }    from '../../middleware/auth.middleware';
+import { authenticate }    from '../../modules/auth/auth.middleware';
 import { authorize, clearPermissionCache } from '../../middleware/rbac.middleware';
 import { validate }        from '../../middleware/validate.middleware';
 import { sendResponse, sendError } from '../../utils/response';
@@ -196,43 +196,43 @@ const svc = new PermissionGroupService();
 // ─── Controllers ──────────────────────────────────────────────────────────────
 
 async function listGroups(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.list(req.user!.companyId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.list(req.user!.companyId!) }); } catch(e){ next(e); }
 }
 
 async function createGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.create(req.user!.companyId, req.body, req.user!.userId), statusCode: 201 }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.create(req.user!.companyId!, req.body, req.user!.userId), statusCode: 201 }); } catch(e){ next(e); }
 }
 
 async function updateGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.update(+req.params.id, req.user!.companyId, req.body, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.update(+req.params.id, req.user!.companyId!, req.body, req.user!.userId) }); } catch(e){ next(e); }
 }
 
 async function deleteGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.delete(+req.params.id, req.user!.companyId, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.delete(+req.params.id, req.user!.companyId!, req.user!.userId) }); } catch(e){ next(e); }
 }
 
 async function setGroupPermissions(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.setPermissions(+req.params.id, req.user!.companyId, req.body.slugs, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.setPermissions(+req.params.id, req.user!.companyId!, req.body.slugs, req.user!.userId) }); } catch(e){ next(e); }
 }
 
 async function getGroupMembers(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.getMembers(+req.params.id, req.user!.companyId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.getMembers(+req.params.id, req.user!.companyId!) }); } catch(e){ next(e); }
 }
 
 async function addGroupMember(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.addMember(+req.params.id, req.user!.companyId, req.body.user_id, req.user!.userId), statusCode: 201 }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.addMember(+req.params.id, req.user!.companyId!, req.body.user_id, req.user!.userId), statusCode: 201 }); } catch(e){ next(e); }
 }
 
 async function removeGroupMember(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.removeMember(+req.params.id, req.user!.companyId, +req.params.userId, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.removeMember(+req.params.id, req.user!.companyId!, +req.params.userId, req.user!.userId) }); } catch(e){ next(e); }
 }
 
 async function getMyGroups(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.getUserGroups(req.user!.userId, req.user!.companyId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.getUserGroups(req.user!.userId, req.user!.companyId!) }); } catch(e){ next(e); }
 }
 
 async function seedGroups(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { await svc.seedSystemGroups(req.user!.companyId); sendResponse(res, { data: { seeded: true } }); } catch(e){ next(e); }
+  try { await svc.seedSystemGroups(req.user!.companyId!); sendResponse(res, { data: { seeded: true } }); } catch(e){ next(e); }
 }
 
 // Export service for use in seeder

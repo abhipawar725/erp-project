@@ -43,20 +43,20 @@ export async function seedDatabase(): Promise<void> {
     // ROLES
     // =========================================================
 
-    const [hrRole] = await Role.findOrCreate({
+    const [superAdminRole] = await Role.findOrCreate({
       where: {
-        company_id: company.id,
-        slug: "hr",
+        company_id: null,
+        slug: 'super_admin',
       },
       defaults: {
-        company_id: company.id,
-        name: "HR Manager",
-        slug: "hr",
-        description: "Full HR access",
+        company_id: null,
+        name: "Super Admin",
+        slug: 'super_admin',
+        description: 'Global System Administrator',
         is_system: true,
       },
       transaction,
-    });
+    })
 
     const [adminRole] = await Role.findOrCreate({
       where: {
@@ -73,16 +73,16 @@ export async function seedDatabase(): Promise<void> {
       transaction,
     });
 
-    const [superAdminRole] = await Role.findOrCreate({
+    await Role.findOrCreate({
       where: {
         company_id: company.id,
-        slug: "super_admin",
+        slug: "hr",
       },
       defaults: {
         company_id: company.id,
-        name: "Super Admin",
-        slug: "super_admin",
-        description: "Platform owner with unrestricted access",
+        name: "HR Manager",
+        slug: "hr",
+        description: "Full HR access",
         is_system: true,
       },
       transaction,
@@ -231,20 +231,17 @@ export async function seedDatabase(): Promise<void> {
 
     // ─── Super Admin User ─────────────────────────────────────────
     const superAdminPassword = await hashPassword('123456');
-    await User.upsert({
-      company_id: COMPANY_ID,
-      email: 'superadmin@ung.com',
-      password_hash: superAdminPassword,
-      role_id: superAdminRole.id,
-      is_super_admin: true,
-      is_active: true,
-    },
+    await User.upsert(
       {
-        transaction,
-      }
+        company_id: null,
+        email: "superadmin@ung.com",
+        password_hash: superAdminPassword,
+        role_id: superAdminRole.id,
+        is_super_admin: true,
+        is_active: true,
+      },
+      { transaction }
     );
-    logger.info('✅ Super admin created: superadmin@ung.com / 123456');
-
 
     // =========================================================
     // ADMIN USER
@@ -254,10 +251,11 @@ export async function seedDatabase(): Promise<void> {
 
     await User.upsert(
       {
-        company_id: company.id,
-        email: "admin@ung.com",
+        company_id: COMPANY_ID,
+        email: 'admin@ung.com',
         password_hash: adminPassword,
         role_id: adminRole.id,
+        is_super_admin: false,
         is_active: true,
       },
       {

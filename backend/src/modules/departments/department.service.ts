@@ -57,12 +57,6 @@ export class DepartmentService {
       order: [['name', 'ASC']],
       include: [
         {
-          model:      Employee,
-          as:         'head',
-          attributes: ['id', 'first_name', 'last_name', 'avatar_url', 'designation_id'],
-          required:   false,
-        },
-        {
           model:      Designation,
           as:         'designations',
           attributes: ['id', 'name', 'grade'],

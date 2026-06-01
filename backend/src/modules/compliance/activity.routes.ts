@@ -4,7 +4,7 @@
 
 import { Router } from 'express';
 import { query } from 'express-validator';
-import { authenticate, requireRole } from '../../middleware/auth.middleware';
+import { authenticate, requireRole } from '../../modules/auth/auth.middleware';
 import { validate } from '../../middleware/validate.middleware';
 import { getActivityLogs, getModuleList } from './activity.controller';
 

@@ -8,7 +8,7 @@ export interface LoginDto {
 export interface RegisterDto {
   email: string;
   password: string;
-  company_id?: number;
+  company_id?: number | null;
   role_slug?: string; // default: 'emp'
 }
 
@@ -33,11 +33,13 @@ export interface AuthUserPayload {
   email: string;
   roleId: number;
   roleSlug: string;
-  companyId: number;
+  companyId: number | null;
   employeeId: number | null;
   fullName?: string | null;
   avatarUrl?: string | null;
   isSuperAdmin: boolean;
+  viewingCompanyId?: number | null;
+  viewingCompanyName?: string | null;  
 }
 
 export interface AuthTokens {
@@ -53,10 +55,15 @@ export interface AuthLoginResponse extends AuthTokens {
 
 export interface JwtAccessPayload {
   userId: number;
-  companyId: number;
+  companyId: number | null;
   roleId: number;
   roleSlug: string;
   email: string;
+
+  isSuperAdmin: boolean;
+
+  viewingCompanyId?: number | null;
+  viewingCompanyName?: string | null;
 }
 
 export interface JwtRefreshPayload {
