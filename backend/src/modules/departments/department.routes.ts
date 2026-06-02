@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validate }                  from '../../middleware/validate.middleware';
-import { authenticate, requireRole, requireCompanyContext } from '../../modules/auth/auth.middleware';
+import { authenticate, requireRole } from '../../modules/auth/auth.middleware';
 import {
   getDepartments, getDepartmentStats, getDepartment,
   createDepartment, updateDepartment, deleteDepartment,
@@ -11,7 +11,7 @@ import {
 } from './department.validation';
 
 const router = Router();
-router.use(authenticate, requireCompanyContext);
+router.use(authenticate);
 
 // GET /api/departments?search=eng&is_active=true
 router.get('/', listDepartmentValidation, validate, getDepartments);

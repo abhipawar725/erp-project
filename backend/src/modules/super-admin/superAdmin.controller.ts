@@ -28,11 +28,3 @@ export async function suspendCompany(req: Request, res: Response, next: NextFunc
 export async function activateCompany(req: Request, res: Response, next: NextFunction): Promise<void> {
   try { sendResponse(res, { data: await companySvc.activate(+req.params.id, req.user!.userId) }); } catch(e){ next(e); }
 }
-
-export async function switchCompany(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await companySvc.switchCompany(+req.params.id, req.user!),});} catch (e) {next(e);}
-}
-
-export async function exitCompany(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await companySvc.exitCompany(req.user!),});} catch (e) {next(e);}
-}

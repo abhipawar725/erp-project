@@ -1,18 +1,17 @@
 'use client';
-// ─── useAuth ─────────────────────────────────────────────────────────────────
+// ─── useAuth ──────────────────────────────────────────────────────────────────
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter }   from 'next/navigation';
 import { authService } from '../../../services/api/auth.service';
-import { useAppDispatch, useAppSelector } from '../../../store/index';
+import { useAppDispatch, useAppSelector } from '../../../store';
 import {
   setCredentials, clearCredentials,
-  switchToCompany, exitCompany,
-  selectUser, selectIsAuthenticated,
-  selectIsViewingCompany, selectViewingCompany,
+  selectUser, selectIsAuthenticated, selectIsSuperAdmin,
+  selectHasPermission, selectHasAnyPermission,
+  selectPermissions,
 } from '../../../store/slices/authSlice';
-import { LoginCredentials } from '../../../types/auth.types';
-import apiClient from '../../../services/api/client';
-import { showToast } from '../../../utils/toast';
+import type { LoginCredentials } from '../../../types/auth.types';
 
 export function useAuth() {
   const dispatch    = useAppDispatch();
@@ -21,22 +20,16 @@ export function useAuth() {
   const user        = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
-  // ── Login ──────────────────────────────────────────────────────────────────
   const loginMutation = useMutation({
     mutationFn: (credentials: LoginCredentials) => authService.login(credentials),
     onSuccess: (response) => {
       const { accessToken, user } = response.data;
       dispatch(setCredentials({ user, accessToken }));
-      // Redirect based on user type
-      if (user.isSuperAdmin) {
-        router.push('/super-admin');
-      } else {
-        router.push('/dashboard');
-      }
+      // Everyone goes to /dashboard — sidebar handles what they see
+      router.push('/dashboard');
     },
   });
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
   const logoutMutation = useMutation({
     mutationFn: () => authService.logout(),
     onSettled: () => {
@@ -56,71 +49,57 @@ export function useAuth() {
   };
 }
 
-// ─── useSuperAdminSwitch ──────────────────────────────────────────────────────
-// Hook used inside the super admin dashboard to switch into / exit a company.
+// ─── usePermission ────────────────────────────────────────────────────────────
+// Primary permission hook. Use this everywhere in components.
+//
+// Usage:
+//   const { hasPermission, isSuperAdmin, canView } = usePermission();
+//   if (!canView('employees')) return null;
+//   {hasPermission('payroll:approve') && <ApproveButton />}
 
-export function useSuperAdminSwitch() {
-  const dispatch          = useAppDispatch();
-  const router            = useRouter();
-  const qc                = useQueryClient();
-  const isViewingCompany  = useAppSelector(selectIsViewingCompany);
-  const viewingCompany    = useAppSelector(selectViewingCompany);
+export function usePermission() {
+  const user        = useAppSelector(selectUser);
+  const permissions = useAppSelector(selectPermissions);
+  const isSuperAdmin = useAppSelector(selectIsSuperAdmin);
 
-  // ── Switch into company ────────────────────────────────────────────────────
-  const switchMutation = useMutation({
-    mutationFn: (companyId: number) =>
-      apiClient.post<any, any>(`/super/switch-company/${companyId}`),
+  const hasPermission = (slug: string): boolean => {
+    if (!user) return false;
+    if (isSuperAdmin) return true;
+    return permissions.includes(slug) || permissions.includes('*');
+  };
 
-    onSuccess: (res, companyId) => {
-      const { scopedToken, company } = res.data;
+  const hasAnyPermission = (...slugs: string[]): boolean => {
+    if (!user) return false;
+    if (isSuperAdmin) return true;
+    return slugs.some(s => permissions.includes(s));
+  };
 
-      // Store scoped token + update user context
-      dispatch(switchToCompany({
-        scopedToken,
-        companyId:   company.id,
-        companyName: company.name,
-      }));
+  const hasAllPermissions = (...slugs: string[]): boolean => {
+    if (!user) return false;
+    if (isSuperAdmin) return true;
+    return slugs.every(s => permissions.includes(s));
+  };
 
-      // Clear all cached company-scoped queries so fresh data loads
-      qc.clear();
-
-      showToast(`👁 Viewing ${company.name}`);
-
-      // Redirect to company dashboard
-      router.push('/dashboard');
-    },
-
-    onError: (e: any) => showToast(e?.message || 'Failed to switch company'),
-  });
-
-  // ── Exit company view ──────────────────────────────────────────────────────
-  const exitMutation = useMutation({
-    mutationFn: () =>
-      apiClient.post<any, any>('/super/exit-company'),
-
-    onSuccess: (res) => {
-      const { platformToken } = res.data;
-
-      dispatch(exitCompany({ platformToken }));
-
-      // Clear all company-scoped cache
-      qc.clear();
-
-      showToast('Exited company view');
-
-      // Return to super admin dashboard
-      router.push('/super-admin');
-    },
-
-    onError: (e: any) => showToast(e?.message || 'Failed to exit company view'),
-  });
+  // Shorthand helpers
+  const canView    = (module: string) => hasPermission(`${module}:view`);
+  const canCreate  = (module: string) => hasPermission(`${module}:create`);
+  const canEdit    = (module: string) => hasPermission(`${module}:edit`);
+  const canDelete  = (module: string) => hasPermission(`${module}:delete`);
+  const canApprove = (module: string) => hasPermission(`${module}:approve`);
+  const canExport  = (module: string) => hasPermission(`${module}:export`);
 
   return {
-    isViewingCompany,
-    viewingCompany,
-    switchToCompany: switchMutation.mutate,
-    exitCompany:     exitMutation.mutate,
-    isSwitching:     switchMutation.isPending,
-    isExiting:       exitMutation.isPending,
+    user,
+    isSuperAdmin,
+    permissions,
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions,
+    canView,
+    canCreate,
+    canEdit,
+    canDelete,
+    canApprove,
+    canExport,
   };
 }

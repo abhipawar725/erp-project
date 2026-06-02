@@ -109,6 +109,23 @@ class PermissionGroupService {
     return { updated: permissions.length };
   }
 
+async getPermissions(id: number, companyId: number) {
+  await this.getById(id, companyId);
+
+  const rows = await GroupPermission.findAll({
+    where: { group_id: id },
+    include: [
+      {
+        model: Permission,
+        as: 'permission',
+        attributes: ['slug']
+      }
+    ]
+  });
+
+  return rows.map((r: any) => r.permission.slug);
+}
+
   // ── Member management ────────────────────────────────────────────────────────
 
   async getMembers(id: number, companyId: number) {
@@ -125,8 +142,10 @@ class PermissionGroupService {
   }
 
   async addMember(groupId: number, companyId: number, userId: number, addedBy?: number) {
+    console.log(groupId, companyId, userId, addedBy)
     await this.getById(groupId, companyId);
     const user = await User.findOne({ where: { id: userId, company_id: companyId } });
+    console.log("Found user", user?.id)
     if (!user) throw new AppError('User not found', 404);
 
     const [, created] = await UserGroup.findOrCreate({
@@ -196,43 +215,60 @@ const svc = new PermissionGroupService();
 // ─── Controllers ──────────────────────────────────────────────────────────────
 
 async function listGroups(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.list(req.user!.companyId!) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.list(req.user!.companyId) }); } catch(e){ next(e); }
 }
 
 async function createGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.create(req.user!.companyId!, req.body, req.user!.userId), statusCode: 201 }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.create(req.user!.companyId, req.body, req.user!.userId), statusCode: 201 }); } catch(e){ next(e); }
 }
 
 async function updateGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.update(+req.params.id, req.user!.companyId!, req.body, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.update(+req.params.id, req.user!.companyId, req.body, req.user!.userId) }); } catch(e){ next(e); }
 }
 
 async function deleteGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.delete(+req.params.id, req.user!.companyId!, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.delete(+req.params.id, req.user!.companyId, req.user!.userId) }); } catch(e){ next(e); }
 }
 
 async function setGroupPermissions(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.setPermissions(+req.params.id, req.user!.companyId!, req.body.slugs, req.user!.userId) }); } catch(e){ next(e); }
+  try { console.log("body", req.body); console.log("slugs", req.body.slugs); sendResponse(res, { data: await svc.setPermissions(+req.params.id, req.user!.companyId, req.body.slugs, req.user!.userId) }); } catch(e){ next(e); }
+}
+
+async function getGroupPermissions(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    sendResponse(res, {
+      data: await svc.getPermissions(
+        +req.params.id,
+        req.user!.companyId
+      )
+    });
+  } catch (e) {
+    next(e);
+  }
 }
 
 async function getGroupMembers(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.getMembers(+req.params.id, req.user!.companyId!) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.getMembers(+req.params.id, req.user!.companyId) }); } catch(e){ next(e); }
 }
 
 async function addGroupMember(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.addMember(+req.params.id, req.user!.companyId!, req.body.user_id, req.user!.userId), statusCode: 201 }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.addMember(+req.params.id, req.user!.companyId, req.body.user_id, req.user!.userId), statusCode: 201 }); } catch(e){ next(e); }
 }
 
 async function removeGroupMember(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.removeMember(+req.params.id, req.user!.companyId!, +req.params.userId, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.removeMember(+req.params.id, req.user!.companyId, +req.params.userId, req.user!.userId) }); } catch(e){ next(e); }
 }
 
 async function getMyGroups(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.getUserGroups(req.user!.userId, req.user!.companyId!) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.getUserGroups(req.user!.userId, req.user!.companyId) }); } catch(e){ next(e); }
 }
 
 async function seedGroups(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { await svc.seedSystemGroups(req.user!.companyId!); sendResponse(res, { data: { seeded: true } }); } catch(e){ next(e); }
+  try { await svc.seedSystemGroups(req.user!.companyId); sendResponse(res, { data: { seeded: true } }); } catch(e){ next(e); }
 }
 
 // Export service for use in seeder
@@ -249,6 +285,7 @@ permissionGroupRouter.post('/',     [body('name').trim().notEmpty()], validate, 
 permissionGroupRouter.put ('/:id',  [param('id').isInt()], validate, updateGroup);
 permissionGroupRouter.delete('/:id',[param('id').isInt()], validate, deleteGroup);
 
+permissionGroupRouter.get('/:id/permissions', [param('id').isInt()], validate, getGroupPermissions);
 permissionGroupRouter.put ('/:id/permissions', [param('id').isInt(), body('slugs').isArray()], validate, setGroupPermissions);
 permissionGroupRouter.get ('/:id/members',     [param('id').isInt()], validate, getGroupMembers);
 permissionGroupRouter.post('/:id/members',     [param('id').isInt(), body('user_id').isInt()], validate, addGroupMember);

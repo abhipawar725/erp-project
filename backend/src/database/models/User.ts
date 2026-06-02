@@ -3,7 +3,7 @@ import { sequelize } from '../../config/database';
 
 interface UserAttributes {
   id:             number;
-  company_id:     number | null;
+  company_id:     number;
   employee_id?:   number | null;
   email:          string;
   password_hash:  string;
@@ -24,7 +24,7 @@ interface UserCreationAttributes
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public id!:             number;
-  public company_id!:     number | null;
+  public company_id!:     number;
   public employee_id!:    number | null;
   public email!:          string;
   public password_hash!:  string;
@@ -45,7 +45,7 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
 
 User.init({
   id:             { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-  company_id:     { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
+  company_id:     { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
   employee_id:    { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
   email:          { type: DataTypes.STRING(255), allowNull: false, unique: true, validate: { isEmail: true } },
   password_hash:  { type: DataTypes.STRING(255), allowNull: false },

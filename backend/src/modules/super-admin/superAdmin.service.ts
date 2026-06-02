@@ -26,20 +26,13 @@ export class CompanyService {
       User.count({ where: { is_super_admin: false } }),
       Employee.count(),
     ]);
-    const planCounts = await Company.findAll({
-      attributes: ['subscription_plan', [sequelize.fn('COUNT', sequelize.col('id')), 'count']],
-      where: { is_active: true }, group: ['subscription_plan'], raw: true,
-    }) as any[];
-    const plans: Record<string, number> = {};
-    for (const r of planCounts) plans[r.subscription_plan] = Number(r.count);
-    return { totalCompanies: total, activeCompanies: active, suspendedCompanies: total - active, totalUsers, totalEmployees, plans };
+    return { totalCompanies: total, activeCompanies: active, suspendedCompanies: total - active, totalUsers, totalEmployees };
   }
 
   async listCompanies(query: Record<string, any>) {
     const { page, limit, offset } = parsePaginationParams(query);
     const where: any = {};
     if (query.is_active !== undefined) where.is_active = query.is_active === 'true';
-    if (query.plan) where.subscription_plan = query.plan;
     if (query.search) {
       where[Op.or] = [
         { name: { [Op.like]: `%${query.search}%` } },
@@ -143,80 +136,5 @@ export class CompanyService {
     await company.update({ is_active: true, deleted_at: null });
     await logActivity({ companyId: 0, userId: updatedBy, action: 'COMPANY_ACTIVATED', module: 'companies', entityId: id });
     return { activated: true };
-  }
-
-  async switchCompany(
-    companyId: number,
-    user: AuthUser
-  ) {
-    const company = await Company.findByPk(companyId);
-
-    if (!company) {
-      throw new AppError("Company not found", 404);
-    }
-
-    if (!company.is_active) {
-      throw new AppError(
-        "Cannot switch to a suspended company",
-        403
-      );
-    }
-
-    const scopedToken = generateAccessToken({
-      userId: user.userId,
-      companyId: null,
-      roleId: user.roleId,
-      roleSlug: user.roleSlug,
-      email: user.email,
-      isSuperAdmin: true,
-      viewingCompanyId: companyId,
-      viewingCompanyName: company.name,
-    });
-
-    await logActivity({
-      companyId,
-      userId: user.userId,
-      action: "SUPER_ADMIN_SWITCHED_TO_COMPANY",
-      module: "super_admin",
-      entityId: companyId,
-      newValues: {
-        company_name: company.name,
-      },
-    });
-
-    return {
-      scopedToken,
-      company: {
-        id: company.id,
-        name: company.name,
-        slug: company.slug,
-      },
-      message: `Now viewing ${company.name}`,
-    };
-  }
-
-  async exitCompany(user: AuthUser) {
-    const platformToken = generateAccessToken({
-      userId: user.userId,
-      companyId: null,
-      roleId: user.roleId,
-      roleSlug: user.roleSlug,
-      email: user.email,
-      isSuperAdmin: true,
-      viewingCompanyId: null,
-      viewingCompanyName: null,
-    });
-
-    await logActivity({
-      companyId: 0,
-      userId: user.userId,
-      action: "SUPER_ADMIN_EXITED_COMPANY",
-      module: "super_admin",
-    });
-
-    return {
-      platformToken,
-      message: "Exited company view",
-    };
   }
 }

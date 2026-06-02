@@ -13,7 +13,7 @@ export async function getTodaySummary(
   next: NextFunction
 ): Promise<void> {
   try {
-    const data = await attendanceService.getTodaySummary(req.user!.companyId!);
+    const data = await attendanceService.getTodaySummary(req.user!.companyId);
 
     sendResponse(res, {
       data,
@@ -59,7 +59,7 @@ export async function getAllAttendance(
   try {
     const { data, meta } = await attendanceService.getAll(
       req.query as any,
-      req.user!.companyId!
+      req.user!.companyId
     );
 
     sendPaginated(res, data, meta, 'Attendance records fetched');

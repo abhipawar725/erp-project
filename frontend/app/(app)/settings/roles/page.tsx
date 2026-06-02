@@ -627,6 +627,7 @@ const toggleFP = (key: string, perm: PermissionKey) => {
 function EditView({ group, onBack }: { group: PermGroup | null; onBack: () => void }) {
   const qc = useQueryClient();
   const isNew = !group;
+  console.log(isNew)
 
   const [name,       setName]       = useState(group?.name || '');
   const [desc,       setDesc]       = useState(group?.description || '');

@@ -17,7 +17,7 @@ export async function getActivityLogs(
   try {
     const { rows, meta } = await activityService.getLogs(
       req.query as any,
-      req.user!.companyId!,
+      req.user!.companyId,
     );
     sendPaginated(res, rows, meta, 'Activity logs fetched');
   } catch (e) {
@@ -32,7 +32,7 @@ export async function getModuleList(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const modules = await activityService.getModuleList(req.user!.companyId!);
+    const modules = await activityService.getModuleList(req.user!.companyId);
     sendResponse(res, { data: modules, message: 'Modules fetched' });
   } catch (e) {
     next(e);

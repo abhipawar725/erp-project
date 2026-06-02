@@ -16,6 +16,7 @@ import { userPermissionsRouter } from '../modules/user-permissions/userPermissio
 // import { assetRouter } from '../modules/assets/asset.controller';
 import { permissionGroupRouter } from '../modules/permission-groups/permissionGroups.controller';
 import { superAdminRouter } from '../modules/super-admin/superAdmin.routes';
+import { adminRouter } from '@/modules/admin/admin.controller';
 
 const router = Router();
 
@@ -36,6 +37,6 @@ router.use('/email-templates', emailTemplateRoutes);
 router.use('/rbac', rbacRoutes);
 router.use('/user-permissions', userPermissionsRouter);
 router.use('/permission-groups', permissionGroupRouter);
-router.use('/super', superAdminRouter);
+router.use('/admin', adminRouter);
 
 export default router;

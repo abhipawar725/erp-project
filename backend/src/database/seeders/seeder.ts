@@ -45,11 +45,11 @@ export async function seedDatabase(): Promise<void> {
 
     const [superAdminRole] = await Role.findOrCreate({
       where: {
-        company_id: null,
+        company_id: COMPANY_ID,
         slug: 'super_admin',
       },
       defaults: {
-        company_id: null,
+        company_id: COMPANY_ID,
         name: "Super Admin",
         slug: 'super_admin',
         description: 'Global System Administrator',
@@ -233,7 +233,7 @@ export async function seedDatabase(): Promise<void> {
     const superAdminPassword = await hashPassword('123456');
     await User.upsert(
       {
-        company_id: null,
+        company_id: COMPANY_ID,
         email: "superadmin@ung.com",
         password_hash: superAdminPassword,
         role_id: superAdminRole.id,

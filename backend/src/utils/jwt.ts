@@ -2,24 +2,13 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 
 export interface JwtPayload {
-  userId:        number;
-  companyId:     number | null;
-  roleId:        number;
-  roleSlug:      string;
-  email:         string;
-  isSuperAdmin:  boolean;
-  viewingCompanyId?: number | null;
-  viewingCompanyName?: string | null;
-}
-
-export function getEffectiveCompanyId(
-  payload: JwtPayload
-): number | null {
-  if (payload.isSuperAdmin) {
-    return payload.viewingCompanyId ?? null;
-  }
-
-  return payload.companyId;
+  userId:       number;
+  companyId:    number;      
+  roleId:       number;
+  roleSlug:     string;
+  email:        string;
+  isSuperAdmin: boolean;      
+  permissions:  string[];     
 }
 
 export function generateAccessToken(payload: JwtPayload): string {

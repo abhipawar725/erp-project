@@ -4,7 +4,7 @@ import path           from 'path';
 import crypto         from 'crypto';
 import fs             from 'fs';
 import { validate }   from '../../middleware/validate.middleware';
-import { authenticate, requireCompanyContext } from '../../modules/auth/auth.middleware';
+import { authenticate } from '../../modules/auth/auth.middleware';
 import {
   getCandidates, getCandidateStats, getCandidate,
   createCandidate, updateCandidate, moveCandidateStatus,
@@ -74,49 +74,49 @@ export const bulkUpload = multer({
 const router = Router();
 
 // ─── HR routes (JWT protected) ────────────────────────────────────────────────
-router.get('/stats', authenticate, requireCompanyContext, getCandidateStats);
-router.get('/',      authenticate, requireCompanyContext, listCandidateValidation, validate, getCandidates);
-router.get('/:id',   authenticate, requireCompanyContext, idValidation, validate, getCandidate);
+router.get('/stats', authenticate, getCandidateStats);
+router.get('/',      authenticate, listCandidateValidation, validate, getCandidates);
+router.get('/:id',   authenticate, idValidation, validate, getCandidate);
 
-router.post('/',     authenticate, requireCompanyContext, createCandidateValidation, validate, createCandidate);
-router.post('/bulk', authenticate, requireCompanyContext, bulkUpload.single('file'), bulkUploadCandidates);
+router.post('/',     authenticate, createCandidateValidation, validate, createCandidate);
+router.post('/bulk', authenticate, bulkUpload.single('file'), bulkUploadCandidates);
 
-router.put('/:id',   authenticate, requireCompanyContext, updateCandidateValidation, validate, updateCandidate);
+router.put('/:id',   authenticate, updateCandidateValidation, validate, updateCandidate);
 
-router.patch('/:id/status',   authenticate, requireCompanyContext, moveStatusValidation, validate, moveCandidateStatus);
-router.patch('/:id/interview', authenticate, requireCompanyContext, scheduleInterviewValidation, validate, scheduleInterview);
-router.patch('/:id/reschedule-decision', authenticate, requireCompanyContext, handleRescheduleValidation, validate, handleReschedule);
-router.patch('/:id/portal-access', authenticate, requireCompanyContext, grantPortalAccess);
+router.patch('/:id/status',   authenticate, moveStatusValidation, validate, moveCandidateStatus);
+router.patch('/:id/interview', authenticate, scheduleInterviewValidation, validate, scheduleInterview);
+router.patch('/:id/reschedule-decision', authenticate, handleRescheduleValidation, validate, handleReschedule);
+router.patch('/:id/portal-access', authenticate, grantPortalAccess);
 
-router.delete('/:id', authenticate, requireCompanyContext, idValidation, validate, deleteCandidate);
+router.delete('/:id', authenticate, idValidation, validate, deleteCandidate);
 
-router.post('/:id/resume', authenticate, requireCompanyContext, idValidation, validate, resumeUpload.single('resume'), uploadResume);
+router.post('/:id/resume', authenticate, idValidation, validate, resumeUpload.single('resume'), uploadResume);
 
 
 // PATCH /api/candidates/:id/interview-result
-router.patch('/:id/interview-result', authenticate, requireCompanyContext, interviewResultValidation, validate, submitInterviewResult);
+router.patch('/:id/interview-result', authenticate, interviewResultValidation, validate, submitInterviewResult);
 
 
 // ─── Offer / Hire / Withdrawal / Pre-interview form ──────────────────────────
-router.patch('/:id/send-offer',           authenticate, requireCompanyContext, sendOfferValidation,      validate, sendOffer);
-router.patch('/:id/hire',                 authenticate, requireCompanyContext, hireCandidateValidation,   validate, hireCandidate);
-router.patch('/:id/withdraw',             authenticate, requireCompanyContext, withdrawValidation,        validate, withdrawCandidate);
-router.post('/:id/send-pre-interview',    authenticate, requireCompanyContext, idValidation,             validate, sendPreInterviewForm);
-router.post('/:id/send-aptitude-test',     authenticate, requireCompanyContext, idValidation,             validate, sendAptitudeTestLink);
-router.get('/:id/form/pre-interview',       authenticate, requireCompanyContext, idValidation,             validate, getPreInterviewForm);
-router.get('/:id/form/pre-joining',         authenticate, requireCompanyContext, idValidation,             validate, getPreJoiningForm);
-router.post('/:id/send-pre-joining',        authenticate, requireCompanyContext, idValidation,             validate, sendPreJoiningFormLink);
+router.patch('/:id/send-offer',           authenticate, sendOfferValidation,      validate, sendOffer);
+router.patch('/:id/hire',                 authenticate, hireCandidateValidation,   validate, hireCandidate);
+router.patch('/:id/withdraw',             authenticate, withdrawValidation,        validate, withdrawCandidate);
+router.post('/:id/send-pre-interview',    authenticate, idValidation,             validate, sendPreInterviewForm);
+router.post('/:id/send-aptitude-test',     authenticate, idValidation,             validate, sendAptitudeTestLink);
+router.get('/:id/form/pre-interview',       authenticate, idValidation,             validate, getPreInterviewForm);
+router.get('/:id/form/pre-joining',         authenticate, idValidation,             validate, getPreJoiningForm);
+router.post('/:id/send-pre-joining',        authenticate, idValidation,             validate, sendPreJoiningFormLink);
 
 // ─── Candidate portal routes (portal JWT) ────────────────────────────────────
 router.post('/portal/login',        portalLoginValidation, validate, portalLogin);
 router.post('/portal/magic-link',   portalMagicLink);
 router.post('/portal/verify-magic', portalVerifyMagic);
-router.get('/portal/profile',       portalAuthenticate, requireCompanyContext, portalGetProfile);
-router.get('/portal/company-info',   portalAuthenticate, requireCompanyContext, portalGetCompanyInfo);
-router.post('/portal/interview-response', portalAuthenticate, requireCompanyContext, portalRespondInterview);
-router.post('/portal/reschedule',         portalAuthenticate, requireCompanyContext, rescheduleValidation, validate, portalRequestReschedule);
-router.post('/portal/reschedule',         portalAuthenticate, requireCompanyContext, rescheduleValidation, validate, portalRequestReschedule);
-router.post('/portal/preinterview',            portalAuthenticate, requireCompanyContext, portalSavePreinterview);
-router.post('/portal/prejoining',         portalAuthenticate, requireCompanyContext, portalSavePreJoining);
+router.get('/portal/profile',       portalAuthenticate, portalGetProfile);
+router.get('/portal/company-info',   portalAuthenticate, portalGetCompanyInfo);
+router.post('/portal/interview-response', portalAuthenticate, portalRespondInterview);
+router.post('/portal/reschedule',         portalAuthenticate, rescheduleValidation, validate, portalRequestReschedule);
+router.post('/portal/reschedule',         portalAuthenticate, rescheduleValidation, validate, portalRequestReschedule);
+router.post('/portal/preinterview',            portalAuthenticate, portalSavePreinterview);
+router.post('/portal/prejoining',         portalAuthenticate, portalSavePreJoining);
 
 export default router;

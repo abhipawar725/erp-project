@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthService } from './auth.service';
+import { AuthService } from '../auth/auth.service';
 import { sendResponse, sendError } from '../../utils/response';
 import { env } from '../../config/env';
 
@@ -38,21 +38,21 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/auth/register
 // ─────────────────────────────────────────────────────────────────────────────
-export async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try {
-    const { accessToken, refreshToken, user } = await authService.register(req.body);
+// export async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
+//   try {
+//     const { accessToken, refreshToken, user } = await authService.register(req.body);
 
-    res.cookie('refreshToken', refreshToken, REFRESH_COOKIE_OPTIONS);
+//     res.cookie('refreshToken', refreshToken, REFRESH_COOKIE_OPTIONS);
 
-    sendResponse(res, {
-      message: 'Account created successfully',
-      data: { accessToken, user },
-      statusCode: 201,
-    });
-  } catch (e) {
-    next(e);
-  }
-}
+//     sendResponse(res, {
+//       message: 'Account created successfully',
+//       data: { accessToken, user },
+//       statusCode: 201,
+//     });
+//   } catch (e) {
+//     next(e);
+//   }
+// }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/auth/refresh
@@ -135,17 +135,17 @@ export async function resetPassword(req: Request, res: Response, next: NextFunct
 // ─────────────────────────────────────────────────────────────────────────────
 // PUT /api/auth/change-password  (authenticated)
 // ─────────────────────────────────────────────────────────────────────────────
-export async function changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try {
-    await authService.changePassword(req.user!.userId, req.body);
-    sendResponse(res, {
-      message: 'Password changed successfully. Please log in again on other devices.',
-      data: null,
-    });
-  } catch (e) {
-    next(e);
-  }
-}
+// export async function changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+//   try {
+//     await authService.changePassword(req.user!.userId, req.body);
+//     sendResponse(res, {
+//       message: 'Password changed successfully. Please log in again on other devices.',
+//       data: null,
+//     });
+//   } catch (e) {
+//     next(e);
+//   }
+// }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/auth/me  (authenticated)

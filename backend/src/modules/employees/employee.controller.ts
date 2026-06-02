@@ -11,7 +11,7 @@ export async function getEmployees(req: Request, res: Response, next: NextFuncti
     const canViewSensitive = ['hr', 'admin'].includes(req.user!.roleSlug);
     const { rows, meta } = await employeeService.findAll(
       req.query as any,
-      req.user!.companyId!,
+      req.user!.companyId,
       canViewSensitive,
     );
     sendPaginated(res, rows, meta, 'Employees fetched successfully');
@@ -21,7 +21,7 @@ export async function getEmployees(req: Request, res: Response, next: NextFuncti
 // ─── GET /api/employees/next-code ─────────────────────────────────────────────
 export async function getNextCode(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const code = await employeeService.generateNextCode(req.user!.companyId!);
+    const code = await employeeService.generateNextCode(req.user!.companyId);
     sendResponse(res, { data: { code }, message: 'Next employee code generated' });
   } catch (e) { next(e); }
 }
@@ -29,7 +29,7 @@ export async function getNextCode(req: Request, res: Response, next: NextFunctio
 // ─── GET /api/employees/summary ───────────────────────────────────────────────
 export async function getSummary(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await employeeService.getSummary(req.user!.companyId!);
+    const data = await employeeService.getSummary(req.user!.companyId);
     sendResponse(res, { data, message: 'Employee summary fetched' });
   } catch (e) { next(e); }
 }
@@ -40,7 +40,7 @@ export async function getEmployee(req: Request, res: Response, next: NextFunctio
     const canViewSensitive = ['hr', 'admin'].includes(req.user!.roleSlug);
     const employee = await employeeService.findById(
       parseInt(req.params.id, 10),
-      req.user!.companyId!,
+      req.user!.companyId,
       canViewSensitive,
     );
     sendResponse(res, { data: employee, message: 'Employee fetched' });
@@ -52,7 +52,7 @@ export async function createEmployee(req: Request, res: Response, next: NextFunc
   try {
     const ip = req.ip || req.headers['x-forwarded-for']?.toString();
     const employee = await employeeService.create(
-      { ...req.body, company_id: req.user!.companyId! },
+      { ...req.body, company_id: req.user!.companyId },
       req.user!.userId,
       ip,
     );
@@ -66,7 +66,7 @@ export async function updateEmployee(req: Request, res: Response, next: NextFunc
     const ip = req.ip || req.headers['x-forwarded-for']?.toString();
     const employee = await employeeService.update(
       parseInt(req.params.id, 10),
-      req.user!.companyId!,
+      req.user!.companyId,
       req.body,
       req.user!.userId,
       ip,
@@ -87,7 +87,7 @@ export async function patchEmployeeStep(req: Request, res: Response, next: NextF
     }
     const employee = await employeeService.patchStep(
       parseInt(req.params.id, 10),
-      req.user!.companyId!,
+      req.user!.companyId,
       step,
       req.body,
       req.user!.userId,
@@ -101,7 +101,7 @@ export async function deleteEmployee(req: Request, res: Response, next: NextFunc
   try {
     await employeeService.delete(
       parseInt(req.params.id, 10),
-      req.user!.companyId!,
+      req.user!.companyId,
       req.user!.userId,
     );
     sendResponse(res, { data: null, message: 'Employee removed successfully' });
@@ -118,7 +118,7 @@ export async function uploadAvatar(req: Request, res: Response, next: NextFuncti
     const avatarUrl = `/uploads/${req.file.filename}`;
     const employee = await employeeService.updateAvatar(
       parseInt(req.params.id, 10),
-      req.user!.companyId!,
+      req.user!.companyId,
       avatarUrl,
       req.user!.userId,
     );
