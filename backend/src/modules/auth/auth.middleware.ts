@@ -30,7 +30,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
 }
 
 // ─── authorize ────────────────────────────────────────────────────────────────
-export function authorize(...slugs: string[]) {
+export function authorize(...permissionSlugs: string[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) { sendError(res, 'Unauthorized', 401); return; }
 
@@ -38,17 +38,17 @@ export function authorize(...slugs: string[]) {
     if (req.user.isSuperAdmin) { next(); return; }
 
     // No slug restriction = any authenticated user
-    if (slugs.length === 0) { next(); return; }
+    if (permissionSlugs.length === 0) { next(); return; }
 
     // HR / Admin full access within their company
     if (req.user.roleSlug === 'hr' || req.user.roleSlug === 'admin') { next(); return; }
 
     // Check slugs from JWT permissions array
     const userPerms = req.user.permissions ?? [];
-    const allowed = slugs.some(slug => userPerms.includes(slug));
+    const allowed = permissionSlugs.some(slug => userPerms.includes(slug));
     if (allowed) { next(); return; }
 
-    sendError(res, `Forbidden: Missing permission (${slugs.join(' or ')})`, 403);
+    sendError(res, `Forbidden: Missing permission (${permissionSlugs.join(' or ')})`, 403);
   };
 }
 

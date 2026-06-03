@@ -158,3 +158,23 @@ export async function getMe(req: Request, res: Response, next: NextFunction): Pr
     next(e);
   }
 }
+
+
+// POST /api/auth/request-otp
+export async function requestOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { email_or_phone, channel = 'email' } = req.body;
+    const result = await authService.requestOtp(email_or_phone, channel, req.ip);
+    sendResponse(res, { message: result.message, data: { expires_in: result.expires_in } });
+  } catch(e){ next(e); }
+}
+
+// POST /api/auth/verify-otp
+export async function verifyOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { email_or_phone, otp } = req.body;
+    const { accessToken, refreshToken, user } = await authService.verifyOtp(email_or_phone, otp, req.ip);
+    res.cookie('refreshToken', refreshToken, REFRESH_COOKIE_OPTIONS);
+    sendResponse(res, { message: 'Login successful', data: { accessToken, user } });
+  } catch(e){ next(e); }
+}

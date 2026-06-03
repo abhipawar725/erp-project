@@ -1,42 +1,44 @@
-// ─── User ─────────────────────────────────────────────────────────────────────
-
-export interface User {
+export interface AuthUser {
+  // userId = employee.id — name preserved for full backward compat
+  // All existing references to user.userId / state.auth.user.userId unchanged
   id:           number;
+  userId:       number;        // ← kept — same value as id / employeeId
+  employeeId:   number;        // explicit alias
   email:        string;
+  fullName:     string;
+  firstName:    string;
+  lastName:     string;
+  avatarUrl?:   string | null;
+  companyId:    number;
   roleId:       number;
   roleSlug:     string;
-  companyId:    number;       // always set — super admin uses company 1
-  employeeId?:  number | null;
-  fullName?:    string | null;
-  avatarUrl?:   string | null;
   isSuperAdmin: boolean;
-  permissions:  string[];     // module slugs, e.g. ['employees:view','payroll:approve']
-                              // super admin gets ['*'] — frontend checks isSuperAdmin
+  permissions:  string[];
 }
 
-// ─── Auth state ───────────────────────────────────────────────────────────────
-
 export interface AuthState {
-  user:            User | null;
+  user:            AuthUser | null;   // ← field name 'user' kept (not 'employee')
   accessToken:     string | null;
   isAuthenticated: boolean;
   permissions:     string[];
 }
 
-// ─── Request/Response DTOs ────────────────────────────────────────────────────
+export interface RequestOtpDto {
+  email_or_phone: string;
+  channel?:       'email' | 'sms';
+}
 
-export interface LoginCredentials {
-  email:    string;
-  password: string;
+export interface VerifyOtpDto {
+  email_or_phone: string;
+  otp:            string;
+}
+
+export interface OtpRequestResponse {
+  message:    string;
+  expires_in: number;
 }
 
 export interface LoginResponse {
-  accessToken:  string;
-  refreshToken?: string;
-  user:         User;
-}
-
-export interface TokenRefreshResponse {
-  accessToken:  string;
-  refreshToken?: string;
+  accessToken: string;
+  user:        AuthUser;   // ← 'user' key kept in response
 }

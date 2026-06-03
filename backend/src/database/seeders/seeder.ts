@@ -1,16 +1,58 @@
 import { sequelize } from "../../config/database";
 
-import { Company } from "../models/Company";
-import { User } from "../models/User";
-import { Role } from "../models/RoleModels";
-import { Department } from "../models/Department";
-import { Designation } from "../models/Designation";
-import { LeaveType } from "../models/LeaveModels";
-
-import { hashPassword } from "../../utils/hash";
-import { logger } from "../../config/logger";
+import { Employee }    from '../models/Employee';
+import { Company }     from '../models/Company';
+import { Department }  from '../models/Department';
+import { Designation } from '../models/Designation';
+import { Role, RoleModulePermission } from '../models/RoleModels';
+import { EmployeeRole, RoleTemplate, RoleTemplatePermission } from '../models/AuthModels';
+import {logger} from '../../config/logger'
 
 const COMPANY_ID = 1;
+
+const TEMPLATE_DEFS = [
+  { slug: 'super_admin', name: 'Super Admin',        sort_order: 1 },
+  { slug: 'hr_manager',  name: 'HR Manager',         sort_order: 2 },
+  { slug: 'manager',     name: 'Department Manager', sort_order: 3 },
+  { slug: 'employee',    name: 'Employee',           sort_order: 4 },
+] as const;
+
+type TemplatePerm = { module: string; can_view: boolean; can_create: boolean; can_edit: boolean; can_delete: boolean; can_approve: boolean; can_export: boolean };
+
+const TEMPLATE_PERMS: Record<string, TemplatePerm[]> = {
+  super_admin: [
+    { module:'employees',  can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
+    { module:'payroll',    can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
+    { module:'attendance', can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
+    { module:'leaves',     can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
+    { module:'recruitment',can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
+    { module:'assets',     can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
+    { module:'settings',   can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
+    { module:'companies',  can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
+    { module:'reports',    can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
+  ],
+  hr_manager: [
+    { module:'employees',  can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:true,  can_export:true  },
+    { module:'payroll',    can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:true,  can_export:true  },
+    { module:'attendance', can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:true,  can_export:true  },
+    { module:'leaves',     can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:true,  can_export:true  },
+    { module:'recruitment',can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
+    { module:'assets',     can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:false, can_export:true  },
+    { module:'settings',   can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:false },
+    { module:'reports',    can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:true  },
+  ],
+  manager: [
+    { module:'employees',  can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:false },
+    { module:'attendance', can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:false, can_export:false },
+    { module:'leaves',     can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:true,  can_export:false },
+    { module:'reports',    can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:false },
+  ],
+  employee: [
+    { module:'employees',  can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:false },
+    { module:'attendance', can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:false },
+    { module:'leaves',     can_view:true,  can_create:true,  can_edit:false, can_delete:false, can_approve:false, can_export:false },
+  ],
+};
 
 export async function seedDatabase(): Promise<void> {
   const transaction = await sequelize.transaction();
@@ -18,328 +60,130 @@ export async function seedDatabase(): Promise<void> {
   try {
     logger.info("🚀 Running database seed...");
 
-    // =========================================================
-    // COMPANY
-    // =========================================================
-
-    const [company] = await Company.findOrCreate({
-      where: {
-        id: COMPANY_ID,
-      },
-      defaults: {
-        id: COMPANY_ID,
-        name: "UNG HRMS",
-        code: "UNG",
-        country: "India",
-        fiscal_year: "Apr-Mar",
-        is_active: true,
-      },
-      transaction,
+    // ── 1. Company ───────────────────────────────────────────────────────────
+    await Company.upsert({
+      id: COMPANY_ID, name: 'Nexgen Solutions Pvt Ltd', slug: 'nexgen',
+      country: 'India', currency: 'INR', timezone: 'Asia/Kolkata',
+      max_employees: 1000,
+      is_active: true, onboarding_step: 5,
     });
+    logger.info('✅ Company ready');
 
-    logger.info(`🏢 Company Ready: ${company.name}`);
-
-    // =========================================================
-    // ROLES
-    // =========================================================
-
-    const [superAdminRole] = await Role.findOrCreate({
-      where: {
-        company_id: COMPANY_ID,
-        slug: 'super_admin',
-      },
-      defaults: {
-        company_id: COMPANY_ID,
-        name: "Super Admin",
-        slug: 'super_admin',
-        description: 'Global System Administrator',
-        is_system: true,
-      },
-      transaction,
-    })
-
-    const [adminRole] = await Role.findOrCreate({
-      where: {
-        company_id: company.id,
-        slug: "admin",
-      },
-      defaults: {
-        company_id: company.id,
-        name: "Admin",
-        slug: "admin",
-        description: "System administrator",
-        is_system: true,
-      },
-      transaction,
-    });
-
-    await Role.findOrCreate({
-      where: {
-        company_id: company.id,
-        slug: "hr",
-      },
-      defaults: {
-        company_id: company.id,
-        name: "HR Manager",
-        slug: "hr",
-        description: "Full HR access",
-        is_system: true,
-      },
-      transaction,
-    });
-
-    await Role.findOrCreate({
-      where: {
-        company_id: company.id,
-        slug: "mgr",
-      },
-      defaults: {
-        company_id: company.id,
-        name: "Department Manager",
-        slug: "mgr",
-        description: "Team management",
-        is_system: true,
-      },
-      transaction,
-    });
-
-    await Role.findOrCreate({
-      where: {
-        company_id: company.id,
-        slug: "emp",
-      },
-      defaults: {
-        company_id: company.id,
-        name: "Employee",
-        slug: "emp",
-        description: "Self-service portal",
-        is_system: true,
-      },
-      transaction,
-    });
-
-    logger.info("✅ Roles Seeded");
-
-    // =========================================================
-    // DEPARTMENTS
-    // =========================================================
-
-    const [engDept] = await Department.findOrCreate({
-      where: {
-        company_id: company.id,
-        code: "ENG",
-      },
-      defaults: {
-        company_id: company.id,
-        name: "Engineering",
-        code: "ENG",
-        is_active: true,
-      },
-      transaction,
-    });
-
-    const [hrDept] = await Department.findOrCreate({
-      where: {
-        company_id: company.id,
-        code: "HR",
-      },
-      defaults: {
-        company_id: company.id,
-        name: "Human Resources",
-        code: "HR",
-        is_active: true,
-      },
-      transaction,
-    });
-
-    const departments = [
-      { name: "Sales", code: "SLS" },
-      { name: "Finance", code: "FIN" },
-      { name: "Operations", code: "OPS" },
-      { name: "Design", code: "DSN" },
-      { name: "Marketing", code: "MKT" },
-    ];
-
-    for (const dept of departments) {
-      await Department.findOrCreate({
-        where: {
-          company_id: company.id,
-          code: dept.code,
-        },
-        defaults: {
-          company_id: company.id,
-          name: dept.name,
-          code: dept.code,
-          is_active: true,
-        },
-        transaction,
+    // ── 2. Global role templates ─────────────────────────────────────────────
+    for (const def of TEMPLATE_DEFS) {
+      await RoleTemplate.findOrCreate({
+        where:    { slug: def.slug },
+        defaults: { slug: def.slug, name: def.name, sort_order: def.sort_order, is_system: true },
       });
     }
-
-    logger.info("✅ Departments Seeded");
-
-    // =========================================================
-    // DESIGNATIONS
-    // =========================================================
-
-    const designations = [
-      {
-        department_id: engDept.id,
-        name: "Software Engineer",
-        grade: "L2",
-      },
-      {
-        department_id: engDept.id,
-        name: "Senior Software Engineer",
-        grade: "L4",
-      },
-      {
-        department_id: engDept.id,
-        name: "Engineering Manager",
-        grade: "M3",
-      },
-      {
-        department_id: hrDept.id,
-        name: "HR Manager",
-        grade: "M3",
-      },
-      {
-        department_id: hrDept.id,
-        name: "HR Executive",
-        grade: "L2",
-      },
-    ];
-
-    for (const designation of designations) {
-      await Designation.findOrCreate({
-        where: {
-          company_id: company.id,
-          name: designation.name,
-        },
-        defaults: {
-          company_id: company.id,
-          department_id: designation.department_id,
-          name: designation.name,
-          grade: designation.grade,
-          is_active: true,
-        },
-        transaction,
-      });
-    }
-
-    logger.info("✅ Designations Seeded");
-
-    // ─── Super Admin User ─────────────────────────────────────────
-    const superAdminPassword = await hashPassword('123456');
-    await User.upsert(
-      {
-        company_id: COMPANY_ID,
-        email: "superadmin@ung.com",
-        password_hash: superAdminPassword,
-        role_id: superAdminRole.id,
-        is_super_admin: true,
-        is_active: true,
-      },
-      { transaction }
-    );
-
-    // =========================================================
-    // ADMIN USER
-    // =========================================================
-
-    const adminPassword = await hashPassword("123456");
-
-    await User.upsert(
-      {
-        company_id: COMPANY_ID,
-        email: 'admin@ung.com',
-        password_hash: adminPassword,
-        role_id: adminRole.id,
-        is_super_admin: false,
-        is_active: true,
-      },
-      {
-        transaction,
+    const allTemplates = await RoleTemplate.findAll();
+    for (const tmpl of allTemplates) {
+      for (const p of (TEMPLATE_PERMS[tmpl.slug] ?? [])) {
+        await RoleTemplatePermission.findOrCreate({
+          where:    { template_id: tmpl.id, module: p.module },
+          defaults: { template_id: tmpl.id, ...p },
+        });
       }
-    );
+    }
+    logger.info('✅ Role templates + permissions seeded');
 
-    logger.info("✅ Admin User Seeded");
-
-    // =========================================================
-    // LEAVE TYPES
-    // =========================================================
-
-    const leaveTypes = [
-      {
-        name: "Earned Leave",
-        code: "EL",
-        days_per_year: 15,
-        is_paid: true,
-        carry_forward: true,
-        max_carry_days: 30,
-      },
-      {
-        name: "Casual Leave",
-        code: "CL",
-        days_per_year: 12,
-        is_paid: true,
-        carry_forward: false,
-        max_carry_days: 0,
-      },
-      {
-        name: "Sick Leave",
-        code: "SL",
-        days_per_year: 8,
-        is_paid: true,
-        carry_forward: false,
-        max_carry_days: 0,
-      },
-      {
-        name: "Maternity Leave",
-        code: "ML",
-        days_per_year: 182,
-        is_paid: true,
-        carry_forward: false,
-        max_carry_days: 0,
-      },
-      {
-        name: "Paternity Leave",
-        code: "PL",
-        days_per_year: 15,
-        is_paid: true,
-        carry_forward: false,
-        max_carry_days: 0,
-      },
-      {
-        name: "Leave Without Pay",
-        code: "LWP",
-        days_per_year: 365,
-        is_paid: false,
-        carry_forward: false,
-        max_carry_days: 0,
-      },
-    ];
-
-    for (const leave of leaveTypes) {
-      await LeaveType.findOrCreate({
-        where: {
-          company_id: company.id,
-          code: leave.code,
-        },
+    // ── 3. Per-company roles + module permissions ────────────────────────────
+    const templateMap = new Map(allTemplates.map(t => [t.slug, t]));
+    for (const def of TEMPLATE_DEFS) {
+      const tmpl = templateMap.get(def.slug)!;
+      const [role] = await Role.findOrCreate({
+        where:    { company_id: COMPANY_ID, slug: def.slug },
         defaults: {
-          company_id: company.id,
-          ...leave,
-          is_active: true,
+          company_id:  COMPANY_ID,
+          name:        def.name,
+          slug:        def.slug,
+          is_system:   true,
+          template_id: tmpl.id,  // ✓ now valid on updated Role model
         },
-        transaction,
+      });
+      const tPerms = await RoleTemplatePermission.findAll({ where: { template_id: tmpl.id } });
+      for (const tp of tPerms) {
+        await RoleModulePermission.findOrCreate({
+          where:    { role_id: role.id, module: tp.module },
+          defaults: {
+            role_id: role.id, module: tp.module,
+            can_view: tp.can_view, can_create: tp.can_create,
+            can_edit: tp.can_edit, can_delete: tp.can_delete,
+            can_approve: tp.can_approve, can_export: tp.can_export,
+          },
+        });
+      }
+    }
+    logger.info('✅ Company roles + module permissions ready');
+
+    // ── 4. Departments ───────────────────────────────────────────────────────
+    const deptMap = new Map<string, number>();
+    for (const name of ['Human Resources','Engineering','Finance','Operations','Marketing','Sales']) {
+      const code = name.split(' ').map((w: string) => w[0]).join('').toUpperCase();
+      const [d] = await Department.findOrCreate({
+        where: { company_id: COMPANY_ID, name },
+        defaults: { company_id: COMPANY_ID, name, code },
+      });
+      deptMap.set(name, d.id);
+    }
+
+    // ── 5. Designations ──────────────────────────────────────────────────────
+    const desigMap = new Map<string, number>();
+    for (const name of ['HR Manager','HR Executive','Software Engineer','Senior Engineer','Finance Manager','CEO','CTO']) {
+      const [d] = await Designation.findOrCreate({
+        where: { company_id: COMPANY_ID, name },
+        defaults: { company_id: COMPANY_ID, name },
+      });
+      desigMap.set(name, d.id);
+    }
+    logger.info('✅ Departments + designations ready');
+
+    // ── 6. Super admin employee ───────────────────────────────────────────────
+    const [superAdminEmp, saCreated] = await Employee.findOrCreate({
+      where:    { email: 'superadmin@ung.com' },
+      defaults: {
+        company_id: COMPANY_ID, employee_code: 'EMP000',
+        first_name: 'Super', last_name: 'Admin',
+        email: 'superadmin@ung.com', phone: '+919999999999',
+        department_id: deptMap.get('Human Resources') ?? null,
+        designation_id: desigMap.get('HR Manager') ?? null,
+        date_of_joining: new Date(), employment_type: 'Full-time',
+        work_location: 'Office', status: 'Active',
+        portal_access: true, is_super_admin: true,
+      },
+    });
+    if (!saCreated) {
+      await superAdminEmp.update({ is_super_admin: true, portal_access: true });
+    }
+    const saRole = await Role.findOne({ where: { company_id: COMPANY_ID, slug: 'super_admin' } });
+    if (saRole) {
+      await EmployeeRole.findOrCreate({
+        where:    { employee_id: superAdminEmp.id, role_id: saRole.id },
+        defaults: { employee_id: superAdminEmp.id, role_id: saRole.id, company_id: COMPANY_ID },
       });
     }
 
-    logger.info("✅ Leave Types Seeded");
-
-    // =========================================================
-    // COMMIT
-    // =========================================================
+    // ── 7. HR admin employee ─────────────────────────────────────────────────
+    const [hrEmp] = await Employee.findOrCreate({
+      where:    { email: 'admin@ung.com' },
+      defaults: {
+        company_id: COMPANY_ID, employee_code: 'EMP001',
+        first_name: 'Admin', last_name: 'User',
+        email: 'admin@ung.com', phone: '+919999999998',
+        department_id: deptMap.get('Human Resources') ?? null,
+        designation_id: desigMap.get('HR Manager') ?? null,
+        date_of_joining: new Date(), employment_type: 'Full-time',
+        work_location: 'Office', status: 'Active',
+        portal_access: true, is_super_admin: false,
+      },
+    });
+    const hrRole = await Role.findOne({ where: { company_id: COMPANY_ID, slug: 'hr_manager' } });
+    if (hrRole) {
+      await EmployeeRole.findOrCreate({
+        where:    { employee_id: hrEmp.id, role_id: hrRole.id },
+        defaults: { employee_id: hrEmp.id, role_id: hrRole.id, company_id: COMPANY_ID },
+      });
+    }
 
     await transaction.commit();
 

@@ -2,13 +2,16 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 
 export interface JwtPayload {
-  userId:       number;
-  companyId:    number;      
+  // userId === employeeId — same value.
+  // Kept as userId for backward compat: every existing req.user.userId works unchanged.
+  userId:       number;        // employee.id (previously users.id)
+  employeeId:   number;        // explicit alias — same value as userId
+  companyId:    number;
   roleId:       number;
   roleSlug:     string;
   email:        string;
-  isSuperAdmin: boolean;      
-  permissions:  string[];     
+  isSuperAdmin: boolean;
+  permissions:  string[];      // e.g. ['employees:view', 'payroll:approve']
 }
 
 export function generateAccessToken(payload: JwtPayload): string {
