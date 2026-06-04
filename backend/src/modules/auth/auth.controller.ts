@@ -174,6 +174,7 @@ export async function verifyOtp(req: Request, res: Response, next: NextFunction)
   try {
     const { email_or_phone, otp } = req.body;
     const { accessToken, refreshToken, user } = await authService.verifyOtp(email_or_phone, otp, req.ip);
+    console.log("payload", accessToken, refreshToken, user)
     res.cookie('refreshToken', refreshToken, REFRESH_COOKIE_OPTIONS);
     sendResponse(res, { message: 'Login successful', data: { accessToken, user } });
   } catch(e){ next(e); }

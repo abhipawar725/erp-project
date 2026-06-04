@@ -4,7 +4,7 @@ import { useAppDispatch }      from '../../../../store';
 import { setPageTitle }        from '../../../../store/slices/uiSlice';
 import { AppShell }            from '../../../../layouts/AppLayout';
 import { Modal }               from '../../../../components/ui/Modal';
-import { usePermission }       from '../../../../features/auth/hooks/useAuth';
+import { usePermission }       from '../../../../features/auth/hooks/usePermission';
 import { useAppSelector }      from '../../../../store';
 import { selectUser }          from '../../../../store/slices/authSlice';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

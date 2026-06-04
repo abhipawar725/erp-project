@@ -3,7 +3,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { toggleSidebar } from '../../store/slices/uiSlice';
 import { selectUser, selectIsSuperAdmin } from '../../store/slices/authSlice';
-import { useAuth, usePermission } from '../../features/auth/hooks/useAuth';
+import { useAuth } from '../../features/auth/hooks/useAuth';
+import { usePermission } from '../../features/auth/hooks/usePermission';
 
 // ─── Nav definition ───────────────────────────────────────────────────────────
 // permission: null = always visible

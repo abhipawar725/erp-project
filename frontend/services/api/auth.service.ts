@@ -1,5 +1,6 @@
 import apiClient from './client';
 import { ApiResponse } from '../../types/api.types';
+import {RequestOtpDto, OtpRequestResponse, LoginResponse, VerifyOtpDto, AuthUser} from "../../types/auth.types"
 
 export const authService = {
   // NEW: OTP flow replaces login

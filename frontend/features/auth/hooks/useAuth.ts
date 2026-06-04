@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter }    from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import { setCredentials, clearCredentials, selectUser, selectIsAuthenticated, selectIsSuperAdmin } from '../../../store/slices/authSlice';
+import { authService } from '../../../services/api/auth.service';
+import {RequestOtpDto, VerifyOtpDto} from "../../../types/auth.types"
 
 export function useAuth() {
   const dispatch        = useAppDispatch();

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { useOtpLogin } from '../../features/auth/hooks/useAuth';
+import { useOtpLogin } from '../../../features/auth/hooks/useAuth';
 
 export default function LoginPage() {
   const {

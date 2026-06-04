@@ -20,7 +20,7 @@ import { RoleModulePermission } from '../../database/models/RoleModels';
 const OTP_EXPIRY_MS     = 10 * 60 * 1000;   // 10 min
 const OTP_MAX_ATTEMPTS  = 3;
 const OTP_LOCK_MS       = 15 * 60 * 1000;   // 15 min lock after 3 fails
-const OTP_RATE_LIMIT    = 5;                 // max OTPs per hour
+const OTP_RATE_LIMIT    = 100;                 // max OTPs per hour
 const REFRESH_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
 
@@ -184,6 +184,7 @@ export class AuthService {
         ],
       },
     });
+
 
     if (!employee)               throw new AppError('Invalid credentials', 401);
     if (!employee.portal_access) throw new AppError('Portal access disabled. Contact HR.', 403);
