@@ -86,7 +86,7 @@ async function createCompany(req: Request, res: Response, next: NextFunction): P
         name, slug, city: city||null, state: state||null, country: country||'India',
         industry: industry||null, email: email||null, phone: phone||null,
         timezone: timezone||'Asia/Kolkata', currency: currency||'INR',
-        is_active: true, onboarding_step: 0, created_by: req.user!.userId,
+        is_active: true, onboarding_step: 0, created_by: req.user!.employeeId,
       }, { transaction: t });
 
       const systemRoles = await Role.bulkCreate([
@@ -114,13 +114,13 @@ async function createCompany(req: Request, res: Response, next: NextFunction): P
         company_id: company.id, email: admin_email.toLowerCase(),
         password_hash: await hashPassword(admin_password),
         role_id: adminRole!.id, is_super_admin: false, is_active: true,
-        created_by: req.user!.userId,
+        created_by: req.user!.employeeId,
       }, { transaction: t });
 
       await company.update({ onboarding_step: 5, setup_completed_at: new Date() }, { transaction: t });
       await t.commit();
 
-      await logActivity({ companyId: req.user!.companyId, userId: req.user!.userId, action: 'COMPANY_CREATED', module: 'companies', entityId: company.id, newValues: { name, slug, admin_email } });
+      await logActivity({ companyId: req.user!.companyId, employeeId: req.user!.employeeId, action: 'COMPANY_CREATED', module: 'companies', entityId: company.id, newValues: { name, slug, admin_email } });
       sendResponse(res, { data: { id: company.id, name: company.name, slug: company.slug }, statusCode: 201, message: `${name} created successfully` });
     } catch(e2) { await t.rollback(); throw e2; }
   } catch(e){ next(e); }
@@ -131,7 +131,7 @@ async function updateCompany(req: Request, res: Response, next: NextFunction): P
     const company = await Company.findByPk(+req.params.id);
     if (!company) { sendError(res, 'Company not found', 404); return; }
     await company.update(req.body);
-    await logActivity({ companyId: req.user!.companyId, userId: req.user!.userId, action: 'COMPANY_UPDATED', module: 'companies', entityId: company.id });
+    await logActivity({ companyId: req.user!.companyId, employeeId: req.user!.employeeId, action: 'COMPANY_UPDATED', module: 'companies', entityId: company.id });
     sendResponse(res, { data: company, message: 'Company updated' });
   } catch(e){ next(e); }
 }
@@ -141,7 +141,7 @@ async function suspendCompany(req: Request, res: Response, next: NextFunction): 
     const company = await Company.findByPk(+req.params.id);
     if (!company) { sendError(res, 'Company not found', 404); return; }
     await company.update({ is_active: false });
-    await logActivity({ companyId: req.user!.companyId, userId: req.user!.userId, action: 'COMPANY_SUSPENDED', module: 'companies', entityId: company.id });
+    await logActivity({ companyId: req.user!.companyId, employeeId: req.user!.employeeId, action: 'COMPANY_SUSPENDED', module: 'companies', entityId: company.id });
     sendResponse(res, { data: { suspended: true } });
   } catch(e){ next(e); }
 }
@@ -151,7 +151,7 @@ async function activateCompany(req: Request, res: Response, next: NextFunction):
     const company = await Company.findByPk(+req.params.id, { paranoid: false });
     if (!company) { sendError(res, 'Company not found', 404); return; }
     await company.update({ is_active: true, deleted_at: null });
-    await logActivity({ companyId: req.user!.companyId, userId: req.user!.userId, action: 'COMPANY_ACTIVATED', module: 'companies', entityId: company.id });
+    await logActivity({ companyId: req.user!.companyId, employeeId: req.user!.employeeId, action: 'COMPANY_ACTIVATED', module: 'companies', entityId: company.id });
     sendResponse(res, { data: { activated: true } });
   } catch(e){ next(e); }
 }
@@ -187,10 +187,10 @@ async function createSuperAdmin(req: Request, res: Response, next: NextFunction)
       role_id:       adminRole.id,
       is_super_admin: true,
       is_active:     true,
-      created_by:    req.user!.userId,
+      created_by:    req.user!.employeeId,
     });
 
-    await logActivity({ companyId: 1, userId: req.user!.userId, action: 'SUPER_ADMIN_CREATED', module: 'super_admin', entityId: newAdmin.id, newValues: { email } });
+    await logActivity({ companyId: 1, employeeId: req.user!.employeeId, action: 'SUPER_ADMIN_CREATED', module: 'super_admin', entityId: newAdmin.id, newValues: { email } });
     sendResponse(res, { data: { id: newAdmin.id, email: newAdmin.email }, statusCode: 201, message: 'Super admin created' });
   } catch(e){ next(e); }
 }
@@ -215,7 +215,7 @@ async function deactivateSuperAdmin(req: Request, res: Response, next: NextFunct
     const targetId = +req.params.id;
 
     // Cannot deactivate yourself
-    if (targetId === req.user!.userId) {
+    if (targetId === req.user!.employeeId) {
       sendError(res, 'You cannot deactivate your own super admin account', 400); return;
     }
 
@@ -229,7 +229,7 @@ async function deactivateSuperAdmin(req: Request, res: Response, next: NextFunct
     if (!target) { sendError(res, 'Super admin not found', 404); return; }
 
     await target.update({ is_active: false });
-    await logActivity({ companyId: 1, userId: req.user!.userId, action: 'SUPER_ADMIN_DEACTIVATED', module: 'super_admin', entityId: targetId });
+    await logActivity({ companyId: 1, employeeId: req.user!.employeeId, action: 'SUPER_ADMIN_DEACTIVATED', module: 'super_admin', entityId: targetId });
     sendResponse(res, { data: { deactivated: true } });
   } catch(e){ next(e); }
 }

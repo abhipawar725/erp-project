@@ -78,7 +78,7 @@ const pgApi = {
   getPerms:    (id: number) => apiClient.get<unknown, ApiResponse<string[]>>(`/permission-groups/${id}/permissions`),
   setPerms:    (id: number, slugs: string[]) => apiClient.put<unknown, ApiResponse<any>>(`/permission-groups/${id}/permissions`, { slugs }),
   getMembers:  (id: number) => apiClient.get<unknown, ApiResponse<any[]>>(`/permission-groups/${id}/members`),
-  addMember:   (id: number, uid: number) => apiClient.post<unknown, ApiResponse<any>>(`/permission-groups/${id}/members`, { user_id: uid }),
+  addMember:   (id: number, uid: number) => apiClient.post<unknown, ApiResponse<any>>(`/permission-groups/${id}/members`, { employee_id: uid }),
   removeMember:(id: number, uid: number) => apiClient.delete<unknown, ApiResponse<any>>(`/permission-groups/${id}/members/${uid}`),
   seed:        () => apiClient.post<unknown, ApiResponse<any>>('/permission-groups/seed', {}),
   // employees for member picker

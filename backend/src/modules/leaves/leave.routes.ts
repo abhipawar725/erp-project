@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import { validate } from '../../middleware/validate.middleware';
-import { authenticate, authorize, requireRole } from '../../modules/auth/auth.middleware';
+import { authenticate, authorize} from '../auth/auth.middleware';
 import {
   getLeaves,
   getPendingLeaves,

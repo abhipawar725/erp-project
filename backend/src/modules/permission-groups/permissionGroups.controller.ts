@@ -6,7 +6,7 @@ import { Permission }      from '../../database/models/RoleModels';
 import { User }            from '../../database/models/User';
 import { Employee }        from '../../database/models/Employee';
 import { AppError }        from '../../middleware/errorHandler.middleware';
-import { authenticate }    from '../../modules/auth/auth.middleware';
+import { authenticate }    from '../auth/auth.middleware';
 import { authorize, clearPermissionCache } from '../../middleware/rbac.middleware';
 import { validate }        from '../../middleware/validate.middleware';
 import { sendResponse, sendError } from '../../utils/response';
@@ -65,7 +65,7 @@ class PermissionGroupService {
       created_by:  createdBy || null,
     });
 
-    await logActivity({ companyId, userId: createdBy, action: 'PERMISSION_GROUP_CREATED', module: 'settings', entityId: group.id, newValues: { name: group.name } });
+    await logActivity({ companyId, employeeId: createdBy, action: 'PERMISSION_GROUP_CREATED', module: 'settings', entityId: group.id, newValues: { name: group.name } });
     return group;
   }
 
@@ -74,8 +74,9 @@ class PermissionGroupService {
   }, updatedBy?: number) {
     const group = await this.getById(id, companyId);
     const old = { name: group.name, is_active: group.is_active };
-    await group.update(dto as any);
-    await logActivity({ companyId, userId: updatedBy, action: 'PERMISSION_GROUP_UPDATED', module: 'settings', entityId: id, oldValues: old, newValues: dto });
+    const { name, description, color, is_active } = dto;
+await group.update({ name, description, color, is_active });
+    await logActivity({ companyId, employeeId: updatedBy, action: 'PERMISSION_GROUP_UPDATED', module: 'settings', entityId: id, oldValues: old, newValues: dto });
     return group;
   }
 
@@ -88,95 +89,73 @@ class PermissionGroupService {
 
     await GroupPermission.destroy({ where: { group_id: id } });
     await group.destroy();
-    await logActivity({ companyId, userId: deletedBy, action: 'PERMISSION_GROUP_DELETED', module: 'settings', entityId: id, oldValues: { name: group.name } });
+    await logActivity({ companyId, employeeId: deletedBy, action: 'PERMISSION_GROUP_DELETED', module: 'settings', entityId: id, oldValues: { name: group.name } });
     return { deleted: true };
   }
 
   // ── Permission assignment ────────────────────────────────────────────────────
 
   async setPermissions(id: number, companyId: number, slugs: string[], updatedBy?: number) {
+    console.log("data", id,companyId, slugs, updatedBy)
     await this.getById(id, companyId);
     const permissions = await Permission.findAll({ where: { slug: slugs } });
-
+   console.log("right permissions", permissions)
     await GroupPermission.destroy({ where: { group_id: id } });
     await GroupPermission.bulkCreate(permissions.map(p => ({ group_id: id, permission_id: p.id })));
 
     // Invalidate cache for all users in this group
     const userGroups = await UserGroup.findAll({ where: { group_id: id } });
-    for (const ug of userGroups) clearPermissionCache(ug.user_id);
+    for (const ug of userGroups) clearPermissionCache(ug.employee_id);
 
-    await logActivity({ companyId, userId: updatedBy, action: 'PERMISSION_GROUP_PERMISSIONS_UPDATED', module: 'settings', entityId: id, newValues: { slugs } });
+    await logActivity({ companyId, employeeId: updatedBy, action: 'PERMISSION_GROUP_PERMISSIONS_UPDATED', module: 'settings', entityId: id, newValues: { slugs } });
     return { updated: permissions.length };
   }
 
-async getPermissions(id: number, companyId: number) {
-  await this.getById(id, companyId);
-
-  const rows = await GroupPermission.findAll({
-    where: { group_id: id },
-    include: [
-      {
-        model: Permission,
-        as: 'permission',
-        attributes: ['slug']
-      }
-    ]
-  });
-
-  return rows.map((r: any) => r.permission.slug);
-}
-
   // ── Member management ────────────────────────────────────────────────────────
 
-  async getMembers(id: number, companyId: number) {
-    const userGroups = await UserGroup.findAll({ where: { group_id: id, company_id: companyId } });
-    if (!userGroups.length) return [];
+async getMembers(id: number, companyId: number) {
+  const userGroups = await UserGroup.findAll({ where: { group_id: id, company_id: companyId } });
+  if (!userGroups.length) return [];
 
-    const userIds = userGroups.map(ug => ug.user_id);
-    const employees = await Employee.findAll({
-      where: { company_id: companyId },
-      include: [{ model: User, as: 'user', where: { id: userIds, is_active: true }, attributes: ['id','email','role_id'] }],
-      attributes: ['id','first_name','last_name','employee_code'],
-    });
-    return employees;
-  }
-
-  async addMember(groupId: number, companyId: number, userId: number, addedBy?: number) {
-    console.log(groupId, companyId, userId, addedBy)
+  const employeeIds = userGroups.map(ug => ug.employee_id);
+  return Employee.findAll({
+    where: { id: employeeIds, company_id: companyId },
+    attributes: ['id', 'first_name', 'last_name', 'employee_code'],
+  });
+}
+  async addMember(groupId: number, companyId: number, employeeId: number, addedBy?: number) {
     await this.getById(groupId, companyId);
-    const user = await User.findOne({ where: { id: userId, company_id: companyId } });
-    console.log("Found user", user?.id)
-    if (!user) throw new AppError('User not found', 404);
+    const emp = await Employee.findOne({ where: { id: employeeId, company_id: companyId } });
+    if (!emp) throw new AppError('User not found', 404);
 
     const [, created] = await UserGroup.findOrCreate({
-      where: { group_id: groupId, user_id: userId },
-      defaults: { group_id: groupId, user_id: userId, company_id: companyId, assigned_by: addedBy || null },
+      where: { group_id: groupId, employee_id: employeeId },
+      defaults: { group_id: groupId, employee_id: employeeId, company_id: companyId, assigned_by: addedBy || null },
     });
     if (!created) throw new AppError('User is already in this group', 409);
 
-    clearPermissionCache(userId);
-    await logActivity({ companyId, userId: addedBy, action: 'PERMISSION_GROUP_MEMBER_ADDED', module: 'settings', entityId: groupId, newValues: { userId } });
+    clearPermissionCache(employeeId);
+    await logActivity({ companyId, employeeId: addedBy, action: 'PERMISSION_GROUP_MEMBER_ADDED', module: 'settings', entityId: groupId, newValues: { employeeId } });
     return { added: true };
   }
 
-  async removeMember(groupId: number, companyId: number, userId: number, removedBy?: number) {
-    const deleted = await UserGroup.destroy({ where: { group_id: groupId, user_id: userId, company_id: companyId } });
+  async removeMember(groupId: number, companyId: number, employeeId: number, removedBy?: number) {
+    const deleted = await UserGroup.destroy({ where: { group_id: groupId, employee_id: employeeId, company_id: companyId } });
     if (!deleted) throw new AppError('User is not in this group', 404);
-    clearPermissionCache(userId);
-    await logActivity({ companyId, userId: removedBy, action: 'PERMISSION_GROUP_MEMBER_REMOVED', module: 'settings', entityId: groupId, newValues: { userId } });
+    clearPermissionCache(employeeId);
+    await logActivity({ companyId, employeeId: removedBy, action: 'PERMISSION_GROUP_MEMBER_REMOVED', module: 'settings', entityId: groupId, newValues: { employeeId } });
     return { removed: true };
   }
 
-  async getUserGroups(userId: number, companyId: number) {
-    return UserGroup.findAll({
-      where: { user_id: userId, company_id: companyId },
-      include: [{
-        model: PermissionGroup, as: 'group',
-        where: { is_active: true },
-        include: [{ model: Permission, as: 'permissions', through: { attributes: [] }, attributes: ['slug'] }],
-      }],
-    });
-  }
+async getUserGroups(employeeId: number, companyId: number) {
+  return PermissionGroup.findAll({
+    where: { company_id: companyId, is_active: true },
+    include: [
+      { model: Employee,   as: 'members', where: { id: employeeId }, attributes: [], through: { attributes: [] } },
+      { model: Permission, as: 'permissions', through: { attributes: [] }, attributes: ['slug'] },
+    ],
+  });
+}  
 
   // ── Seed system groups for a new company ─────────────────────────────────────
   async seedSystemGroups(companyId: number) {
@@ -219,36 +198,27 @@ async function listGroups(req: Request, res: Response, next: NextFunction): Prom
 }
 
 async function createGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.create(req.user!.companyId, req.body, req.user!.userId), statusCode: 201 }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.create(req.user!.companyId, req.body, req.user!.employeeId), statusCode: 201 }); } catch(e){ next(e); }
 }
 
 async function updateGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.update(+req.params.id, req.user!.companyId, req.body, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.update(+req.params.id, req.user!.companyId, req.body, req.user!.employeeId) }); } catch(e){ next(e); }
 }
 
 async function deleteGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.delete(+req.params.id, req.user!.companyId, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.delete(+req.params.id, req.user!.companyId, req.user!.employeeId) }); } catch(e){ next(e); }
+}
+
+async function getGroupPermissions(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const group = await svc.getById(+req.params.id, req.user!.companyId);
+    const slugs = ((group as any).permissions ?? []).map((p: any) => p.slug);
+    sendResponse(res, { data: slugs });
+  } catch(e){ next(e); }
 }
 
 async function setGroupPermissions(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { console.log("body", req.body); console.log("slugs", req.body.slugs); sendResponse(res, { data: await svc.setPermissions(+req.params.id, req.user!.companyId, req.body.slugs, req.user!.userId) }); } catch(e){ next(e); }
-}
-
-async function getGroupPermissions(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  try {
-    sendResponse(res, {
-      data: await svc.getPermissions(
-        +req.params.id,
-        req.user!.companyId
-      )
-    });
-  } catch (e) {
-    next(e);
-  }
+  try { sendResponse(res, { data: await svc.setPermissions(+req.params.id, req.user!.companyId, req.body.slugs, req.user!.employeeId) }); } catch(e){ next(e); }
 }
 
 async function getGroupMembers(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -256,15 +226,15 @@ async function getGroupMembers(req: Request, res: Response, next: NextFunction):
 }
 
 async function addGroupMember(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.addMember(+req.params.id, req.user!.companyId, req.body.user_id, req.user!.userId), statusCode: 201 }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.addMember(+req.params.id, req.user!.companyId, req.body.employee_id, req.user!.employeeId), statusCode: 201 }); } catch(e){ next(e); }
 }
 
 async function removeGroupMember(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.removeMember(+req.params.id, req.user!.companyId, +req.params.userId, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.removeMember(+req.params.id, req.user!.companyId, +req.params.employeeId, req.user!.employeeId) }); } catch(e){ next(e); }
 }
 
 async function getMyGroups(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await svc.getUserGroups(req.user!.userId, req.user!.companyId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await svc.getUserGroups(req.user!.employeeId, req.user!.companyId) }); } catch(e){ next(e); }
 }
 
 async function seedGroups(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -285,10 +255,10 @@ permissionGroupRouter.post('/',     [body('name').trim().notEmpty()], validate, 
 permissionGroupRouter.put ('/:id',  [param('id').isInt()], validate, updateGroup);
 permissionGroupRouter.delete('/:id',[param('id').isInt()], validate, deleteGroup);
 
-permissionGroupRouter.get('/:id/permissions', [param('id').isInt()], validate, getGroupPermissions);
+permissionGroupRouter.get ('/:id/permissions', [param('id').isInt()], validate, getGroupPermissions);
 permissionGroupRouter.put ('/:id/permissions', [param('id').isInt(), body('slugs').isArray()], validate, setGroupPermissions);
 permissionGroupRouter.get ('/:id/members',     [param('id').isInt()], validate, getGroupMembers);
-permissionGroupRouter.post('/:id/members',     [param('id').isInt(), body('user_id').isInt()], validate, addGroupMember);
-permissionGroupRouter.delete('/:id/members/:userId', [param('id').isInt(), param('userId').isInt()], validate, removeGroupMember);
+permissionGroupRouter.post('/:id/members',     [param('id').isInt(), body('employee_id').isInt()], validate, addGroupMember);
+permissionGroupRouter.delete('/:id/members/:employeeId', [param('id').isInt(), param('employeeId').isInt()], validate, removeGroupMember);
 
-permissionGroupRouter.post('/seed', seedGroups); // admin only — seed system groups
+permissionGroupRouter.post('/seed', seedGroups);

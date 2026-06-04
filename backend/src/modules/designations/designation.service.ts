@@ -180,7 +180,7 @@ export class DesignationService {
     });
 
     await logActivity({
-      companyId, userId: createdBy,
+      companyId, employeeId: createdBy,
       action: 'DESIGNATION_CREATED', module: 'designations', entityId: designation.id,
       newValues: { name: designation.name, grade: designation.grade, department_id: designation.department_id },
     });
@@ -213,7 +213,7 @@ export class DesignationService {
     });
 
     await logActivity({
-      companyId, userId: updatedBy,
+      companyId, employeeId: updatedBy,
       action: 'DESIGNATION_UPDATED', module: 'designations', entityId: id,
       oldValues: before as Record<string, unknown>,
       newValues: { name: designation.name, grade: designation.grade, is_active: designation.is_active },
@@ -240,7 +240,7 @@ export class DesignationService {
     await designation.destroy();
 
     await logActivity({
-      companyId, userId: deletedBy,
+      companyId, employeeId: deletedBy,
       action: 'DESIGNATION_DELETED', module: 'designations', entityId: id,
       oldValues: { name: designation.name },
     });

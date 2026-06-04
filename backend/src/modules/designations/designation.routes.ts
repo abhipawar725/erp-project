@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validate }                  from '../../middleware/validate.middleware';
-import { authenticate, requireRole } from '../../modules/auth/auth.middleware';
+import { authenticate} from '../auth/auth.middleware';
 import {
   getDesignations, getDesignationStats, getDesignation,
   createDesignation, updateDesignation, toggleDesignation, deleteDesignation,
@@ -23,15 +23,15 @@ router.get('/stats', getDesignationStats);
 router.get('/:id', idValidation, validate, getDesignation);
 
 // POST /api/designations
-router.post('/', requireRole('hr', 'admin'), createDesignationValidation, validate, createDesignation);
+router.post('/', createDesignationValidation, validate, createDesignation);
 
 // PUT /api/designations/:id
-router.put('/:id', requireRole('hr', 'admin'), updateDesignationValidation, validate, updateDesignation);
+router.put('/:id', updateDesignationValidation, validate, updateDesignation);
 
 // PATCH /api/designations/:id/toggle — activate / deactivate
-router.patch('/:id/toggle', requireRole('hr', 'admin'), idValidation, validate, toggleDesignation);
+router.patch('/:id/toggle', idValidation, validate, toggleDesignation);
 
 // DELETE /api/designations/:id
-router.delete('/:id', requireRole('hr', 'admin'), idValidation, validate, deleteDesignation);
+router.delete('/:id', idValidation, validate, deleteDesignation);
 
 export default router;

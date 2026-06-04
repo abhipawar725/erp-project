@@ -44,7 +44,7 @@ export class EmailTemplateService {
 
     await logActivity({
       companyId,
-      userId:  updatedBy,
+      employeeId:  updatedBy,
       action:  created ? 'EMAIL_BRANDING_CREATED' : 'EMAIL_BRANDING_UPDATED',
       module:  'email-templates',
     });
@@ -135,7 +135,7 @@ export class EmailTemplateService {
 
     await logActivity({
       companyId,
-      userId:  updatedBy,
+      employeeId:  updatedBy,
       action:  'EMAIL_TEMPLATE_SAVED',
       module:  'email-templates',
       newValues: { type },
@@ -149,7 +149,7 @@ export class EmailTemplateService {
     await EmailTemplate.destroy({ where: { company_id: companyId, type } });
     await logActivity({
       companyId,
-      userId:  updatedBy,
+      employeeId:  updatedBy,
       action:  'EMAIL_TEMPLATE_RESET',
       module:  'email-templates',
       newValues: { type },

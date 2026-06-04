@@ -56,7 +56,7 @@ export class RolesService {
       is_system:   false,
     });
 
-    await logActivity({ companyId, userId: createdBy, action: 'ROLE_CREATED', module: 'roles', entityId: role.id, newValues: { name: role.name, slug } });
+    await logActivity({ companyId, employeeId: createdBy, action: 'ROLE_CREATED', module: 'roles', entityId: role.id, newValues: { name: role.name, slug } });
     return role;
   }
 
@@ -70,7 +70,7 @@ export class RolesService {
     await role.update({ name: dto.name || role.name, description: dto.description ?? role.description });
 
     clearPermissionCache(id);
-    await logActivity({ companyId, userId: updatedBy, action: 'ROLE_UPDATED', module: 'roles', entityId: id, oldValues, newValues: dto });
+    await logActivity({ companyId, employeeId: updatedBy, action: 'ROLE_UPDATED', module: 'roles', entityId: id, oldValues, newValues: dto });
     return role;
   }
 
@@ -84,7 +84,7 @@ export class RolesService {
     await role.destroy();
 
     clearPermissionCache(id);
-    await logActivity({ companyId, userId: deletedBy, action: 'ROLE_DELETED', module: 'roles', entityId: id, oldValues: { name: role.name } });
+    await logActivity({ companyId, employeeId: deletedBy, action: 'ROLE_DELETED', module: 'roles', entityId: id, oldValues: { name: role.name } });
     return { deleted: true };
   }
 
@@ -107,7 +107,7 @@ export class RolesService {
     await RolePermission.bulkCreate(permissions.map(p => ({ role_id: roleId, permission_id: p.id })));
 
     clearPermissionCache(roleId);
-    await logActivity({ companyId, userId: updatedBy, action: 'ROLE_PERMISSIONS_UPDATED', module: 'roles', entityId: roleId, newValues: { slugs: permSlugs } });
+    await logActivity({ companyId, employeeId: updatedBy, action: 'ROLE_PERMISSIONS_UPDATED', module: 'roles', entityId: roleId, newValues: { slugs: permSlugs } });
     return { updated: true, count: permissions.length };
   }
 
@@ -127,18 +127,18 @@ export class RolesService {
     return employees;
   }
 
-  async assignMember(roleId: number, companyId: number, userId: number, assignedBy?: number) {
+  async assignMember(roleId: number, companyId: number, employeeId: number, assignedBy?: number) {
     await this.getById(roleId, companyId);
     const [assignment, created] = await RoleAssignment.findOrCreate({
-      where: { role_id: roleId, user_id: userId },
-      defaults: { role_id: roleId, user_id: userId, company_id: companyId, assigned_by: assignedBy || null },
+      where: { role_id: roleId, employee_id: employeeId },
+      defaults: { role_id: roleId, employee_id: employeeId, company_id: companyId, assigned_by: assignedBy || null },
     });
     if (!created) throw new AppError('User already has this role', 409);
     return assignment;
   }
 
-  async removeMember(roleId: number, companyId: number, userId: number) {
-    const deleted = await RoleAssignment.destroy({ where: { role_id: roleId, user_id: userId, company_id: companyId } });
+  async removeMember(roleId: number, companyId: number, employeeId: number) {
+    const deleted = await RoleAssignment.destroy({ where: { role_id: roleId, employee_id: employeeId, company_id: companyId } });
     if (!deleted) throw new AppError('Assignment not found', 404);
     return { removed: true };
   }

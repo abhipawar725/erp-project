@@ -36,7 +36,17 @@ import {
   HrModule, FormDefinition, DynamicField, FieldOption,
   FieldPermissionV2, RoleAssignment,
 }                                                        from './FormBuilder';
-import { UserModulePermission, UserFieldPermission }     from './UserPermission';  
+import { UserModulePermission, UserFieldPermission }     from './UserPermission';
+import {
+  PermissionGroup,
+  GroupPermission,
+  UserGroup,
+}                                                        from './PermissionGroups';
+import {
+  Asset, AssetCategory, AssetAssignment,
+  AssetRequest, AssetMaintenance,
+}                                                        from './AssetModels';
+
 
 // IMPORTANT
 import './Associations';
@@ -44,17 +54,17 @@ import './Associations';
 export {
   sequelize,
 
-  // Auth / Identity
+   // Auth / Identity
   Employee, OtpRequest, EmployeeRole,
   RoleTemplate, RoleTemplatePermission,
- 
+
   // Org structure
   Company, Department, Designation,
- 
+
   // Roles & Permissions
   Role, Permission, FieldPermission,
   RolePermission, RoleModulePermission,
- 
+
   // HR modules
   Attendance,
   LeaveType, LeaveRequest,
@@ -65,5 +75,7 @@ export {
   EmailBranding, EmailTemplate,
   HrModule, FormDefinition, DynamicField, FieldOption,
   FieldPermissionV2, RoleAssignment,
-  UserModulePermission, UserFieldPermission
+  UserModulePermission, UserFieldPermission,
+  PermissionGroup, GroupPermission, UserGroup,
+  Asset, AssetCategory, AssetAssignment, AssetRequest, AssetMaintenance,
 };

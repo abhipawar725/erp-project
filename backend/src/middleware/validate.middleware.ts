@@ -38,7 +38,7 @@ interface ApiValidationError {
  */
 export function validate(req: Request, res: Response, next: NextFunction): void {
   const result = validationResult(req);
-  console.log("vcalidate pr aa gye h", result)
+
 
   if (result.isEmpty()) {
     next();

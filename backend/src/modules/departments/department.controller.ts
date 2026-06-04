@@ -27,7 +27,7 @@ export async function getDepartment(req: Request, res: Response, next: NextFunct
 
 export async function createDepartment(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await departmentService.create(req.user!.companyId, req.body, req.user!.userId);
+    const data = await departmentService.create(req.user!.companyId, req.body, req.user!.employeeId);
     sendResponse(res, { data, message: 'Department created successfully', statusCode: 201 });
   } catch (e) { next(e); }
 }
@@ -38,7 +38,7 @@ export async function updateDepartment(req: Request, res: Response, next: NextFu
       parseInt(req.params.id, 10),
       req.user!.companyId,
       req.body,
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Department updated' });
   } catch (e) { next(e); }
@@ -46,7 +46,7 @@ export async function updateDepartment(req: Request, res: Response, next: NextFu
 
 export async function deleteDepartment(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    await departmentService.delete(parseInt(req.params.id, 10), req.user!.companyId, req.user!.userId);
+    await departmentService.delete(parseInt(req.params.id, 10), req.user!.companyId, req.user!.employeeId);
     sendResponse(res, { data: null, message: 'Department deleted' });
   } catch (e) { next(e); }
 }

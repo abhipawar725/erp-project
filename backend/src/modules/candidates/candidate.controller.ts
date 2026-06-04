@@ -48,28 +48,28 @@ export async function getCandidate(req: Request, res: Response, next: NextFuncti
 
 export async function createCandidate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await candidateService.create(req.user!.companyId, req.body, req.user!.userId);
+    const data = await candidateService.create(req.user!.companyId, req.body, req.user!.employeeId);
     sendResponse(res, { data, message: 'Candidate added', statusCode: 201 });
   } catch (e) { next(e); }
 }
 
 export async function updateCandidate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await candidateService.update(parseInt(req.params.id, 10), req.user!.companyId, req.body, req.user!.userId);
+    const data = await candidateService.update(parseInt(req.params.id, 10), req.user!.companyId, req.body, req.user!.employeeId);
     sendResponse(res, { data, message: 'Candidate updated' });
   } catch (e) { next(e); }
 }
 
 export async function moveCandidateStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await candidateService.moveStatus(parseInt(req.params.id, 10), req.user!.companyId, req.body.status, req.user!.userId, req.body.remarks);
+    const data = await candidateService.moveStatus(parseInt(req.params.id, 10), req.user!.companyId, req.body.status, req.user!.employeeId, req.body.remarks);
     sendResponse(res, { data, message: `Moved to ${req.body.status}` });
   } catch (e) { next(e); }
 }
 
 export async function deleteCandidate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    await candidateService.delete(parseInt(req.params.id, 10), req.user!.companyId, req.user!.userId);
+    await candidateService.delete(parseInt(req.params.id, 10), req.user!.companyId, req.user!.employeeId);
     sendResponse(res, { data: null, message: 'Candidate deleted' });
   } catch (e) { next(e); }
 }
@@ -85,7 +85,7 @@ export async function sendAptitudeTestLink(req: Request, res: Response, next: Ne
       parseInt(req.params.id, 10),
       req.user!.companyId,
       parseInt(test_id, 10),
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Aptitude test link sent to candidate' });
   } catch (e) { next(e); }
@@ -95,7 +95,7 @@ export async function sendAptitudeTestLink(req: Request, res: Response, next: Ne
 export async function sendOffer(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await candidateService.sendOffer(
-      parseInt(req.params.id, 10), req.user!.companyId, req.body, req.user!.userId,
+      parseInt(req.params.id, 10), req.user!.companyId, req.body, req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Offer letter sent successfully' });
   } catch (e) { next(e); }
@@ -105,7 +105,7 @@ export async function sendOffer(req: Request, res: Response, next: NextFunction)
 export async function hireCandidate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { candidate, employee } = await candidateService.hireCandidate(
-      parseInt(req.params.id, 10), req.user!.companyId, req.body, req.user!.userId,
+      parseInt(req.params.id, 10), req.user!.companyId, req.body, req.user!.employeeId,
     );
     sendResponse(res, { data: { candidate, employee }, message: `${candidate.candidate_name} hired — employee record created`, statusCode: 201 });
   } catch (e) { next(e); }
@@ -115,7 +115,7 @@ export async function hireCandidate(req: Request, res: Response, next: NextFunct
 export async function withdrawCandidate(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await candidateService.withdrawCandidate(
-      parseInt(req.params.id, 10), req.user!.companyId, req.body.reason, req.user!.userId,
+      parseInt(req.params.id, 10), req.user!.companyId, req.body.reason, req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Candidate withdrawn' });
   } catch (e) { next(e); }
@@ -125,7 +125,7 @@ export async function withdrawCandidate(req: Request, res: Response, next: NextF
 export async function sendPreInterviewForm(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await candidateService.sendPreInterviewForm(
-      parseInt(req.params.id, 10), req.user!.companyId, req.user!.userId,
+      parseInt(req.params.id, 10), req.user!.companyId, req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Pre-interview form link sent to candidate' });
   } catch (e) { next(e); }
@@ -137,7 +137,7 @@ export async function submitInterviewResult(req: Request, res: Response, next: N
       parseInt(req.params.id, 10),
       req.user!.companyId,
       req.body,
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: `Interview result recorded — candidate ${req.body.candidate_decision === 'Select' ? 'offered' : req.body.candidate_decision === 'Reject' ? 'rejected' : 'put on hold'}` });
   } catch (e) { next(e); }
@@ -147,7 +147,7 @@ export async function uploadResume(req: Request, res: Response, next: NextFuncti
   try {
     if (!req.file) { sendError(res, 'No file uploaded', 400); return; }
     const resumeUrl = `/uploads/resumes/${req.file.filename}`;
-    const data = await candidateService.updateResume(parseInt(req.params.id, 10), req.user!.companyId, resumeUrl, req.user!.userId);
+    const data = await candidateService.updateResume(parseInt(req.params.id, 10), req.user!.companyId, resumeUrl, req.user!.employeeId);
     sendResponse(res, { data: { resume_url: resumeUrl, candidate: data }, message: 'Resume uploaded' });
   } catch (e) { next(e); }
 }
@@ -349,7 +349,7 @@ export async function bulkUploadCandidates(
     const result = await candidateService.bulkUpload(
       rows,
       req.user!.companyId,
-      req.user!.userId,
+      req.user!.employeeId,
     );
 
     sendResponse(res, {
@@ -395,7 +395,7 @@ export async function scheduleInterview(req: Request, res: Response, next: NextF
       parseInt(req.params.id, 10),
       req.user!.companyId,
       req.body,
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Interview scheduled and email sent to candidate' });
   } catch (e) { next(e); }
@@ -410,7 +410,7 @@ export async function handleReschedule(req: Request, res: Response, next: NextFu
       decision,
       new_date,
       new_time,
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: `Reschedule ${decision.toLowerCase()}` });
   } catch (e) { next(e); }
@@ -642,7 +642,7 @@ export async function sendPreJoiningFormLink(req: Request, res: Response, next: 
     const data = await candidateService.sendPreJoiningFormLink(
       parseInt(req.params.id, 10),
       req.user!.companyId,
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: `Pre-joining form link sent to ${data.email}` });
   } catch (e) { next(e); }

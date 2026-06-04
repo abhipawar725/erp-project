@@ -6,7 +6,8 @@ import { Department }  from '../models/Department';
 import { Designation } from '../models/Designation';
 import { Role, RoleModulePermission } from '../models/RoleModels';
 import { EmployeeRole, RoleTemplate, RoleTemplatePermission } from '../models/AuthModels';
-import {logger} from '../../config/logger'
+import {logger} from '../../config/logger';
+
 
 const COMPANY_ID = 1;
 

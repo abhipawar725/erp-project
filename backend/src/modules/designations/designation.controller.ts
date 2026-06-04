@@ -31,7 +31,7 @@ export async function getDesignation(req: Request, res: Response, next: NextFunc
 // POST /api/designations
 export async function createDesignation(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await designationService.create(req.user!.companyId, req.body, req.user!.userId);
+    const data = await designationService.create(req.user!.companyId, req.body, req.user!.employeeId);
     sendResponse(res, { data, message: 'Designation created', statusCode: 201 });
   } catch (e) { next(e); }
 }
@@ -43,7 +43,7 @@ export async function updateDesignation(req: Request, res: Response, next: NextF
       parseInt(req.params.id, 10),
       req.user!.companyId,
       req.body,
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Designation updated' });
   } catch (e) { next(e); }
@@ -55,7 +55,7 @@ export async function toggleDesignation(req: Request, res: Response, next: NextF
     const data = await designationService.toggleActive(
       parseInt(req.params.id, 10),
       req.user!.companyId,
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: `Designation ${data.is_active ? 'activated' : 'deactivated'}` });
   } catch (e) { next(e); }
@@ -64,7 +64,7 @@ export async function toggleDesignation(req: Request, res: Response, next: NextF
 // DELETE /api/designations/:id
 export async function deleteDesignation(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    await designationService.delete(parseInt(req.params.id, 10), req.user!.companyId, req.user!.userId);
+    await designationService.delete(parseInt(req.params.id, 10), req.user!.companyId, req.user!.employeeId);
     sendResponse(res, { data: null, message: 'Designation deleted' });
   } catch (e) { next(e); }
 }

@@ -8,7 +8,7 @@ const notificationService = new NotificationService();
 export async function getNotifications(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { rows, meta, unreadCount } = await notificationService.getForUser(
-      req.user!.userId,
+      req.user!.employeeId,
       req.user!.companyId,
       req.query as any,
     );
@@ -19,7 +19,7 @@ export async function getNotifications(req: Request, res: Response, next: NextFu
 // GET /api/notifications/unread-count
 export async function getUnreadCount(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const count = await notificationService.getUnreadCount(req.user!.userId, req.user!.companyId);
+    const count = await notificationService.getUnreadCount(req.user!.employeeId, req.user!.companyId);
     sendResponse(res, { data: { count }, message: 'Unread count' });
   } catch (e) { next(e); }
 }
@@ -27,7 +27,7 @@ export async function getUnreadCount(req: Request, res: Response, next: NextFunc
 // PUT /api/notifications/:id/read
 export async function markRead(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const notification = await notificationService.markRead(parseInt(req.params.id, 10), req.user!.userId);
+    const notification = await notificationService.markRead(parseInt(req.params.id, 10), req.user!.employeeId);
     sendResponse(res, { data: notification, message: 'Notification marked as read' });
   } catch (e) { next(e); }
 }
@@ -35,7 +35,7 @@ export async function markRead(req: Request, res: Response, next: NextFunction):
 // PUT /api/notifications/mark-all-read
 export async function markAllRead(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const result = await notificationService.markAllRead(req.user!.userId, req.user!.companyId);
+    const result = await notificationService.markAllRead(req.user!.employeeId, req.user!.companyId);
     sendResponse(res, { data: result, message: `${result.updated} notification(s) marked as read` });
   } catch (e) { next(e); }
 }
@@ -43,7 +43,7 @@ export async function markAllRead(req: Request, res: Response, next: NextFunctio
 // DELETE /api/notifications/:id
 export async function deleteNotification(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    await notificationService.delete(parseInt(req.params.id, 10), req.user!.userId);
+    await notificationService.delete(parseInt(req.params.id, 10), req.user!.employeeId);
     sendResponse(res, { data: null, message: 'Notification deleted' });
   } catch (e) { next(e); }
 }

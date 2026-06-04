@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, query, param } from 'express-validator';
 import { validate } from '../../middleware/validate.middleware';
-import { authenticate, authorize, requireRole,} from '../../modules/auth/auth.middleware';
+import { authenticate, authorize} from '../auth/auth.middleware';
 import {
   getTodaySummary,
   getByEmployee,
@@ -45,38 +45,38 @@ router.get(
 );
 
 // POST /api/attendance — mark single
-router.post(
-  '/',
-  requireRole('hr', 'admin', 'mgr'),
-  [
-    body('employee_id').isInt({ min: 1 }).withMessage('employee_id must be a positive integer'),
-    body('date').isISO8601().withMessage('date must be a valid ISO date (YYYY-MM-DD)'),
-    body('status')
-      .isIn(['Present', 'Absent', 'WFH', 'Half-Day', 'Holiday', 'Leave'])
-      .withMessage('Invalid status value'),
-    body('check_in').optional({ nullable: true }).matches(/^\d{2}:\d{2}(:\d{2})?$/).withMessage('check_in must be HH:MM'),
-    body('check_out').optional({ nullable: true }).matches(/^\d{2}:\d{2}(:\d{2})?$/).withMessage('check_out must be HH:MM'),
-  ],
-  validate,
-  markAttendance,
-);
+// router.post(
+//   '/',
+//   requireRole('hr', 'admin', 'mgr'),
+//   [
+//     body('employee_id').isInt({ min: 1 }).withMessage('employee_id must be a positive integer'),
+//     body('date').isISO8601().withMessage('date must be a valid ISO date (YYYY-MM-DD)'),
+//     body('status')
+//       .isIn(['Present', 'Absent', 'WFH', 'Half-Day', 'Holiday', 'Leave'])
+//       .withMessage('Invalid status value'),
+//     body('check_in').optional({ nullable: true }).matches(/^\d{2}:\d{2}(:\d{2})?$/).withMessage('check_in must be HH:MM'),
+//     body('check_out').optional({ nullable: true }).matches(/^\d{2}:\d{2}(:\d{2})?$/).withMessage('check_out must be HH:MM'),
+//   ],
+//   validate,
+//   markAttendance,
+// );
 
 // POST /api/attendance/bulk — mark multiple employees at once
-router.post(
-  '/bulk',
-  requireRole('hr', 'admin'),
-  [body('records').isArray({ min: 1 }).withMessage('records must be a non-empty array')],
-  validate,
-  bulkMarkAttendance,
-);
+// router.post(
+//   '/bulk',
+//   requireRole('hr', 'admin'),
+//   [body('records').isArray({ min: 1 }).withMessage('records must be a non-empty array')],
+//   validate,
+//   bulkMarkAttendance,
+// );
 
 // PUT /api/attendance/:id
-router.put(
-  '/:id',
-  requireRole('hr', 'admin', 'mgr'),
-  [param('id').isInt({ min: 1 })],
-  validate,
-  updateAttendance,
-);
+// router.put(
+//   '/:id',
+//   requireRole('hr', 'admin', 'mgr'),
+//   [param('id').isInt({ min: 1 })],
+//   validate,
+//   updateAttendance,
+// );
 
 export default router;

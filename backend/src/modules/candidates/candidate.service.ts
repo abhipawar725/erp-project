@@ -141,7 +141,7 @@ export class CandidateService {
       created_by:               createdBy                 ?? null,
     });
 
-    await logActivity({ companyId, userId: createdBy, action: 'CANDIDATE_CREATED', module: 'candidates', entityId: candidate.id });
+    await logActivity({ companyId, employeeId: createdBy, action: 'CANDIDATE_CREATED', module: 'candidates', entityId: candidate.id });
     return candidate;
   }
 
@@ -164,7 +164,7 @@ export class CandidateService {
     }
 
     await candidate.update({ ...dto, email: dto.email?.toLowerCase().trim() || candidate.email, updated_by: updatedBy });
-    await logActivity({ companyId, userId: updatedBy, action: 'CANDIDATE_UPDATED', module: 'candidates', entityId: id });
+    await logActivity({ companyId, employeeId: updatedBy, action: 'CANDIDATE_UPDATED', module: 'candidates', entityId: id });
     return candidate;
   }
 
@@ -172,7 +172,7 @@ export class CandidateService {
   async moveStatus(id: number, companyId: number, status: CandidateStatus, updatedBy?: number, remarks?: string) {
     const candidate = await this.getById(id, companyId);
     await candidate.update({ status, remarks: remarks ?? candidate.remarks, updated_by: updatedBy });
-    await logActivity({ companyId, userId: updatedBy, action: 'CANDIDATE_STATUS_CHANGED', module: 'candidates', entityId: id, oldValues: { status: candidate.status }, newValues: { status, remarks } });
+    await logActivity({ companyId, employeeId: updatedBy, action: 'CANDIDATE_STATUS_CHANGED', module: 'candidates', entityId: id, oldValues: { status: candidate.status }, newValues: { status, remarks } });
     return candidate;
   }
 
@@ -181,7 +181,7 @@ export class CandidateService {
     const candidate = await this.getById(id, companyId);
     await candidate.update({ deleted_by: deletedBy });
     await candidate.destroy();
-    await logActivity({ companyId, userId: deletedBy, action: 'CANDIDATE_DELETED', module: 'candidates', entityId: id });
+    await logActivity({ companyId, employeeId: deletedBy, action: 'CANDIDATE_DELETED', module: 'candidates', entityId: id });
   }
 
   // ─── Resume ─────────────────────────────────────────────────────────────────
@@ -237,7 +237,7 @@ export class CandidateService {
       );
     }
 
-    await logActivity({ companyId, userId: scheduledBy, action: 'INTERVIEW_SCHEDULED', module: 'candidates', entityId: id });
+    await logActivity({ companyId, employeeId: scheduledBy, action: 'INTERVIEW_SCHEDULED', module: 'candidates', entityId: id });
     return candidate;
   }
 
@@ -408,7 +408,7 @@ export class CandidateService {
 
     await logActivity({
       companyId,
-      userId:    updatedBy,
+      employeeId:    updatedBy,
       action:    'INTERVIEW_RESULT_SUBMITTED',
       module:    'candidates',
       entityId:  id,
@@ -474,7 +474,7 @@ export class CandidateService {
       );
     }
 
-    await logActivity({ companyId, userId: updatedBy, action: 'OFFER_SENT', module: 'candidates', entityId: id });
+    await logActivity({ companyId, employeeId: updatedBy, action: 'OFFER_SENT', module: 'candidates', entityId: id });
     return candidate;
   }
 
@@ -523,7 +523,7 @@ export class CandidateService {
       updated_by:            createdBy ?? null,
     });
 
-    await logActivity({ companyId, userId: createdBy, action: 'CANDIDATE_HIRED', module: 'candidates', entityId: id, newValues: { employee_id: employee.id } });
+    await logActivity({ companyId, employeeId: createdBy, action: 'CANDIDATE_HIRED', module: 'candidates', entityId: id, newValues: { employee_id: employee.id } });
     return { candidate, employee };
   }
 
@@ -548,7 +548,7 @@ export class CandidateService {
       updated_by:        updatedBy ?? null,
     });
 
-    await logActivity({ companyId, userId: updatedBy, action: 'CANDIDATE_WITHDRAWN', module: 'candidates', entityId: id, oldValues: { status: candidate.status }, newValues: { withdrawal_reason: reason } });
+    await logActivity({ companyId, employeeId: updatedBy, action: 'CANDIDATE_WITHDRAWN', module: 'candidates', entityId: id, oldValues: { status: candidate.status }, newValues: { withdrawal_reason: reason } });
     return candidate;
   }
 
@@ -589,7 +589,7 @@ export class CandidateService {
       aptitude_test_sent_at: new Date(),
     });
 
-    await logActivity({ companyId, userId: sentBy, action: 'APTITUDE_TEST_SENT', module: 'candidates', entityId: id, newValues: { testId } });
+    await logActivity({ companyId, employeeId: sentBy, action: 'APTITUDE_TEST_SENT', module: 'candidates', entityId: id, newValues: { testId } });
     return { sent: true, testUrl };
   }
 
@@ -630,7 +630,7 @@ export class CandidateService {
       pre_interview_form_sent_at: new Date(),
     });
 
-    await logActivity({ companyId, userId: sentBy, action: 'PRE_INTERVIEW_FORM_SENT', module: 'candidates', entityId: id });
+    await logActivity({ companyId, employeeId: sentBy, action: 'PRE_INTERVIEW_FORM_SENT', module: 'candidates', entityId: id });
     return { sent: true };
   }
 
@@ -656,7 +656,7 @@ export class CandidateService {
     };
     if (!isDraft) update.prejoining_submitted_at = new Date();
     await candidate.update(update);
-    await logActivity({ companyId, userId: undefined, action: isDraft ? 'PREJOINING_DRAFT_SAVED' : 'PREJOINING_SUBMITTED', module: 'candidates', entityId: id });
+    await logActivity({ companyId, employeeId: undefined, action: isDraft ? 'PREJOINING_DRAFT_SAVED' : 'PREJOINING_SUBMITTED', module: 'candidates', entityId: id });
     return candidate;
   }
 
@@ -726,7 +726,7 @@ export class CandidateService {
     });
 
     await logActivity({
-      companyId, userId: sentBy,
+      companyId, employeeId: sentBy,
       action: 'PRE_JOINING_FORM_SENT', module: 'candidates', entityId: id,
     });
 

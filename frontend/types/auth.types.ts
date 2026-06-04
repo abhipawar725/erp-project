@@ -1,9 +1,6 @@
 export interface AuthUser {
-  // userId = employee.id — name preserved for full backward compat
-  // All existing references to user.userId / state.auth.user.userId unchanged
   id:           number;
-  userId:       number;        // ← kept — same value as id / employeeId
-  employeeId:   number;        // explicit alias
+  employeeId:   number;   // same as id — the employee IS the identity
   email:        string;
   fullName:     string;
   firstName:    string;
@@ -17,28 +14,13 @@ export interface AuthUser {
 }
 
 export interface AuthState {
-  user:            AuthUser | null;   // ← field name 'user' kept (not 'employee')
+  user:            AuthUser | null;
   accessToken:     string | null;
   isAuthenticated: boolean;
   permissions:     string[];
 }
 
-export interface RequestOtpDto {
-  email_or_phone: string;
-  channel?:       'email' | 'sms';
-}
-
-export interface VerifyOtpDto {
-  email_or_phone: string;
-  otp:            string;
-}
-
-export interface OtpRequestResponse {
-  message:    string;
-  expires_in: number;
-}
-
-export interface LoginResponse {
-  accessToken: string;
-  user:        AuthUser;   // ← 'user' key kept in response
-}
+export interface RequestOtpDto  { email_or_phone: string; channel?: 'email' | 'sms'; }
+export interface VerifyOtpDto   { email_or_phone: string; otp: string; }
+export interface OtpResponse    { message: string; expires_in: number; }
+export interface LoginResponse  { accessToken: string; user: AuthUser; }

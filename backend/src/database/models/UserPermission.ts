@@ -97,7 +97,7 @@ export const SENSITIVE_FIELDS: string[] = [
 export interface UserModulePerm {
   id:         number;
   company_id: number;
-  user_id:    number;
+  employee_id:    number;
   module:     SystemModule;
   can_view:   boolean;
   can_create: boolean;
@@ -115,7 +115,7 @@ export class UserModulePermission
 {
   public id!:          number;
   public company_id!:  number;
-  public user_id!:     number;
+  public employee_id!:     number;
   public module!:      SystemModule;
   public can_view!:    boolean;
   public can_create!:  boolean;
@@ -130,7 +130,7 @@ export class UserModulePermission
 UserModulePermission.init({
   id:          { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
   company_id:  { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
-  user_id:     { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+  employee_id:     { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
   module:      { type: DataTypes.ENUM(...SYSTEM_MODULES), allowNull: false },
   can_view:    { type: DataTypes.BOOLEAN, defaultValue: false },
   can_create:  { type: DataTypes.BOOLEAN, defaultValue: false },
@@ -142,7 +142,7 @@ UserModulePermission.init({
 }, {
   sequelize, tableName: 'user_module_permissions', modelName: 'UserModulePermission',
   timestamps: true, createdAt: false, updatedAt: 'updated_at',
-  indexes: [{ unique: true, fields: ['company_id','user_id','module'] }],
+  indexes: [{ unique: true, fields: ['company_id','employee_id','module'] }],
 });
 
 // ─── UserFieldPermission — field-level access per user, wraps existing fields ─
@@ -150,7 +150,7 @@ UserModulePermission.init({
 export interface UserFieldPerm {
   id:           number;
   company_id:   number;
-  user_id:      number;
+  employee_id:      number;
   module:       SystemModule;
   field_name:   string;   // maps to real DB column name
   can_view:     boolean;
@@ -168,7 +168,7 @@ export class UserFieldPermission
 {
   public id!:          number;
   public company_id!:  number;
-  public user_id!:     number;
+  public employee_id!:     number;
   public module!:      SystemModule;
   public field_name!:  string;
   public can_view!:    boolean;
@@ -183,7 +183,7 @@ export class UserFieldPermission
 UserFieldPermission.init({
   id:          { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
   company_id:  { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
-  user_id:     { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+  employee_id:     { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
   module:      { type: DataTypes.ENUM(...SYSTEM_MODULES), allowNull: false },
   field_name:  { type: DataTypes.STRING(200), allowNull: false },
   can_view:    { type: DataTypes.BOOLEAN, defaultValue: true },
@@ -196,7 +196,7 @@ UserFieldPermission.init({
   sequelize, tableName: 'user_field_permissions', modelName: 'UserFieldPermission',
   timestamps: true, createdAt: false, updatedAt: 'updated_at',
   indexes: [
-    { unique: true, fields: ['company_id','user_id','module','field_name'] },
-    { fields: ['company_id','user_id'] },
+    { unique: true, fields: ['company_id','employee_id','module','field_name'] },
+    { fields: ['company_id','employee_id'] },
   ],
 });

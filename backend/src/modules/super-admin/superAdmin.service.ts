@@ -8,7 +8,6 @@ import { Department } from '../../database/models/Department';
 import { Role } from '../../database/models/RoleModels';
 import { hashPassword } from '../../utils/hash';
 import { logActivity } from '../../utils/activityLogger';
-import { generateAccessToken } from '../../utils/jwt';
 import { AuthUser } from './superAdmin.types';
 import {parsePaginationParams, buildPaginationMeta } from '../../utils/response';
 
@@ -109,7 +108,7 @@ export class CompanyService {
       await company.update({ onboarding_step: 5, setup_completed_at: new Date() }, { transaction: t });
       await t.commit();
 
-      await logActivity({ companyId: 0, userId: createdBy, action: 'COMPANY_CREATED', module: 'companies', entityId: company.id, newValues: { name: company.name, slug, admin_email: dto.admin_email } });
+      await logActivity({ companyId: 0, employeeId: createdBy, action: 'COMPANY_CREATED', module: 'companies', entityId: company.id, newValues: { name: company.name, slug, admin_email: dto.admin_email } });
       return this.getCompanyById(company.id);
     } catch (e) { await t.rollback(); throw e; }
   }
@@ -118,7 +117,7 @@ export class CompanyService {
     const company = await Company.findByPk(id);
     if (!company) throw new AppError('Company not found', 404);
     await company.update(dto);
-    await logActivity({ companyId: 0, userId: updatedBy, action: 'COMPANY_UPDATED', module: 'companies', entityId: id });
+    await logActivity({ companyId: 0, employeeId: updatedBy, action: 'COMPANY_UPDATED', module: 'companies', entityId: id });
     return company;
   }
 
@@ -126,7 +125,7 @@ export class CompanyService {
     const company = await Company.findByPk(id);
     if (!company) throw new AppError('Company not found', 404);
     await company.update({ is_active: false });
-    await logActivity({ companyId: 0, userId: updatedBy, action: 'COMPANY_SUSPENDED', module: 'companies', entityId: id });
+    await logActivity({ companyId: 0, employeeId: updatedBy, action: 'COMPANY_SUSPENDED', module: 'companies', entityId: id });
     return { suspended: true };
   }
 
@@ -134,7 +133,7 @@ export class CompanyService {
     const company = await Company.findByPk(id, { paranoid: false });
     if (!company) throw new AppError('Company not found', 404);
     await company.update({ is_active: true, deleted_at: null });
-    await logActivity({ companyId: 0, userId: updatedBy, action: 'COMPANY_ACTIVATED', module: 'companies', entityId: id });
+    await logActivity({ companyId: 0, employeeId: updatedBy, action: 'COMPANY_ACTIVATED', module: 'companies', entityId: id });
     return { activated: true };
   }
 }

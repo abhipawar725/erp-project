@@ -28,7 +28,7 @@ export class PayrollService {
 
     await logActivity({
       companyId,
-      userId:    actorId,
+      employeeId:    actorId,
       action:    'PAYROLL_RUN_CREATED',
       module:    'payroll',
       entityId:  run.id,
@@ -46,7 +46,7 @@ export class PayrollService {
 
     await run.update({ status: 'Pending Approval' });
 
-    await logActivity({ companyId, userId: actorId, action: 'PAYROLL_SUBMITTED', module: 'payroll', entityId: id });
+    await logActivity({ companyId, employeeId: actorId, action: 'PAYROLL_SUBMITTED', module: 'payroll', entityId: id });
     return run;
   }
 
@@ -60,7 +60,7 @@ export class PayrollService {
 
     await logActivity({
       companyId,
-      userId:    approvedBy,
+      employeeId:    approvedBy,
       action:    'PAYROLL_APPROVED',
       module:    'payroll',
       entityId:  id,
@@ -78,7 +78,7 @@ export class PayrollService {
 
     await run.update({ status: 'Disbursed', disbursed_at: new Date() });
 
-    await logActivity({ companyId, userId: actorId, action: 'PAYROLL_DISBURSED', module: 'payroll', entityId: id });
+    await logActivity({ companyId, employeeId: actorId, action: 'PAYROLL_DISBURSED', module: 'payroll', entityId: id });
     return run;
   }
 

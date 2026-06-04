@@ -16,5 +16,5 @@
  * @deprecated Import directly from '../../utils/activityLogger' instead.
  */
 
-export { logActivity, logActivitySync } from '../../utils/activityLogger';
+export { logActivity } from '../../utils/activityLogger';
 export { default } from './activity.routes';

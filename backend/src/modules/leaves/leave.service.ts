@@ -122,7 +122,7 @@ export class LeaveService {
 
     await logActivity({
       companyId,
-      userId:   approvedBy,
+      employeeId:   approvedBy,
       action:   'LEAVE_APPROVED',
       module:   'leaves',
       entityId: id,
@@ -142,7 +142,7 @@ export class LeaveService {
 
     await logActivity({
       companyId,
-      userId:    rejectedBy,
+      employeeId:    rejectedBy,
       action:    'LEAVE_REJECTED',
       module:    'leaves',
       entityId:  id,

@@ -16,7 +16,7 @@ function getPortalPayload(req: Request): any {
 // ─── HR ────────────────────────────────────────────────────────────────────
 export async function createTest(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await aptitudeService.createTest(req.user!.companyId, req.body, req.user!.userId);
+    const data = await aptitudeService.createTest(req.user!.companyId, req.body, req.user!.employeeId);
     sendResponse(res, { data, message: 'Test created', statusCode: 201 });
   } catch (e) { next(e); }
 }

@@ -72,13 +72,13 @@ async function loadPermissionsForRole(roleId: number): Promise<RolePermissionCac
 
   // ── Merge permission group slugs (additive — union of all groups) ─────────
   // Groups are loaded by role, not by user, so they are cached per-role.
-  // If you need per-user group resolution, switch to loadPermissionsForUser(userId).
+  // If you need per-user group resolution, switch to loadPermissionsForUser(employeeId).
   const groupPerms = await GroupPermission.findAll({
     include: [{
       model: PermissionGroup,
       as: 'group',
       // We look up groups that have ANY user with this role
-      // For a production multi-user system, use loadPermissionsForUser(userId) instead
+      // For a production multi-user system, use loadPermissionsForUser(employeeId) instead
       where: { is_active: true },
       required: true,
     }, {
@@ -119,8 +119,8 @@ async function loadPermissionsForRole(roleId: number): Promise<RolePermissionCac
  * More accurate than role-level since one user may be in multiple groups.
  * Call from controllers that need per-user precision instead of role-wide checks.
  */
-export async function loadPermissionsForUser(userId: number, roleId: number): Promise<Set<string>> {
-  const cacheKey = `u:${userId}`;
+export async function loadPermissionsForUser(employeeId: number, roleId: number): Promise<Set<string>> {
+  const cacheKey = `e:${employeeId}`;
   const cached = (permissionCache as any).get(cacheKey);
   if (cached && Date.now() - cached.loadedAt < CACHE_TTL_MS) {
     return cached.slugs;
@@ -132,7 +132,7 @@ export async function loadPermissionsForUser(userId: number, roleId: number): Pr
 
   // Group slugs for this specific user
   const userGroups = await UserGroup.findAll({
-    where: { user_id: userId },
+    where: { employee_id: employeeId },
     include: [{
       model: PermissionGroup,
       as: 'group',
@@ -190,10 +190,7 @@ export function rbacCheck(module: string, action: string) {
       return;
     }
 
-    const { roleSlug, roleId, isSuperAdmin } = req.user;
-
-      // Super admin bypasses ALL permission checks
-      if (isSuperAdmin) { next(); return; }
+    const { roleSlug, roleId } = req.user;
 
     // Superusers bypass everything
     if (roleSlug === 'hr' || roleSlug === 'admin') {
@@ -267,10 +264,7 @@ export function attachFieldPermissions(module: string) {
   return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     if (!req.user) { next(); return; }
 
-    const { roleSlug, roleId, isSuperAdmin } = req.user;
-
-      // Super admin bypasses ALL permission checks
-      if (isSuperAdmin) { next(); return; }
+    const { roleSlug, roleId } = req.user;
 
     // Superusers see everything — no masking
     if (roleSlug === 'hr' || roleSlug === 'admin') {
@@ -347,7 +341,7 @@ export function filterFieldsByPermission<T extends Record<string, unknown>>(
 declare global {
   namespace Express {
     interface Request {
-      companyScope?: number | null;
+      companyScope?: number;
     }
   }
 }

@@ -8,10 +8,10 @@ const svc = new UserPermissionsService();
 // ─── Get the current user's own permissions (used by frontend on login) ───────
 export async function getMyPermissions(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { userId, companyId } = req.user!;
+    const { employeeId, companyId } = req.user!;
     const [modulePerms, ...allFieldPerms] = await Promise.all([
-      svc.getModulePerms(userId, companyId),
-      ...SYSTEM_MODULES.map(m => svc.getFieldPerms(userId, companyId, m as any)),
+      svc.getModulePerms(employeeId, companyId),
+      ...SYSTEM_MODULES.map(m => svc.getFieldPerms(employeeId, companyId, m as any)),
     ]);
 
     const fieldPermsByModule: Record<string, any[]> = {};
@@ -24,10 +24,10 @@ export async function getMyPermissions(req: Request, res: Response, next: NextFu
 // ─── Get permissions for a specific module (used when entering a page) ────────
 export async function getMyModuleFieldPerms(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { userId, companyId } = req.user!;
+    const { employeeId, companyId } = req.user!;
     const module = req.params.module as any;
     if (!SYSTEM_MODULES.includes(module)) { sendError(res, 'Invalid module', 400); return; }
-    const fields = await svc.getFieldPerms(userId, companyId, module);
+    const fields = await svc.getFieldPerms(employeeId, companyId, module);
     sendResponse(res, { data: fields });
   } catch(e) { next(e); }
 }
@@ -41,7 +41,7 @@ export async function listUsersPerms(req: Request, res: Response, next: NextFunc
 // ─── ADMIN: get full permission config for a user ─────────────────────────────
 export async function getUserPerms(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const targetId  = parseInt(req.params.userId, 10);
+    const targetId  = parseInt(req.params.employeeId, 10);
     const companyId = req.user!.companyId;
     const [modulePerms, ...allFieldPerms] = await Promise.all([
       svc.getModulePerms(targetId, companyId),
@@ -57,8 +57,8 @@ export async function getUserPerms(req: Request, res: Response, next: NextFuncti
 export async function setUserModulePerms(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await svc.setModulePerms(
-      parseInt(req.params.userId, 10), req.user!.companyId,
-      req.body.permissions, req.user!.userId,
+      parseInt(req.params.employeeId, 10), req.user!.companyId,
+      req.body.permissions, req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Module permissions saved' });
   } catch(e) { next(e); }
@@ -68,8 +68,8 @@ export async function setUserModulePerms(req: Request, res: Response, next: Next
 export async function setUserFieldPerms(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = await svc.setFieldPerms(
-      parseInt(req.params.userId, 10), req.user!.companyId,
-      req.params.module as any, req.body.fields, req.user!.userId,
+      parseInt(req.params.employeeId, 10), req.user!.companyId,
+      req.params.module as any, req.body.fields, req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Field permissions saved' });
   } catch(e) { next(e); }
@@ -80,9 +80,9 @@ export async function copyUserPerms(req: Request, res: Response, next: NextFunct
   try {
     const data = await svc.copyPerms(
       parseInt(req.body.from_user_id, 10),
-      parseInt(req.params.userId, 10),
+      parseInt(req.params.employeeId, 10),
       req.user!.companyId,
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Permissions copied' });
   } catch(e) { next(e); }
@@ -107,7 +107,7 @@ export async function getModuleFieldRegistry(req: Request, res: Response, next: 
 import { Router }   from 'express';
 import { body, param } from 'express-validator';
 import { validate } from '../../middleware/validate.middleware';
-import { authenticate } from '../../modules/auth/auth.middleware';
+import { authenticate } from '../auth/auth.middleware';
 
 export const userPermissionsRouter = Router();
 userPermissionsRouter.use(authenticate);

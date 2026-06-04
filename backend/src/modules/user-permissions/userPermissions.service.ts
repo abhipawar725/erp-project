@@ -58,7 +58,7 @@ export class UserPermissionsService {
     if (cached) return cached;
 
     const rows = await UserModulePermission.findAll({
-      where: { user_id: userId, company_id: companyId },
+      where: { employee_id: userId, company_id: companyId },
     });
 
     const rowMap = new Map(rows.map(r => [r.module, r]));
@@ -87,7 +87,7 @@ export class UserPermissionsService {
   ) {
     for (const p of perms) {
       await UserModulePermission.upsert({
-        user_id: userId, company_id: companyId,
+        employee_id: userId, company_id: companyId,
         module:      p.module,
         can_view:    p.can_view,
         can_create:  p.can_create,
@@ -99,7 +99,7 @@ export class UserPermissionsService {
       });
     }
     clearUserPermCache(userId);
-    await logActivity({ companyId, userId: setBy, action: 'USER_MODULE_PERMS_UPDATED', module: 'permissions', newValues: { targetUserId: userId, count: perms.length } });
+    await logActivity({ companyId, employeeId: setBy, action: 'USER_MODULE_PERMS_UPDATED', module: 'permissions', newValues: { targetUserId: userId, count: perms.length } });
     return { updated: perms.length };
   }
 
@@ -111,7 +111,7 @@ export class UserPermissionsService {
     if (cached) return cached;
 
     const rows = await UserFieldPermission.findAll({
-      where: { user_id: userId, company_id: companyId, module },
+      where: { employee_id: userId, company_id: companyId, module },
     });
 
     const rowMap = new Map(rows.map(r => [r.field_name, r]));
@@ -142,7 +142,7 @@ export class UserPermissionsService {
     for (const p of perms) {
       if (!p.field_name) continue;
       await UserFieldPermission.upsert({
-        user_id: userId, company_id: companyId, module,
+        employee_id: userId, company_id: companyId, module,
         field_name:  p.field_name,
         can_view:    p.can_view    ?? true,
         can_edit:    p.can_edit    ?? true,
@@ -153,7 +153,7 @@ export class UserPermissionsService {
       });
     }
     clearUserPermCache(userId);
-    await logActivity({ companyId, userId: setBy, action: 'USER_FIELD_PERMS_UPDATED', module: 'permissions', newValues: { targetUserId: userId, module, count: perms.length } });
+    await logActivity({ companyId, employeeId: setBy, action: 'USER_FIELD_PERMS_UPDATED', module: 'permissions', newValues: { targetUserId: userId, module, count: perms.length } });
     return { updated: perms.length };
   }
 
@@ -191,9 +191,9 @@ export class UserPermissionsService {
     const userIds = users.map(u => u.id);
 
     const [modulePerms, fieldPerms] = await Promise.all([
-      UserModulePermission.findAll({ where: { company_id: companyId, user_id: userIds } }),
+      UserModulePermission.findAll({ where: { company_id: companyId, employee_id: userIds } }),
       UserFieldPermission.findAll({
-        where: { company_id: companyId, user_id: userIds },
+        where: { company_id: companyId, employee_id: userIds },
         attributes: ['user_id','module'],
         group: ['user_id','module'],
       }),
@@ -202,12 +202,12 @@ export class UserPermissionsService {
     const moduleMap = new Map<number, string[]>();
     for (const p of modulePerms) {
       if (!p.can_view) continue;
-      const arr = moduleMap.get(p.user_id) || [];
+      const arr = moduleMap.get(p.employee_id) || [];
       arr.push(p.module);
-      moduleMap.set(p.user_id, arr);
+      moduleMap.set(p.employee_id, arr);
     }
 
-    const customFieldMap = new Set(fieldPerms.map(p => p.user_id));
+    const customFieldMap = new Set(fieldPerms.map(p => p.employee_id));
 
     return users.map(u => ({
       id:             u.id,
@@ -221,17 +221,17 @@ export class UserPermissionsService {
   // ── Copy permissions from one user to another ─────────────────────────────
   async copyPerms(fromUserId: number, toUserId: number, companyId: number, copiedBy?: number) {
     const [modulePerms, fieldPerms] = await Promise.all([
-      UserModulePermission.findAll({ where: { user_id: fromUserId, company_id: companyId } }),
-      UserFieldPermission.findAll({ where: { user_id: fromUserId, company_id: companyId } }),
+      UserModulePermission.findAll({ where: { employee_id: fromUserId, company_id: companyId } }),
+      UserFieldPermission.findAll({ where: { employee_id: fromUserId, company_id: companyId } }),
     ]);
 
     // Remove existing perms for target
-    await UserModulePermission.destroy({ where: { user_id: toUserId, company_id: companyId } });
-    await UserFieldPermission.destroy({ where: { user_id: toUserId, company_id: companyId } });
+    await UserModulePermission.destroy({ where: { employee_id: toUserId, company_id: companyId } });
+    await UserFieldPermission.destroy({ where: { employee_id: toUserId, company_id: companyId } });
 
     // Copy module perms
     await UserModulePermission.bulkCreate(modulePerms.map(p => ({
-      company_id: companyId, user_id: toUserId,
+      company_id: companyId, employee_id: toUserId,
       module: p.module,
       can_view: p.can_view, can_create: p.can_create, can_edit: p.can_edit,
       can_delete: p.can_delete, can_approve: p.can_approve, can_export: p.can_export,
@@ -240,7 +240,7 @@ export class UserPermissionsService {
 
     // Copy field perms
     await UserFieldPermission.bulkCreate(fieldPerms.map(p => ({
-      company_id: companyId, user_id: toUserId,
+      company_id: companyId, employee_id: toUserId,
       module: p.module, field_name: p.field_name,
       can_view: p.can_view, can_edit: p.can_edit,
       is_masked: p.is_masked, is_hidden: p.is_hidden, is_readonly: p.is_readonly,
@@ -248,7 +248,7 @@ export class UserPermissionsService {
     })));
 
     clearUserPermCache(toUserId);
-    await logActivity({ companyId, userId: copiedBy, action: 'USER_PERMS_COPIED', module: 'permissions', newValues: { from: fromUserId, to: toUserId } });
+    await logActivity({ companyId, employeeId: copiedBy, action: 'USER_PERMS_COPIED', module: 'permissions', newValues: { from: fromUserId, to: toUserId } });
     return { module_perms: modulePerms.length, field_perms: fieldPerms.length };
   }
 }

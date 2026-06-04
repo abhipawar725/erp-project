@@ -141,7 +141,7 @@ export class EmployeeService {
 
     await logActivity({
       companyId: dto.company_id,
-      userId: actorId,
+      employeeId: actorId,
       action: 'EMPLOYEE_CREATED',
       module: 'employees',
       entityId: employee.id,
@@ -224,7 +224,7 @@ export class EmployeeService {
 
     await logActivity({
       companyId,
-      userId: actorId,
+      employeeId: actorId,
       action: 'EMPLOYEE_UPDATED',
       module: 'employees',
       entityId: id,
@@ -260,7 +260,7 @@ export class EmployeeService {
 
     await logActivity({
       companyId,
-      userId: actorId,
+      employeeId: actorId,
       action: 'EMPLOYEE_DELETED',
       module: 'employees',
       entityId: id,

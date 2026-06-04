@@ -23,7 +23,7 @@ export async function getPayrollRun(req: Request, res: Response, next: NextFunct
 // POST /api/payroll/runs
 export async function createPayrollRun(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const run = await payrollService.createRun(req.user!.companyId, req.body.month, req.body.year, req.user!.userId);
+    const run = await payrollService.createRun(req.user!.companyId, req.body.month, req.body.year, req.user!.employeeId);
     sendResponse(res, { data: run, message: 'Payroll run created', statusCode: 201 });
   } catch (e) { next(e); }
 }
@@ -31,7 +31,7 @@ export async function createPayrollRun(req: Request, res: Response, next: NextFu
 // PUT /api/payroll/runs/:id/submit
 export async function submitPayrollRun(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const run = await payrollService.submitRun(parseInt(req.params.id, 10), req.user!.companyId, req.user!.userId);
+    const run = await payrollService.submitRun(parseInt(req.params.id, 10), req.user!.companyId, req.user!.employeeId);
     sendResponse(res, { data: run, message: 'Payroll submitted for approval' });
   } catch (e) { next(e); }
 }
@@ -39,7 +39,7 @@ export async function submitPayrollRun(req: Request, res: Response, next: NextFu
 // PUT /api/payroll/runs/:id/approve
 export async function approvePayrollRun(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const run = await payrollService.approveRun(parseInt(req.params.id, 10), req.user!.companyId, req.user!.userId);
+    const run = await payrollService.approveRun(parseInt(req.params.id, 10), req.user!.companyId, req.user!.employeeId);
     sendResponse(res, { data: run, message: 'Payroll run approved' });
   } catch (e) { next(e); }
 }
@@ -47,7 +47,7 @@ export async function approvePayrollRun(req: Request, res: Response, next: NextF
 // PUT /api/payroll/runs/:id/disburse
 export async function disbursePayrollRun(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const run = await payrollService.disburseRun(parseInt(req.params.id, 10), req.user!.companyId, req.user!.userId);
+    const run = await payrollService.disburseRun(parseInt(req.params.id, 10), req.user!.companyId, req.user!.employeeId);
     sendResponse(res, { data: run, message: 'Payroll disbursed successfully' });
   } catch (e) { next(e); }
 }

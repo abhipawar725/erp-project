@@ -79,7 +79,7 @@ export async function markAttendance(
   try {
     const { record, created } = await attendanceService.mark({
       ...req.body,
-      created_by: req.user!.userId,
+      created_by: req.user!.employeeId,
     });
 
     sendResponse(res, {
@@ -103,7 +103,7 @@ export async function bulkMarkAttendance(
   try {
     const result = await attendanceService.bulkMark(
       req.body.records,
-      req.user!.userId
+      req.user!.employeeId
     );
 
     sendResponse(res, {
@@ -127,7 +127,7 @@ export async function updateAttendance(
     const record = await attendanceService.update(
       parseInt(req.params.id, 10),
       req.body,
-      req.user!.userId
+      req.user!.employeeId
     );
 
     sendResponse(res, {

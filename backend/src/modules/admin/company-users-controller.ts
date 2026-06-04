@@ -19,7 +19,7 @@ import { Department }   from '../../database/models/Department';
 import { Designation }  from '../../database/models/Designation';
 import { Company }      from '../../database/models/Company';
 import { AppError }     from '../../middleware/errorHandler.middleware';
-import { authenticate, authorize, requireSuperAdmin } from '../../modules/auth/auth.middleware';
+import { authenticate, authorize, requireSuperAdmin } from '../auth/auth.middleware';
 import { validate }     from '../../middleware/validate.middleware';
 import { hashPassword } from '../../utils/hash';
 import { logActivity }  from '../../utils/activityLogger';
@@ -110,10 +110,10 @@ async function createCompanyUser(req: Request, res: Response, next: NextFunction
       role_id:       role.id,
       is_super_admin: false,
       is_active:     true,
-      created_by:    req.user!.userId,
+      created_by:    req.user!.employeeId,
     });
 
-    await logActivity({ companyId, userId: req.user!.userId, action: 'USER_CREATED', module: 'users', entityId: user.id, newValues: { email, role_slug } });
+    await logActivity({ companyId, employeeId: req.user!.employeeId, action: 'USER_CREATED', module: 'users', entityId: user.id, newValues: { email, role_slug } });
 
     sendResponse(res, {
       data: { id: user.id, email: user.email, role_slug, has_employee_record: false },
@@ -123,14 +123,14 @@ async function createCompanyUser(req: Request, res: Response, next: NextFunction
   } catch(e){ next(e); }
 }
 
-// PUT /api/admin/companies/:companyId/users/:userId/role
+// PUT /api/admin/companies/:companyId/users/:employeeId/role
 // Change a user's role
 async function changeUserRole(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const companyId = +req.params.companyId;
     const { role_slug } = req.body;
 
-    const user = await User.findOne({ where: { id: +req.params.userId, company_id: companyId } });
+    const user = await User.findOne({ where: { id: +req.params.employeeId, company_id: companyId } });
     if (!user) { sendError(res, 'User not found', 404); return; }
 
     const role = await Role.findOne({ where: { company_id: companyId, slug: role_slug } });
@@ -139,15 +139,15 @@ async function changeUserRole(req: Request, res: Response, next: NextFunction): 
     const oldRole = user.role_id;
     await user.update({ role_id: role.id });
 
-    await logActivity({ companyId, userId: req.user!.userId, action: 'USER_ROLE_CHANGED', module: 'users', entityId: user.id, oldValues: { role_id: oldRole }, newValues: { role_slug } });
+    await logActivity({ companyId, employeeId: req.user!.employeeId, action: 'USER_ROLE_CHANGED', module: 'users', entityId: user.id, oldValues: { role_id: oldRole }, newValues: { role_slug } });
     sendResponse(res, { data: { id: user.id, email: user.email, new_role: role_slug }, message: 'Role updated' });
   } catch(e){ next(e); }
 }
 
-// DELETE /api/admin/companies/:companyId/users/:userId
+// DELETE /api/admin/companies/:companyId/users/:employeeId
 async function deactivateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const user = await User.findOne({ where: { id: +req.params.userId, company_id: +req.params.companyId } });
+    const user = await User.findOne({ where: { id: +req.params.employeeId, company_id: +req.params.companyId } });
     if (!user) { sendError(res, 'User not found', 404); return; }
     await user.update({ is_active: false });
     sendResponse(res, { data: { deactivated: true } });
@@ -158,15 +158,15 @@ async function deactivateUser(req: Request, res: Response, next: NextFunction): 
 // EMPLOYEE HANDLERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-// POST /api/admin/companies/:companyId/users/:userId/convert-to-employee
+// POST /api/admin/companies/:companyId/users/:employeeId/convert-to-employee
 // THE KEY ENDPOINT: converts an existing login user into an employee record
 // This is what makes them appear in employee lists and permission assignment UIs
 async function convertUserToEmployee(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const companyId = +req.params.companyId;
-    const userId    = +req.params.userId;
+    const employeeId    = +req.params.employeeId;
 
-    const user = await User.findOne({ where: { id: userId, company_id: companyId } });
+    const user = await User.findOne({ where: { id: employeeId, company_id: companyId } });
     if (!user) { sendError(res, 'User not found', 404); return; }
     if (user.employee_id) { sendError(res, 'User already has an employee record', 409); return; }
 
@@ -200,7 +200,7 @@ async function convertUserToEmployee(req: Request, res: Response, next: NextFunc
         gender:          gender || null,
         employment_type,
         status:          'Active',
-        created_by:      req.user!.userId,
+        created_by:      req.user!.employeeId,
       }, { transaction: t });
 
       // Link the user to the employee record (bidirectional)
@@ -209,11 +209,11 @@ async function convertUserToEmployee(req: Request, res: Response, next: NextFunc
       await t.commit();
 
       await logActivity({
-        companyId, userId: req.user!.userId,
+        companyId, employeeId: req.user!.employeeId,
         action: 'USER_CONVERTED_TO_EMPLOYEE',
         module: 'employees',
         entityId: employee.id,
-        newValues: { user_id: userId, employee_code, full_name: `${first_name} ${last_name}` },
+        newValues: { user_id: employeeId, employee_code, full_name: `${first_name} ${last_name}` },
       });
 
       sendResponse(res, {
@@ -276,10 +276,10 @@ async function createEmployee(req: Request, res: Response, next: NextFunction): 
         gender:          gender || null,
         employment_type,
         status:          'Active',
-        created_by:      req.user!.userId,
+        created_by:      req.user!.employeeId,
       }, { transaction: t });
 
-      let userId: number | null = null;
+      let employeeId: number | null = null;
 
       // Optionally create a login account at the same time
       if (create_login && login_password) {
@@ -287,7 +287,7 @@ async function createEmployee(req: Request, res: Response, next: NextFunction): 
         if (emailTaken) {
           // Email already has a user — just link the employee record to them
           await emailTaken.update({ employee_id: employee.id }, { transaction: t });
-          userId = emailTaken.id;
+          employeeId = emailTaken.id;
         } else {
           const role = await Role.findOne({ where: { company_id: companyId, slug: role_slug } });
           if (!role) throw new AppError(`Role "${role_slug}" not found in this company`, 404);
@@ -300,21 +300,21 @@ async function createEmployee(req: Request, res: Response, next: NextFunction): 
             employee_id:   employee.id,
             is_super_admin: false,
             is_active:     true,
-            created_by:    req.user!.userId,
+            created_by:    req.user!.employeeId,
           }, { transaction: t });
 
-          userId = user.id;
+          employeeId = user.id;
         }
       }
 
       await t.commit();
 
       await logActivity({
-        companyId, userId: req.user!.userId,
+        companyId, employeeId: req.user!.employeeId,
         action: 'EMPLOYEE_CREATED',
         module: 'employees',
         entityId: employee.id,
-        newValues: { employee_code, full_name: `${first_name} ${last_name}`, email, user_created: !!userId },
+        newValues: { employee_code, full_name: `${first_name} ${last_name}`, email, user_created: !!employeeId },
       });
 
       sendResponse(res, {
@@ -323,11 +323,11 @@ async function createEmployee(req: Request, res: Response, next: NextFunction): 
           employee_code,
           full_name:     `${first_name} ${last_name}`,
           email:         email.toLowerCase(),
-          user_id:       userId,
-          has_login:     !!userId,
+          user_id:       employeeId,
+          has_login:     !!employeeId,
         },
         statusCode: 201,
-        message: userId
+        message: employeeId
           ? `Employee ${employee_code} created with login account. They can now log in and will appear in all lists.`
           : `Employee ${employee_code} created. Add a login account later to give portal access.`,
       });
@@ -372,7 +372,7 @@ async function createLoginForEmployee(req: Request, res: Response, next: NextFun
       employee_id:   employeeId,
       is_super_admin: false,
       is_active:     true,
-      created_by:    req.user!.userId,
+      created_by:    req.user!.employeeId,
     });
 
     sendResponse(res, {
@@ -439,10 +439,10 @@ companyUsersRouter.use(authenticate, requireCompanyAccess);
 // Users
 companyUsersRouter.get   ('/',              listCompanyUsers);
 companyUsersRouter.post  ('/',              [body('email').isEmail(), body('password').isLength({min:6}), body('role_slug').optional().isString()], validate, createCompanyUser);
-companyUsersRouter.put   ('/:userId/role',  [param('userId').isInt(), body('role_slug').notEmpty()], validate, changeUserRole);
-companyUsersRouter.delete('/:userId',       [param('userId').isInt()], validate, deactivateUser);
+companyUsersRouter.put   ('/:employeeId/role',  [param('employeeId').isInt(), body('role_slug').notEmpty()], validate, changeUserRole);
+companyUsersRouter.delete('/:employeeId',       [param('employeeId').isInt()], validate, deactivateUser);
 // Convert user → employee (THE KEY ENDPOINT)
-companyUsersRouter.post  ('/:userId/convert-to-employee', [param('userId').isInt(), body('first_name').trim().notEmpty(), body('last_name').trim().notEmpty()], validate, convertUserToEmployee);
+companyUsersRouter.post  ('/:employeeId/convert-to-employee', [param('employeeId').isInt(), body('first_name').trim().notEmpty(), body('last_name').trim().notEmpty()], validate, convertUserToEmployee);
 
 export const companyEmployeesRouter = Router({ mergeParams: true });
 companyEmployeesRouter.use(authenticate, requireCompanyAccess);

@@ -4,7 +4,7 @@
 
 import { Router } from 'express';
 import { query } from 'express-validator';
-import { authenticate, requireRole } from '../../modules/auth/auth.middleware';
+import { authenticate } from '../auth/auth.middleware';
 import { validate } from '../../middleware/validate.middleware';
 import { getActivityLogs, getModuleList } from './activity.controller';
 
@@ -12,18 +12,18 @@ const router = Router();
 
 router.use(authenticate);
 
-router.get(
-  '/',
-  requireRole('hr', 'admin'),
-  [
-    query('page').optional().isInt({ min: 1 }),
-    query('limit').optional().isInt({ min: 1, max: 100 }),
-    query('user_id').optional().isInt({ min: 1 }),
-  ],
-  validate,
-  getActivityLogs,
-);
+// router.get(
+//   '/',
+//   requireRole('hr', 'admin'),
+//   [
+//     query('page').optional().isInt({ min: 1 }),
+//     query('limit').optional().isInt({ min: 1, max: 100 }),
+//     query('user_id').optional().isInt({ min: 1 }),
+//   ],
+//   validate,
+//   getActivityLogs,
+// );
 
-router.get('/modules', requireRole('hr', 'admin'), getModuleList);
+// router.get('/modules', requireRole('hr', 'admin'), getModuleList);
 
 export default router;

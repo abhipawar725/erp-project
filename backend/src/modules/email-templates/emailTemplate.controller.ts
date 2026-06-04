@@ -16,7 +16,7 @@ export async function getBranding(req: Request, res: Response, next: NextFunctio
 
 export async function saveBranding(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const data = await svc.saveBranding(req.user!.companyId, req.body, req.user!.userId);
+    const data = await svc.saveBranding(req.user!.companyId, req.body, req.user!.employeeId);
     sendResponse(res, { data, message: 'Branding saved' });
   } catch (e) { next(e); }
 }
@@ -43,7 +43,7 @@ export async function saveTemplate(req: Request, res: Response, next: NextFuncti
       req.user!.companyId,
       req.params.type as EmailTemplateType,
       req.body,
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Template saved' });
   } catch (e) { next(e); }
@@ -54,7 +54,7 @@ export async function resetTemplate(req: Request, res: Response, next: NextFunct
     const data = await svc.resetTemplate(
       req.user!.companyId,
       req.params.type as EmailTemplateType,
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: 'Template reset to system default' });
   } catch (e) { next(e); }
@@ -66,7 +66,7 @@ export async function toggleTemplate(req: Request, res: Response, next: NextFunc
       req.user!.companyId,
       req.params.type as EmailTemplateType,
       req.body.is_active,
-      req.user!.userId,
+      req.user!.employeeId,
     );
     sendResponse(res, { data, message: `Template ${req.body.is_active ? 'enabled' : 'disabled'}` });
   } catch (e) { next(e); }

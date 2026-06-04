@@ -40,7 +40,7 @@ export class FormBuilderService {
     if (exists) throw new AppError('Module with this slug already exists', 409);
 
     const mod = await HrModule.create({ company_id: companyId, name: dto.name, slug, icon: dto.icon||null, description: dto.description||null, sort_order: dto.sort_order||0, is_active: true, is_system: false });
-    await logActivity({ companyId, userId: createdBy, action: 'MODULE_CREATED', module: 'settings', entityId: mod.id, newValues: { name: mod.name } });
+    await logActivity({ companyId, employeeId: createdBy, action: 'MODULE_CREATED', module: 'settings', entityId: mod.id, newValues: { name: mod.name } });
     return mod;
   }
 
@@ -50,7 +50,7 @@ export class FormBuilderService {
     const mod = await HrModule.findOne({ where: { id, company_id: companyId } });
     if (!mod) throw new AppError('Module not found', 404);
     await mod.update(dto as any);
-    await logActivity({ companyId, userId: updatedBy, action: 'MODULE_UPDATED', module: 'settings', entityId: id });
+    await logActivity({ companyId, employeeId: updatedBy, action: 'MODULE_UPDATED', module: 'settings', entityId: id });
     return mod;
   }
 
@@ -65,7 +65,7 @@ export class FormBuilderService {
     }
     await FormDefinition.destroy({ where: { module_id: id } });
     await mod.destroy();
-    await logActivity({ companyId, userId: deletedBy, action: 'MODULE_DELETED', module: 'settings', entityId: id });
+    await logActivity({ companyId, employeeId: deletedBy, action: 'MODULE_DELETED', module: 'settings', entityId: id });
     return { deleted: true };
   }
 
@@ -100,7 +100,7 @@ export class FormBuilderService {
     if (exists) throw new AppError('Form with this slug already exists in this module', 409);
 
     const form = await FormDefinition.create({ company_id: companyId, module_id: moduleId, name: dto.name, slug, description: dto.description||null, sort_order: dto.sort_order||0, is_active: true, is_system: false, created_by: createdBy||null });
-    await logActivity({ companyId, userId: createdBy, action: 'FORM_CREATED', module: 'settings', entityId: form.id, newValues: { name: form.name } });
+    await logActivity({ companyId, employeeId: createdBy, action: 'FORM_CREATED', module: 'settings', entityId: form.id, newValues: { name: form.name } });
     return form;
   }
 
@@ -166,7 +166,7 @@ export class FormBuilderService {
       }
 
       await t.commit();
-      await logActivity({ companyId, userId: createdBy, action: 'FIELD_CREATED', module: 'settings', entityId: field.id, newValues: { label: field.label, field_key } });
+      await logActivity({ companyId, employeeId: createdBy, action: 'FIELD_CREATED', module: 'settings', entityId: field.id, newValues: { label: field.label, field_key } });
       return this.getFieldById(field.id, companyId);
     } catch(e) { await t.rollback(); throw e; }
   }
@@ -186,7 +186,7 @@ export class FormBuilderService {
       })));
     }
 
-    await logActivity({ companyId, userId: updatedBy, action: 'FIELD_UPDATED', module: 'settings', entityId: fieldId });
+    await logActivity({ companyId, employeeId: updatedBy, action: 'FIELD_UPDATED', module: 'settings', entityId: fieldId });
     return this.getFieldById(fieldId, companyId);
   }
 
@@ -261,7 +261,7 @@ export class FormBuilderService {
 
     if (!created) await perm.update(dto as any);
 
-    await logActivity({ companyId, userId: updatedBy, action: 'FIELD_PERMISSION_UPDATED', module: 'settings', entityId: fieldId, newValues: { roleId, ...dto } });
+    await logActivity({ companyId, employeeId: updatedBy, action: 'FIELD_PERMISSION_UPDATED', module: 'settings', entityId: fieldId, newValues: { roleId, ...dto } });
     return perm;
   }
 
@@ -280,7 +280,7 @@ export class FormBuilderService {
         }, { transaction: t });
       }
       await t.commit();
-      await logActivity({ companyId, userId: updatedBy, action: 'FIELD_PERMISSIONS_BULK_UPDATED', module: 'settings', newValues: { roleId, count: permissions.length } });
+      await logActivity({ companyId, employeeId: updatedBy, action: 'FIELD_PERMISSIONS_BULK_UPDATED', module: 'settings', newValues: { roleId, count: permissions.length } });
       return { updated: permissions.length };
     } catch(e) { await t.rollback(); throw e; }
   }

@@ -17,14 +17,14 @@ export async function getCompany(req: Request, res: Response, next: NextFunction
   try { sendResponse(res, { data: await companySvc.getCompanyById(+req.params.id) }); } catch(e){ next(e); }
 }
 export async function createCompany(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await companySvc.createCompany(req.body, req.user!.userId), statusCode: 201 }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await companySvc.createCompany(req.body, req.user!.employeeId), statusCode: 201 }); } catch(e){ next(e); }
 }
 export async function updateCompany(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await companySvc.updateCompany(+req.params.id, req.body, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await companySvc.updateCompany(+req.params.id, req.body, req.user!.employeeId) }); } catch(e){ next(e); }
 }
 export async function suspendCompany(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await companySvc.suspend(+req.params.id, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await companySvc.suspend(+req.params.id, req.user!.employeeId) }); } catch(e){ next(e); }
 }
 export async function activateCompany(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try { sendResponse(res, { data: await companySvc.activate(+req.params.id, req.user!.userId) }); } catch(e){ next(e); }
+  try { sendResponse(res, { data: await companySvc.activate(+req.params.id, req.user!.employeeId) }); } catch(e){ next(e); }
 }

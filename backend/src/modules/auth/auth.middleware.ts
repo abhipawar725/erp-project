@@ -1,83 +1,48 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyAccessToken } from '../../utils/jwt';
-import { sendError } from '../../utils/response';
-import { JwtPayload } from '../../utils/jwt';
+import { verifyAccessToken, JwtPayload }   from '../../utils/jwt';
+import { sendError }                       from '../../utils/response';
 
 declare global {
   namespace Express {
-    interface Request {
-      user?: JwtPayload;
-    }
+    interface Request { user?: JwtPayload; }
   }
 }
 
-// ─── authenticate ─────────────────────────────────────────────────────────────
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      sendError(res, 'Unauthorized: Authorization header missing or malformed', 401);
-      return;
-    }
-    req.user = verifyAccessToken(authHeader.slice(7));
+    const header = req.headers.authorization;
+    if (!header?.startsWith('Bearer ')) { sendError(res, 'Unauthorized: No token provided', 401); return; }
+    req.user = verifyAccessToken(header.split(' ')[1]);
     next();
-  } catch (err: any) {
-    const msg = err?.name === 'TokenExpiredError'
-      ? 'Unauthorized: Token has expired'
-      : 'Unauthorized: Invalid token';
-    sendError(res, msg, 401);
+  } catch {
+    sendError(res, 'Unauthorized: Invalid or expired token', 401);
   }
 }
 
-// ─── authorize ────────────────────────────────────────────────────────────────
-export function authorize(...permissionSlugs: string[]) {
+export function authorize(...slugs: string[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) { sendError(res, 'Unauthorized', 401); return; }
-
-    // Super admin bypasses everything
     if (req.user.isSuperAdmin) { next(); return; }
-
-    // No slug restriction = any authenticated user
-    if (permissionSlugs.length === 0) { next(); return; }
-
-    // HR / Admin full access within their company
-    if (req.user.roleSlug === 'hr' || req.user.roleSlug === 'admin') { next(); return; }
-
-    // Check slugs from JWT permissions array
-    const userPerms = req.user.permissions ?? [];
-    const allowed = permissionSlugs.some(slug => userPerms.includes(slug));
-    if (allowed) { next(); return; }
-
-    sendError(res, `Forbidden: Missing permission (${permissionSlugs.join(' or ')})`, 403);
+    if (slugs.length === 0) { next(); return; }
+    if (req.user.roleSlug === 'hr_manager' || req.user.roleSlug === 'admin') { next(); return; }
+    const perms = req.user.permissions ?? [];
+    if (slugs.some(s => perms.includes(s) || perms.includes('*'))) { next(); return; }
+    sendError(res, `Forbidden: Missing permission (${slugs.join(' or ')})`, 403);
   };
 }
 
 export function requireSuperAdmin(req: Request, res: Response, next: NextFunction): void {
   if (!req.user) { sendError(res, 'Unauthorized', 401); return; }
-  if (!req.user.isSuperAdmin) {
-    sendError(res, 'Forbidden: Super admin access required', 403);
-    return;
-  }
+  if (!req.user.isSuperAdmin) { sendError(res, 'Forbidden: Super admin only', 403); return; }
   next();
 }
 
-export function requireRole(...roles: string[]) {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    if (!req.user) { sendError(res, 'Unauthorized', 401); return; }
-    if (req.user.isSuperAdmin) { next(); return; }
-    if (roles.includes(req.user.roleSlug)) { next(); return; }
-    sendError(res, `Forbidden: Requires role ${roles.join(' or ')}`, 403);
-  };
-}
-
-// ─── selfOrAdmin ──────────────────────────────────────────────────────────────
+// selfOrAdmin: employeeId replaces userId
 export function selfOrAdmin(req: Request, res: Response, next: NextFunction): void {
   if (!req.user) { sendError(res, 'Unauthorized', 401); return; }
-  const { roleSlug, userId, isSuperAdmin } = req.user;
-  if (isSuperAdmin || roleSlug === 'hr' || roleSlug === 'admin' || roleSlug === 'mgr') {
-    next(); return;
-  }
-  const rid = parseInt(req.params.employeeId ?? req.params.id ?? '', 10);
-  if (!isNaN(rid) && userId === rid) { next(); return; }
-  sendError(res, 'Forbidden: You can only access your own data', 403);
+  const { roleSlug, employeeId, isSuperAdmin } = req.user;
+  if (isSuperAdmin || roleSlug === 'hr_manager' || roleSlug === 'admin' || roleSlug === 'mgr') { next(); return; }
+  const resourceId = parseInt(req.params.employeeId || req.params.id, 10);
+  if (!isNaN(resourceId) && employeeId === resourceId) { next(); return; }
+  sendError(res, 'Forbidden: You cannot access this resource', 403);
 }

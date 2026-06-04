@@ -44,6 +44,7 @@ export const env = {
     port: parseInt(process.env.SMTP_PORT || '587', 10),
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
+    secure: process.env.SMTP_SECURE || true,
     fromEmail: process.env.FROM_EMAIL || 'noreply@nexhr.com',
     fromName: process.env.FROM_NAME || 'NexHR ERP',
   },
@@ -52,4 +53,9 @@ export const env = {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
     max: parseInt(process.env.RATE_LIMIT_MAX || '500', 10),
   },
+
+  msg91: {
+    authKey: process.env.MSG91_AUTH_KEY!,
+    templateId: process.env.MSG91_TEMPLATE_ID!
+  },  
 } as const;

@@ -198,7 +198,7 @@ export class DepartmentService {
     });
 
     await logActivity({
-      companyId, userId: createdBy,
+      companyId, employeeId: createdBy,
       action: 'DEPARTMENT_CREATED', module: 'departments', entityId: dept.id,
       newValues: { name: dept.name, code: dept.code },
     });
@@ -226,7 +226,7 @@ export class DepartmentService {
     });
 
     await logActivity({
-      companyId, userId: updatedBy,
+      companyId, employeeId: updatedBy,
       action: 'DEPARTMENT_UPDATED', module: 'departments', entityId: id,
       oldValues: before as Record<string, unknown>,
       newValues: { name: dept.name, code: dept.code, is_active: dept.is_active },
@@ -260,7 +260,7 @@ export class DepartmentService {
     await dept.destroy();
 
     await logActivity({
-      companyId, userId: deletedBy,
+      companyId, employeeId: deletedBy,
       action: 'DEPARTMENT_DELETED', module: 'departments', entityId: id,
       oldValues: { name: dept.name },
     });
