@@ -1,59 +1,58 @@
 import { sequelize } from "../../config/database";
 
-import { Employee }    from '../models/Employee';
-import { Company }     from '../models/Company';
-import { Department }  from '../models/Department';
+import { Employee } from '../models/Employee';
+import { Company } from '../models/Company';
+import { Department } from '../models/Department';
 import { Designation } from '../models/Designation';
+import { PERMISSIONS } from "../models/Permissions";
+import { Permission } from "../models/RoleModels";
 import { Role, RoleModulePermission } from '../models/RoleModels';
 import { EmployeeRole, RoleTemplate, RoleTemplatePermission } from '../models/AuthModels';
-import {logger} from '../../config/logger';
+import { logger } from '../../config/logger';
 
 
 const COMPANY_ID = 1;
 
 const TEMPLATE_DEFS = [
-  { slug: 'super_admin', name: 'Super Admin',        sort_order: 1 },
-  { slug: 'hr_manager',  name: 'HR Manager',         sort_order: 2 },
-  { slug: 'manager',     name: 'Department Manager', sort_order: 3 },
-  { slug: 'employee',    name: 'Employee',           sort_order: 4 },
+  { slug: 'super_admin', name: 'Super Admin', sort_order: 1 },
+  { slug: 'hr_manager', name: 'HR Manager', sort_order: 2 },
+  { slug: 'manager', name: 'Department Manager', sort_order: 3 },
+  { slug: 'employee', name: 'Employee', sort_order: 4 },
 ] as const;
 
-type TemplatePerm = { module: string; can_view: boolean; can_copy: boolean; can_edit: boolean; can_download: boolean; can_mask: boolean };
+type TemplatePerm = { module: string; can_view: boolean; can_edit: boolean; can_delete: boolean; can_download: boolean; can_mask: boolean };
 
 const TEMPLATE_PERMS: Record<string, TemplatePerm[]> = {
   super_admin: [
-    { module:'employees',  can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
-    { module:'payroll',    can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
-    { module:'attendance', can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
-    { module:'leaves',     can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
-    { module:'recruitment',can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
-    { module:'assets',     can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
-    { module:'settings',   can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
-    { module:'companies',  can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
-    { module:'reports',    can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
+    { module: 'recruitment', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'apptitude', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'employees', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'department', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'designation', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'settings', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'companies', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
   ],
   hr_manager: [
-    { module:'employees',  can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:true},
-    { module:'payroll',    can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:true},
-    { module:'attendance', can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:true},
-    { module:'leaves',     can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:true},
-    { module:'recruitment',can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
-    { module:'assets',     can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:false},
-    { module:'settings',   can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
-    { module:'reports',    can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
+    { module: 'recruitment', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'apptitude', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'employees', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'department', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'designation', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
   ],
   manager: [
-    { module:'employees',  can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
-    { module:'attendance', can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:false},
-    { module:'leaves',     can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:true},
-    { module:'reports',    can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
+    { module: 'recruitment', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'apptitude', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'employees', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'department', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'designation', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'settings', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'companies', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
   ],
   employee: [
-    { module:'employees',  can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
-    { module:'attendance', can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
-    { module:'leaves',     can_view:true,  can_copy:true,  can_edit:false, can_download:false, can_mask:false},
+    { module: 'employees', can_view: true, can_delete: false, can_edit: false, can_download: false, can_mask: false },
   ],
 };
+
 
 export async function seedDatabase(): Promise<void> {
   const transaction = await sequelize.transaction();
@@ -73,7 +72,7 @@ export async function seedDatabase(): Promise<void> {
     // ── 2. Global role templates ─────────────────────────────────────────────
     for (const def of TEMPLATE_DEFS) {
       await RoleTemplate.findOrCreate({
-        where:    { slug: def.slug },
+        where: { slug: def.slug },
         defaults: { slug: def.slug, name: def.name, sort_order: def.sort_order, is_system: true },
       });
     }
@@ -81,7 +80,7 @@ export async function seedDatabase(): Promise<void> {
     for (const tmpl of allTemplates) {
       for (const p of (TEMPLATE_PERMS[tmpl.slug] ?? [])) {
         await RoleTemplatePermission.findOrCreate({
-          where:    { template_id: tmpl.id, module: p.module },
+          where: { template_id: tmpl.id, module: p.module },
           defaults: { template_id: tmpl.id, ...p },
         });
       }
@@ -89,23 +88,23 @@ export async function seedDatabase(): Promise<void> {
     logger.info('✅ Role templates + permissions seeded');
 
     // ── 3. Per-company roles + module permissions ────────────────────────────
-const templateMap = new Map(allTemplates.map(t => [t.slug, t]));
+    const templateMap = new Map(allTemplates.map(t => [t.slug, t]));
     for (const def of TEMPLATE_DEFS) {
       const tmpl = templateMap.get(def.slug)!;
       const [role] = await Role.findOrCreate({
-        where:    { company_id: COMPANY_ID, slug: def.slug },
+        where: { company_id: COMPANY_ID, slug: def.slug },
         defaults: {
-          company_id:  COMPANY_ID,
-          name:        def.name,
-          slug:        def.slug,
-          is_system:   true,
+          company_id: COMPANY_ID,
+          name: def.name,
+          slug: def.slug,
+          is_system: true,
           template_id: tmpl.id,  // ✓ now valid on updated Role model
         },
       });
       const tPerms = await RoleTemplatePermission.findAll({ where: { template_id: tmpl.id } });
       for (const tp of tPerms) {
         await RoleModulePermission.findOrCreate({
-          where:    { role_id: role.id, module: tp.module },
+          where: { role_id: role.id, module: tp.module },
           defaults: {
             role_id: role.id, module: tp.module,
           },
@@ -116,7 +115,7 @@ const templateMap = new Map(allTemplates.map(t => [t.slug, t]));
 
     // ── 4. Departments ───────────────────────────────────────────────────────
     const deptMap = new Map<string, number>();
-    for (const name of ['Human Resources','Engineering','Finance','Operations','Marketing','Sales']) {
+    for (const name of ['Human Resources', 'Engineering', 'Finance', 'Operations', 'Marketing', 'Sales']) {
       const code = name.split(' ').map((w: string) => w[0]).join('').toUpperCase();
       const [d] = await Department.findOrCreate({
         where: { company_id: COMPANY_ID, name },
@@ -127,7 +126,7 @@ const templateMap = new Map(allTemplates.map(t => [t.slug, t]));
 
     // ── 5. Designations ──────────────────────────────────────────────────────
     const desigMap = new Map<string, number>();
-    for (const name of ['HR Manager','HR Executive','Software Engineer','Senior Engineer','Finance Manager','CEO','CTO']) {
+    for (const name of ['HR Manager', 'HR Executive', 'Software Engineer', 'Senior Engineer', 'Finance Manager', 'CEO', 'CTO']) {
       const [d] = await Designation.findOrCreate({
         where: { company_id: COMPANY_ID, name },
         defaults: { company_id: COMPANY_ID, name },
@@ -138,11 +137,11 @@ const templateMap = new Map(allTemplates.map(t => [t.slug, t]));
 
     // ── 6. Super admin employee ───────────────────────────────────────────────
     const [superAdminEmp, saCreated] = await Employee.findOrCreate({
-      where:    { email: 'superadmin@ung.com' },
+      where: { email: 'superadmin@ung.com' },
       defaults: {
         company_id: COMPANY_ID, employee_code: 'EMP000',
         first_name: 'Super', last_name: 'Admin',
-        email: 'superadmin@ung.com', phone: '+919999999999',
+        email: 'superadmin@ung.com', phone: '+918130988753',
         department_id: deptMap.get('Human Resources') ?? null,
         designation_id: desigMap.get('HR Manager') ?? null,
         date_of_joining: new Date(), employment_type: 'Full-time',
@@ -156,18 +155,18 @@ const templateMap = new Map(allTemplates.map(t => [t.slug, t]));
     const saRole = await Role.findOne({ where: { company_id: COMPANY_ID, slug: 'super_admin' } });
     if (saRole) {
       await EmployeeRole.findOrCreate({
-        where:    { employee_id: superAdminEmp.id, role_id: saRole.id },
+        where: { employee_id: superAdminEmp.id, role_id: saRole.id },
         defaults: { employee_id: superAdminEmp.id, role_id: saRole.id, company_id: COMPANY_ID },
       });
     }
 
     // ── 7. HR admin employee ─────────────────────────────────────────────────
     const [hrEmp] = await Employee.findOrCreate({
-      where:    { email: 'admin@ung.com' },
+      where: { email: 'admin@ung.com' },
       defaults: {
         company_id: COMPANY_ID, employee_code: 'EMP001',
         first_name: 'Admin', last_name: 'User',
-        email: 'admin@ung.com', phone: '+919999999998',
+        email: 'admin@ung.com', phone: '+918826693968',
         department_id: deptMap.get('Human Resources') ?? null,
         designation_id: desigMap.get('HR Manager') ?? null,
         date_of_joining: new Date(), employment_type: 'Full-time',
@@ -178,10 +177,15 @@ const templateMap = new Map(allTemplates.map(t => [t.slug, t]));
     const hrRole = await Role.findOne({ where: { company_id: COMPANY_ID, slug: 'hr_manager' } });
     if (hrRole) {
       await EmployeeRole.findOrCreate({
-        where:    { employee_id: hrEmp.id, role_id: hrRole.id },
+        where: { employee_id: hrEmp.id, role_id: hrRole.id },
         defaults: { employee_id: hrEmp.id, role_id: hrRole.id, company_id: COMPANY_ID },
       });
     }
+
+    await Permission.bulkCreate(PERMISSIONS, {
+      ignoreDuplicates: true,
+      transaction,
+    });
 
     await transaction.commit();
 
@@ -212,7 +216,9 @@ if (require.main === module) {
 
       // IMPORTANT
       // sync tables before seed
-      await sequelize.sync({ alter: true });
+      await sequelize.sync(
+        { alter: true }
+      );
 
       await seedDatabase();
     })

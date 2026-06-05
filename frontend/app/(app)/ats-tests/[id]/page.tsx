@@ -17,7 +17,7 @@ export default function AptitudeTestDetailPage() {
   const router  = useRouter();
   const dispatch = useAppDispatch();
   const testId  = parseInt(params.id as string, 10);
-  const { canManageEmployees } = usePermission();
+  const { canEdit } = usePermission();
 
   const [editTestOpen, setEditTestOpen]   = useState(false);
   const [addQOpen,     setAddQOpen]       = useState(false);
@@ -69,7 +69,7 @@ export default function AptitudeTestDetailPage() {
           </div>
           <div className="ph-r">
             <button className="btn btn-sec btn-sm" onClick={() => router.push('/ats-tests')}>← Back</button>
-            {canManageEmployees && (
+            {canEdit('recruitment') && (
               <>
                 <button className="btn btn-sec btn-sm" onClick={() => setEditTestOpen(true)}>Edit settings</button>
                 <button className="btn btn-pri btn-sm" onClick={() => setAddQOpen(true)}>+ Add Question</button>
@@ -88,7 +88,7 @@ export default function AptitudeTestDetailPage() {
                   {sortedQ.length} total
                 </span>
               </span>
-              {canManageEmployees && (
+              {canEdit('recruitment') && (
                 <button className="btn btn-sec btn-sm" onClick={() => setAddQOpen(true)}>+ Add</button>
               )}
             </div>
@@ -97,7 +97,7 @@ export default function AptitudeTestDetailPage() {
               <div style={{ textAlign: 'center', padding: '40px', background: 'var(--surface2)', borderRadius: 'var(--r2)', color: 'var(--ink4)', fontSize: 13 }}>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>❓</div>
                 No questions yet.
-                {canManageEmployees && (
+                {canEdit('recruitment') && (
                   <div style={{ marginTop: 12 }}>
                     <button className="btn btn-pri btn-sm" onClick={() => setAddQOpen(true)}>
                       + Add First Question
@@ -114,7 +114,7 @@ export default function AptitudeTestDetailPage() {
                     index={idx}
                     testId={testId}
                     onEdit={q => setEditQ(q)}
-                    canManage={canManageEmployees}
+                    canManage={canEdit('recruitment')}
                   />
                 ))}
               </div>

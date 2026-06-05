@@ -127,7 +127,6 @@ export default function EditEmployeePage() {
 
   if (isLoading) {
     return (
-      <RoleGuard allowedRoles={['admin', 'hr']}>
         <AppShell>
           <div
             style={{
@@ -140,7 +139,6 @@ export default function EditEmployeePage() {
             Loading employee data…
           </div>
         </AppShell>
-      </RoleGuard>
     );
   }
 
@@ -150,7 +148,6 @@ export default function EditEmployeePage() {
 
   if (isError || !employee) {
     return (
-      <RoleGuard allowedRoles={['admin', 'hr']}>
         <AppShell>
           <div
             style={{
@@ -176,7 +173,6 @@ export default function EditEmployeePage() {
             </span>
           </div>
         </AppShell>
-      </RoleGuard>
     );
   }
 
@@ -225,7 +221,6 @@ export default function EditEmployeePage() {
   /* ------------------------------------------------ */
 
   return (
-    <RoleGuard allowedRoles={['admin', 'hr']}>
       <AppShell>
         <div className="pg-enter">
           {/* HEADER */}
@@ -282,6 +277,5 @@ export default function EditEmployeePage() {
           />
         </div>
       </AppShell>
-    </RoleGuard>
   );
 }

@@ -5,29 +5,49 @@ import { AppError }    from '../../middleware/errorHandler.middleware';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../utils/jwt';
 import { logActivity } from '../../utils/activityLogger';
 import { otpService }  from '../../utils/otpService';
+import { UserGroup, PermissionGroup, Permission } from '../../database/models/index';
+import { normalizePhone } from '../../utils/normalizeNumber';
 
 const OTP_EXPIRY_MS     = 10 * 60 * 1000;
 const OTP_MAX_ATTEMPTS  = 3;
 const OTP_LOCK_MS       = 15 * 60 * 1000;
-const OTP_RATE_LIMIT    = 5;
+const OTP_RATE_LIMIT    = 50;
 const REFRESH_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
-async function loadPermissions(employeeId: number, companyId: number): Promise<string[]> {
-  const rows = await EmployeeRole.findAll({
-    where:   { employee_id: employeeId, company_id: companyId },
-    include: [{ model: Role, as: 'role', include: [{ model: RoleModulePermission, as: 'modulePermissions' }] }],
+async function loadPermissions(
+  employeeId: number,
+  companyId: number
+): Promise<string[]> {
+
+  const groups = await UserGroup.findAll({
+    where: {
+      employee_id: employeeId,
+      company_id: companyId
+    },
+    include: [
+      {
+        model: PermissionGroup,
+        as: 'group',
+        include: [
+          {
+            model: Permission,
+            as: 'permissions'
+          }
+        ]
+      }
+    ]
   });
+
   const slugs = new Set<string>();
-  for (const er of rows) {
-    for (const p of ((er as any).role?.modulePermissions ?? [])) {
-      if (p.can_view)    slugs.add(`${p.module}:view`);
-      if (p.can_create)  slugs.add(`${p.module}:create`);
-      if (p.can_edit)    slugs.add(`${p.module}:edit`);
-      if (p.can_delete)  slugs.add(`${p.module}:delete`);
-      if (p.can_approve) slugs.add(`${p.module}:approve`);
-      if (p.can_export)  slugs.add(`${p.module}:export`);
+
+  for (const ug of groups) {
+    const perms = (ug as any).group?.permissions ?? [];
+
+    for (const p of perms) {
+      slugs.add(p.slug);
     }
   }
+
   return [...slugs];
 }
 
@@ -46,9 +66,12 @@ async function buildPayload(employee: Employee) {
 export class AuthService {
 
   async requestOtp(emailOrPhone: string, channel: 'email' | 'sms' = 'email', ipAddress?: string) {
+    const loginValue = emailOrPhone.trim();
     const isPhone = /^\+?[0-9]{10,15}$/.test(emailOrPhone.trim());
+    const normalizedPhone = normalizePhone(loginValue);
+    const normalizedEmail = loginValue.toLowerCase();
     const employee = await Employee.findOne({
-      where: { [Op.or]: isPhone ? [{ phone: emailOrPhone.trim() }] : [{ email: emailOrPhone.toLowerCase().trim() }], portal_access: true },
+      where: { [Op.or]: isPhone ? [{ phone: normalizedPhone }] : [{ email: normalizedEmail }], portal_access: true },
     });
     if (!employee) return { message: 'If an account exists, an OTP has been sent.', expires_in: 600 };
 
@@ -73,9 +96,12 @@ export class AuthService {
   }
 
   async verifyOtp(emailOrPhone: string, otp: string, ipAddress?: string) {
+    const loginValue = emailOrPhone.trim();
     const isPhone = /^\+?[0-9]{10,15}$/.test(emailOrPhone.trim());
+    const normalizedPhone = normalizePhone(loginValue);
+    const normalizedEmail = loginValue.toLowerCase();
     const employee = await Employee.findOne({
-      where: { [Op.or]: isPhone ? [{ phone: emailOrPhone.trim() }] : [{ email: emailOrPhone.toLowerCase().trim() }] },
+      where: { [Op.or]: isPhone ? [{ phone: normalizedPhone }] : [{ email: normalizedEmail }] },
     });
     if (!employee)               throw new AppError('Invalid credentials.', 401);
     if (!employee.portal_access) throw new AppError('Portal access disabled. Contact HR.', 403);

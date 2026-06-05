@@ -25,7 +25,6 @@ export default function NewEmployeePage() {
   const departments = (deptsRes?.data || []).map((d: any) => ({ value: d.id, label: d.name }));
 
   return (
-    <RoleGuard allowedRoles={['admin', 'hr']}>
     <AppShell>
       <div className="pg-enter">
         <div className="ph">
@@ -37,6 +36,5 @@ export default function NewEmployeePage() {
         <EmployeeWizard mode="create" departments={departments} />
       </div>
     </AppShell>
-    </RoleGuard>
   );
 }

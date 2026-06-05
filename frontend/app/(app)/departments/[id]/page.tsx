@@ -18,7 +18,7 @@ export default function DepartmentDetailPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const id = parseInt(params.id as string, 10);
-  const { canManageEmployees } = usePermission();
+  const { canEdit, canDelete } = usePermission();
 
   const [editOpen,   setEditOpen]   = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -87,10 +87,12 @@ export default function DepartmentDetailPage() {
           </div>
           <div className="ph-r">
             <button className="btn btn-sec btn-sm" onClick={() => router.push('/departments')}>← Back</button>
-            {canManageEmployees && (
+            {canEdit('department') && (
               <>
                 <button className="btn btn-sec btn-sm" onClick={() => setEditOpen(true)}>Edit</button>
+                {canDelete('department') && (
                 <button className="btn btn-danger btn-sm" onClick={() => setDeleteOpen(true)}>Delete</button>
+                )}
               </>
             )}
           </div>
@@ -145,7 +147,7 @@ export default function DepartmentDetailPage() {
                 <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--ink4)' }}>
                   <div style={{ fontSize: 24, marginBottom: 8 }}>👤</div>
                   <div style={{ fontSize: 12 }}>No head assigned yet</div>
-                  {canManageEmployees && (
+                  {canEdit('department') && (
                     <button className="btn btn-sec btn-sm" style={{ marginTop: 12 }} onClick={() => setEditOpen(true)}>
                       Assign Head
                     </button>

@@ -21,7 +21,7 @@ import type { Designation }    from '../../../features/designations/types/design
 export default function DesignationsPage() {
   const dispatch = useAppDispatch();
   const router   = useRouter();
-  const { canManageEmployees } = usePermission();
+  const { canEdit, canView, canDelete } = usePermission();
 
   const [search,       setSearch]       = useState('');
   const [deptFilter,   setDeptFilter]   = useState<number | ''>('');
@@ -76,7 +76,7 @@ export default function DesignationsPage() {
   };
 
   return (
-    <AppShell onAddNew={canManageEmployees ? openCreate : undefined}>
+    <AppShell onAddNew={canEdit('designation') ? openCreate : undefined}>
       <div className="pg-enter">
 
         {/* Header */}
@@ -94,7 +94,7 @@ export default function DesignationsPage() {
                 </button>
               ))}
             </div>
-            {canManageEmployees && (
+            {canEdit('designation') && (
               <button className="btn btn-pri btn-sm" onClick={openCreate}>+ Add Designation</button>
             )}
           </div>
@@ -159,7 +159,7 @@ export default function DesignationsPage() {
                     <th>Department</th>
                     <th>Employees</th>
                     <th>Status</th>
-                    {canManageEmployees && <th>Actions</th>}
+                    {canEdit('designation') && <th>Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -175,7 +175,7 @@ export default function DesignationsPage() {
                     ? (
                         <tr>
                           <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--ink4)' }}>
-                            No designations found. {canManageEmployees && <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={openCreate}>Create the first one →</span>}
+                            No designations found. {canEdit('designation') && <span style={{ color: 'var(--blue)', cursor: 'pointer' }} onClick={openCreate}>Create the first one →</span>}
                           </td>
                         </tr>
                       )
@@ -200,7 +200,7 @@ export default function DesignationsPage() {
                           <td>
                             <Chip variant={d.is_active ? 'green' : 'gray'}>{d.is_active ? 'Active' : 'Inactive'}</Chip>
                           </td>
-                          {canManageEmployees && (
+                          {canEdit('designation') && (
                             <td onClick={(e) => e.stopPropagation()}>
                               <div style={{ display: 'flex', gap: 4 }}>
                                 <Chip variant="gray"  onClick={() => openEdit(d)}>Edit</Chip>
@@ -234,7 +234,7 @@ export default function DesignationsPage() {
                   <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '48px 0', color: 'var(--ink4)' }}>
                     <div style={{ fontSize: 32, marginBottom: 12 }}>🎯</div>
                     <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>No designations found</div>
-                    {canManageEmployees && (
+                    {canEdit('designation') && (
                       <button className="btn btn-pri btn-sm" style={{ marginTop: 8 }} onClick={openCreate}>+ Add Designation</button>
                     )}
                   </div>
@@ -265,7 +265,7 @@ export default function DesignationsPage() {
                         </span>
                         <Chip variant={d.is_active ? 'green' : 'gray'}>{d.is_active ? 'Active' : 'Inactive'}</Chip>
                       </div>
-                      {canManageEmployees && (
+                      {canEdit('designation') && (
                         <div style={{ display: 'flex', gap: 5, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }} onClick={(e) => e.stopPropagation()}>
                           <Chip variant="gray" onClick={() => openEdit(d)}>Edit</Chip>
                           <Chip variant="red"  onClick={() => setDeleteTarget(d)}>Delete</Chip>

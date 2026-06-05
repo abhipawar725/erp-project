@@ -30,7 +30,7 @@ import {
 
 import { useDebounce } from '../../../hooks/useDebounce';
 
-import { usePermission } from '../../../features/auth/hooks/usePermission';
+import { usePermission } from '../../../hooks/usePermission';
 
 import type {
   Employee,
@@ -52,8 +52,7 @@ export default function EmployeesPage() {
 
   const dispatch = useAppDispatch();
 
-  const { isHR, isAdmin } =
-    usePermission();
+  const { canEdit } = usePermission();
 
   /* ------------------------------------------------ */
   /* STATE */
@@ -131,8 +130,8 @@ export default function EmployeesPage() {
   /* PERMISSIONS */
   /* ------------------------------------------------ */
 
-  const canManage =
-    isHR || isAdmin;
+  // const canManage =
+  //   isHR || isAdmin;
 
   /* ------------------------------------------------ */
   /* DELETE */
@@ -397,7 +396,7 @@ const handleDelete = async () => {
               View
             </Chip>
 
-            {canManage && (
+            {/* {canManage && ( */}
               <Chip
                 variant="gray"
                 onClick={(e: any) => {
@@ -410,9 +409,9 @@ const handleDelete = async () => {
               >
                 Edit
               </Chip>
-            )}
+            {/* )} */}
 
-            {canManage && (
+            {/* {canManage && ( */}
               <Chip
                 variant="red"
                 onClick={(e: React.MouseEvent<HTMLDivElement>) => {
@@ -425,7 +424,7 @@ const handleDelete = async () => {
               >
                 Remove
               </Chip>
-            )}
+            {/* )} */}
           </div>
         ),
       },
@@ -581,7 +580,7 @@ const handleDelete = async () => {
   return (
     <AppShell
       onAddNew={
-        canManage
+           canEdit('employees')
           ? () =>
             router.push(
               '/employees/new',
@@ -614,7 +613,7 @@ const handleDelete = async () => {
               ↓ Export
             </button>
 
-            {canManage && (
+            {/* {canManage && ( */}
               <button
                 className="btn btn-pri btn-sm"
                 onClick={() =>
@@ -625,7 +624,7 @@ const handleDelete = async () => {
               >
                 + Add Employee
               </button>
-            )}
+            {/* )} */}
           </div>
         </div>
 

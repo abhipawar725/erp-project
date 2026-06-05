@@ -1,14 +1,3 @@
-/**
- * User-based permission system.
- *
- * Architecture:
- *   1. User has a role_id → role gives module-level access (role_permissions table)
- *   2. UserModulePermission overrides CRUD access per user per module
- *   3. UserFieldPermission overrides field visibility per user (wraps existing Employee/Candidate fields)
- *
- * This wraps around the existing FieldPermission (role-based) system.
- * Resolution order:  user-level override → role-level default → deny
- */
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../../config/database';
 
@@ -19,9 +8,7 @@ export const SYSTEM_MODULES = [
 ] as const;
 export type SystemModule = typeof SYSTEM_MODULES[number];
 
-// ─── Field registry — all existing fields per module ─────────────────────────
-// These map directly to the real DB column names on Employee / Candidate models.
-// DO NOT change these — they are the single source of truth.
+
 export const MODULE_FIELDS: Record<SystemModule, string[]> = {
   employees: [
     'employee_code','first_name','last_name','email','personal_email','phone',

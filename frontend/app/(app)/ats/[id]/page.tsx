@@ -71,8 +71,7 @@ export default function CandidateDetailPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const id = parseInt(params.id as string, 10);
-  const { isHR, isAdmin, isManager } = usePermission();
-  const canManage = isHR || isAdmin || isManager;
+  const { canEdit } = usePermission();
 
   // Modal open states
   const [editOpen, setEditOpen] = useState(false);
@@ -143,7 +142,7 @@ export default function CandidateDetailPage() {
     );
 
     // -- view forms 
-    if (c.preinterview_form_status === 'Submitted' && canManage) {
+    if (c.preinterview_form_status === 'Submitted' && canEdit('recruitment')) {
       btns.push(
         <button
           key="forms"
@@ -156,7 +155,7 @@ export default function CandidateDetailPage() {
     }
 
     // ── Shortlisted
-    if (c.status === 'Shortlisted' && canManage) {
+    if (c.status === 'Shortlisted' && canEdit('recruitment')) {
       btns.push(
         <button
           key="schedule"
@@ -169,7 +168,7 @@ export default function CandidateDetailPage() {
     }
 
     // ── Interview scheduled
-    if (c.status === 'Interview_Scheduled' && canManage) {
+    if (c.status === 'Interview_Scheduled' && canEdit('recruitment')) {
       btns.push(
         <button
           key="reschedule"
@@ -201,7 +200,7 @@ export default function CandidateDetailPage() {
     }
 
     // ── Interview result
-    if (c.status === 'Interview_Result' && canManage) {
+    if (c.status === 'Interview_Result' && canEdit('recruitment')) {
       btns.push(
         <button
           key="result"
@@ -218,7 +217,7 @@ export default function CandidateDetailPage() {
     }
 
     // ── Offered
-    if (c.status === 'Offered' && canManage) {
+    if (c.status === 'Offered' && canEdit('recruitment')) {
       btns.push(
         <button
           key="offer"
@@ -302,8 +301,8 @@ export default function CandidateDetailPage() {
 
           <div className="ph-r">
             <button className="btn btn-sec btn-sm" onClick={() => router.push('/ats')}>← Back</button>
-            {canManage && <ActionBar />}
-            {canManage && (
+            {canEdit('recruitment') && <ActionBar />}
+            {canEdit('recruitment') && (
               <>
                 <button className="btn btn-sec btn-sm" onClick={() => setMoveOpen(true)}>Move Stage</button>
                 <button className="btn btn-sec btn-sm" onClick={() => setEditOpen(true)}>Edit</button>
@@ -319,7 +318,7 @@ export default function CandidateDetailPage() {
         </div>
 
         {/* ── Reschedule alert ───────────────────────────────────────── */}
-        {c.reschedule_requested && c.reschedule_status === 'Pending' && canManage && (
+        {c.reschedule_requested && c.reschedule_status === 'Pending' && canEdit('recruitment') && (
           <div style={{
             background: 'var(--amber-lt)', border: '1px solid var(--amber-bd)',
             borderRadius: 'var(--r)', padding: '12px 16px', marginBottom: 16,
@@ -359,7 +358,7 @@ export default function CandidateDetailPage() {
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--purple)', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   📅 Interview Scheduled
-                  {canManage && (
+                  {canEdit('recruitment') && (
                     <button className="btn btn-sec btn-sm" onClick={() => setScheduleOpen(true)}>
                       Reschedule
                     </button>
@@ -387,7 +386,7 @@ export default function CandidateDetailPage() {
                   </div>
                 )}
                 {/* Pre-interview form send button after acceptance */}
-                {c.interview_accepted === true && canManage && (
+                {c.interview_accepted === true && canEdit('recruitment') && (
                   <button
                     className="btn btn-sec btn-sm"
                     style={{ marginTop: 12, width: '100%' }}
@@ -438,7 +437,7 @@ export default function CandidateDetailPage() {
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--green)', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   ✉ Offer Details
-                  {c.status === 'Offered' && canManage && (
+                  {c.status === 'Offered' && canEdit('recruitment') && (
                     <button className="btn btn-sec btn-sm" onClick={() => setOfferOpen(true)}>
                       {c.offer_sent_at ? 'Resend Offer' : 'Send Offer'}
                     </button>
@@ -456,12 +455,12 @@ export default function CandidateDetailPage() {
                     </a>
                   </div>
                 )}
-                {c.status === 'Offered' && !c.offer_sent_at && canManage && (
+                {c.status === 'Offered' && !c.offer_sent_at && canEdit('recruitment') && (
                   <button className="btn btn-pri btn-sm" style={{ marginTop: 12, width: '100%', background: 'var(--green)', borderColor: 'var(--green)' }} onClick={() => setOfferOpen(true)}>
                     ✉ Send Offer Letter
                   </button>
                 )}
-                {c.status === 'Offered' && canManage && (
+                {c.status === 'Offered' && canEdit('recruitment') && (
                   <button className="btn btn-pri btn-sm" style={{ marginTop: 8, width: '100%' }} onClick={() => setHireOpen(true)}>
                     🎉 Confirm Hire
                   </button>
@@ -497,7 +496,7 @@ export default function CandidateDetailPage() {
                     {c.withdrawal_reason}
                   </div>
                 )}
-                {canManage && (
+                {canEdit('recruitment') && (
                   <button className="btn btn-sec btn-sm" style={{ marginTop: 10 }} onClick={() => setMoveOpen(true)}>
                     ↩ Re-activate
                   </button>
@@ -618,7 +617,7 @@ export default function CandidateDetailPage() {
                       View / Download →
                     </a>
                   </div>
-                  {canManage && (
+                  {canEdit('recruitment') && (
                     <label style={{ cursor: 'pointer' }}>
                       <input type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
                         onChange={e => { const f = e.target.files?.[0]; if (f) resumeMutation.mutate(f); }} />
@@ -629,7 +628,7 @@ export default function CandidateDetailPage() {
               ) : (
                 <div style={{ textAlign: 'center', padding: '16px 0' }}>
                   <div style={{ fontSize: 12, color: 'var(--ink4)', marginBottom: 10 }}>No resume uploaded</div>
-                  {canManage && (
+                  {canEdit('recruitment') && (
                     <label style={{ cursor: 'pointer' }}>
                       <input type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
                         onChange={e => { const f = e.target.files?.[0]; if (f) resumeMutation.mutate(f); }} />
@@ -657,7 +656,7 @@ export default function CandidateDetailPage() {
                   : <Chip variant="gray">Not sent</Chip>
               } />
               <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                {canManage && (
+                {canEdit('recruitment') && (
                   <button className="btn btn-sec btn-sm" onClick={() => setPortalOpen(true)} style={{ flex: 1 }}>
                     {c.is_portal_user ? '🔑 Reset Portal Password' : '🌐 Grant Portal Access'}
                   </button>
@@ -674,7 +673,7 @@ export default function CandidateDetailPage() {
                   ? <Chip variant="green">✓ Unlocked</Chip>
                   : <Chip variant="gray">Not unlocked</Chip>
               } />
-              {c.status === 'Offered' && canManage && (
+              {c.status === 'Offered' && canEdit('recruitment') && (
                 <button
                   className="btn btn-sec btn-sm"
                   style={{

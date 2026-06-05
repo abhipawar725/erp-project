@@ -17,10 +17,7 @@ export const SYSTEM_GROUPS = [
     description: 'Full HR operations — employee lifecycle, leave, attendance',
     color:       '#1e56d9',
     is_system:   true,
-    slug_grants: [
-      'employees:view','employees:edit','employees:mask','employees:print', 'employees:copy','employees:download',
-      'cadidates:view','cadidates:edit','cadidates:mask','cadidates:print', 'cadidates:copy','cadidates:download',
-    ],
+    slug_grants: [] as string[], // handled by is_super_admin flag
   },
   {
     name:        'Finance Manager',

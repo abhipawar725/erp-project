@@ -1,26 +1,56 @@
-'use client';
 import { useAppSelector } from '../store';
-import { selectPermissions, selectCurrentRole } from '../store/slices/authSlice';
+import { selectUser, selectIsSuperAdmin, selectCurrentRole, selectPermissions } from '../store/slices/authSlice';
 
 export function usePermission() {
+  const user = useAppSelector(selectUser);
   const permissions = useAppSelector(selectPermissions);
-  const role = useAppSelector(selectCurrentRole);
+  const isSuperAdmin = useAppSelector(selectIsSuperAdmin);
 
   const hasPermission = (slug: string): boolean => {
-    if (role === 'hr' || role === 'admin') return true;
-    return permissions.includes(slug);
+    if (!user) return false;
+    if (isSuperAdmin) return true;
+
+    return (
+      permissions.includes('*') ||
+      permissions.includes(slug)
+    );
   };
 
-  const hasAnyPermission = (...slugs: string[]): boolean =>
+  const hasAnyPermission = (...slugs: string[]) =>
     slugs.some(hasPermission);
 
-  const hasAllPermissions = (...slugs: string[]): boolean =>
+  const hasAllPermissions = (...slugs: string[]) =>
     slugs.every(hasPermission);
 
-  const isHR = role === 'hr';
-  const isAdmin = role === 'admin';
-  const isManager = role === 'mgr';
-  const isEmployee = role === 'emp';
+  const canView = (module: string) =>
+    hasPermission(`${module}:view`);
 
-  return { hasPermission, hasAnyPermission, hasAllPermissions, role, isHR, isAdmin, isManager, isEmployee };
+  const canEdit = (module: string) =>
+    hasPermission(`${module}:edit`);
+
+  const canDelete = (module: string) =>
+    hasPermission(`${module}:delete`);
+
+  const canDownload = (module: string) =>
+    hasPermission(`${module}:download`);
+
+  const canMask = (module: string) =>
+    hasPermission(`${module}:mask`);
+
+  return {
+    user,
+    permissions,
+    isSuperAdmin,
+    employeeId: user?.employeeId ?? null,
+
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions,
+
+    canView,
+    canEdit,
+    canDelete,
+    canDownload,
+    canMask,
+  };
 }

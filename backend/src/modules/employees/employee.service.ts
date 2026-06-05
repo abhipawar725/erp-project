@@ -111,6 +111,8 @@ export class EmployeeService {
   // Create employee (full onboarding flow)
   // ─────────────────────────────────────────────────────────────
   async create(dto: CreateEmployeeDto, actorId?: number, ipAddress?: string): Promise<Employee> {
+    console.log("dto", dto)
+    console.log("actorid", actorId)
     // Duplicate check: employee_code and email must be unique per company
     const existing = await Employee.findOne({
       where: {

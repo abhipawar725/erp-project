@@ -1,4 +1,3 @@
-import { Op } from 'sequelize';
 import { Role, Permission, RolePermission } from '../../database/models/RoleModels';
 import { RoleAssignment }                    from '../../database/models/FormBuilder';
 import { User }                              from '../../database/models/User';
@@ -99,9 +98,10 @@ export class RolesService {
   }
 
   async setPermissions(roleId: number, companyId: number, permSlugs: string[], updatedBy?: number) {
+    console.log("data", roleId, companyId, permSlugs, updatedBy)
     await this.getById(roleId, companyId);
     const permissions = await Permission.findAll({ where: { slug: permSlugs } });
-
+   console.log("permissions-", permissions)
     // Replace all
     await RolePermission.destroy({ where: { role_id: roleId } });
     await RolePermission.bulkCreate(permissions.map(p => ({ role_id: roleId, permission_id: p.id })));

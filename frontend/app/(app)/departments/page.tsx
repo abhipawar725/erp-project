@@ -18,7 +18,7 @@ import { getInitials }         from '../../../utils/formatters';
 export default function DepartmentsPage() {
   const dispatch = useAppDispatch();
   const router   = useRouter();
-  const { canManageEmployees } = usePermission();
+  const { canEdit } = usePermission();
 
   const [search,       setSearch]       = useState('');
   const [formOpen,     setFormOpen]     = useState(false);
@@ -54,7 +54,7 @@ export default function DepartmentsPage() {
   };
 
   return (
-    <AppShell onAddNew={canManageEmployees ? openCreate : undefined}>
+    <AppShell onAddNew={canEdit('department') ? openCreate : undefined}>
       <div className="pg-enter">
 
         {/* Header */}
@@ -83,7 +83,7 @@ export default function DepartmentsPage() {
                 </button>
               ))}
             </div>
-            {canManageEmployees && (
+            {canEdit('department') && (
               <button className="btn btn-pri btn-sm" onClick={openCreate}>+ Add Department</button>
             )}
           </div>
@@ -124,7 +124,7 @@ export default function DepartmentsPage() {
                     <div style={{ fontSize: 32, marginBottom: 12 }}>🏢</div>
                     <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>No departments yet</div>
                     <div style={{ fontSize: 12 }}>Create your first department to start organising your team</div>
-                    {canManageEmployees && (
+                    {canEdit('department') && (
                       <button className="btn btn-pri btn-sm" style={{ marginTop: 16 }} onClick={openCreate}>
                         + Add Department
                       </button>
@@ -203,7 +203,7 @@ export default function DepartmentsPage() {
                       )}
 
                       {/* Actions */}
-                      {canManageEmployees && (
+                      {canEdit('department') && (
                         <div style={{ display: 'flex', gap: 6, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
                           <Chip variant="blue"  onClick={() => router.push(`/departments/${dept.id}`)}>View</Chip>
                           <Chip variant="gray"  onClick={() => openEdit(dept)}>Edit</Chip>
@@ -230,7 +230,7 @@ export default function DepartmentsPage() {
                     <th>Designations</th>
                     <th>Parent</th>
                     <th>Status</th>
-                    {canManageEmployees && <th>Actions</th>}
+                    {canEdit('department') && <th>Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -268,7 +268,7 @@ export default function DepartmentsPage() {
                             {dept.parent?.name ?? '—'}
                           </td>
                           <td><Chip variant={dept.is_active ? 'green' : 'gray'}>{dept.is_active ? 'Active' : 'Inactive'}</Chip></td>
-                          {canManageEmployees && (
+                          {canEdit('department') && (
                             <td>
                               <div style={{ display: 'flex', gap: 4 }}>
                                 <Chip variant="gray" onClick={() => openEdit(dept)}>Edit</Chip>

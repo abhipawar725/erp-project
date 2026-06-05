@@ -5,11 +5,10 @@ import { setPageTitle }        from '../../../../store/slices/uiSlice';
 import { AppShell }            from '../../../../layouts/AppLayout';
 import { Modal }               from '../../../../components/ui/Modal';
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
-import { useSystemPermissions, useRoleMembers, usePermissionMatrix, useBulkSetPermissions } from '../../../../hooks/useRbac';
 import { showToast } from '../../../../utils/toast';
 import apiClient     from '../../../../services/api/client';
 import type { ApiResponse }          from '../../../../types/api.types';
-import type { DynamicField, Role as RbacRole, SystemPermission } from '../../../../features/rbac/types/rbac.types';
+import { Eye, SquarePen, Trash2, Download, Delete } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,26 +30,16 @@ interface Employee { id: number; first_name: string; last_name: string; employee
 
 const MODULES = [
   { key:'recruitment',   label:'Recruitment / ATS'   },
-  { key:'offers',        label:'Offer Management'     },
-  { key:'prejoin',       label:'Pre-Joining Portal'   },
-  { key:'onboarding',   label:'Onboarding'           },
-  { key:'exit',          label:'Exit & FNF'           },
-  { key:'payroll',       label:'Payroll'              },
-  { key:'leaves',        label:'Leave Management'     },
-  { key:'attendance',    label:'Attendance'           },
-  { key:'assets',        label:'Asset Management'     },
-  { key:'kra',           label:'KRA / Performance'    },
-  { key:'tasks',         label:'Tasks & Workflows'    },
+  { key:'aptitude',      label:'Aptitude Test'   },
   { key:'employees',     label:'Employee Directory'   },
-  { key:'analytics',     label:'Analytics & Reports'  },
-  { key:'compliance',    label:'Compliance & Audit'   },
-  { key:'templates',     label:'Template Management'  },
+  { key:'department',    label:'Department'  },
+  { key:'designation',   label:'Designation'   },
   { key:'settings',      label:'Settings & RBAC'      },
 ];
 
-const PERMS    = ['view','edit','print','download','copy','mask'] as const;
-const PERM_ICONS: Record<string, string> = { view:'👁', edit:'✏️', print:'🖨', download:'⬇', copy:'⎘', mask:'⬛' };
-const PERM_LABELS: Record<string, string> = { view:'View', edit:'Edit', print:'Print', download:'Download', copy:'Copy', mask:'Mask Data' };
+const PERMS    = ['view','edit','delete','download'] as const;
+const PERM_ICONS:Record<string, React.ReactNode> = { view: <Eye size={16} />, edit: <SquarePen size={16} />, delete: <Trash2 size={16} />, download: <Delete size={16} />};
+const PERM_LABELS: Record<string, string> = { view:'View', edit:'Edit', delete:'Delete', download:'Download'};
 
 type ModulePerms = Record<string, Record<string, boolean>>;
 
@@ -197,7 +186,7 @@ function GroupCard({ group, members, onEdit, onFieldPerms, onDelete }: {
           <span style={{ fontSize: 11, color: 'var(--ink4)', fontStyle: 'italic' }}>None assigned</span>
         ) : permSummary.map(({ p, count }) => (
           <span key={p} title={`${PERM_LABELS[p]}: ${count} modules`}
-            style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 99, padding: '1px 8px', fontSize: 10, fontWeight: 600, color: 'var(--ink3)', cursor: 'default' }}>
+            style={{ background: 'var(--surface2)', border: '1px solid var(--border)', display: 'flex', gap: '4px', padding: '1px 8px', fontSize: 10, fontWeight: 600, color: 'var(--ink3)', cursor: 'default' }}>
             {PERM_ICONS[p]} {count}
           </span>
         ))}
@@ -266,7 +255,7 @@ function ModuleMatrix({ modPerms, onChange }: { modPerms: ModulePerms; onChange:
                 <td style={{ padding: '8px 10px', fontSize: 12, fontWeight: 500, color: 'var(--ink2)' }}>{m.label}</td>
                 {PERMS.map(p => (
                   <td key={p} style={{ padding: '7px 6px', textAlign: 'center' }}>
-                    <PermToggle on={!!modPerms[m.key]?.[p]} mask={p === 'mask'} onClick={() => toggle(m.key, p)} />
+                    <PermToggle on={!!modPerms[m.key]?.[p]} onClick={() => toggle(m.key, p)} />
                   </td>
                 ))}
               </tr>
@@ -386,17 +375,15 @@ const FP_FIELD_MODULES = [
 type PermissionKey =
   | 'view'
   | 'edit'
-  | 'print'
+  | 'delete'
   | 'download'
-  | 'copy'
   | 'mask';
 
 type FPPermission = {
   view: boolean;
   edit: boolean;
-  print: boolean;
+  delete: boolean;
   download: boolean;
-  copy: boolean;
   mask: boolean;
 };
 
@@ -417,7 +404,7 @@ function FieldPermissionsView({ groupId, onBack }: { groupId: number; onBack: ()
     const init: FPPerms = {};
     for (const m of FP_FIELD_MODULES) {
       for (const f of m.fields) {
-        init[`${m.key}:${f.k}`] = { view: true, edit: !f.sensitive, print: !f.sensitive, download: !f.sensitive, copy: !f.sensitive, mask: !!f.sensitive };
+        init[`${m.key}:${f.k}`] = { view: true, edit: !f.sensitive, delete: !f.sensitive, download: !f.sensitive, mask: !!f.sensitive };
       }
     }
     setFp(init);
@@ -439,7 +426,7 @@ const toggleFP = (key: string, perm: PermissionKey) => {
       const next = { ...prev };
       for (const f of selMod.fields) {
         const k = `${selMod.key}:${f.k}`;
-        next[k] = { view: true, edit: true, print: true, download: true, copy: true, mask: false };
+        next[k] = { view: true, edit: true, delete: true, download: true, mask: false };
       }
       return next;
     });
@@ -451,7 +438,7 @@ const toggleFP = (key: string, perm: PermissionKey) => {
       const next = { ...prev };
       for (const f of selMod.fields) {
         const k = `${selMod.key}:${f.k}`;
-        next[k] = { view: false, edit: false, print: false, download: false, copy: false, mask: false };
+        next[k] = { view: false, edit: false, delete: false, download: false, mask: false };
       }
       return next;
     });
@@ -561,7 +548,7 @@ const toggleFP = (key: string, perm: PermissionKey) => {
                         </td>
                         {PERMS.map(p => (
                           <td key={p} style={{ padding: '7px 6px', textAlign: 'center' }}>
-                            <PermToggle on={!!(fpf as any)[p]} mask={p === 'mask'} onClick={() => toggleFP(fk, p)} />
+                            <PermToggle on={!!(fpf as any)[p]} onClick={() => toggleFP(fk, p)} />
                           </td>
                         ))}
                       </tr>

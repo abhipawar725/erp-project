@@ -31,9 +31,8 @@ export interface FieldPermissionMap {
   [fieldName: string]: {
     can_view:     boolean;
     can_edit:     boolean;
-    can_print:    boolean;
+    can_delete:    boolean;
     can_download: boolean;
-    can_copy:     boolean;
     is_masked:    boolean;
   };
 }
@@ -102,9 +101,8 @@ async function loadPermissionsForRole(roleId: number): Promise<RolePermissionCac
     fieldPermissions[fp.module][fp.field_name] = {
       can_view:     fp.can_view,
       can_edit:     fp.can_edit,
-      can_print:    fp.can_print,
+      can_delete:    fp.can_delete,
       can_download: fp.can_download,
-      can_copy:     fp.can_copy,
       is_masked:    fp.is_masked,
     };
   }

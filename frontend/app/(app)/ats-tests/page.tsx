@@ -15,7 +15,7 @@ import {
 export default function AptitudeTestsPage() {
   const dispatch = useAppDispatch();
   const router   = useRouter();
-  const { canManageEmployees } = usePermission();
+  const { canEdit } = usePermission();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AptitudeTest | null>(null);
@@ -31,7 +31,7 @@ export default function AptitudeTestsPage() {
   const withPassMark   = tests.filter(t => t.pass_marks != null).length;
 
   return (
-    <AppShell onAddNew={canManageEmployees ? () => setCreateOpen(true) : undefined}>
+    <AppShell onAddNew={canEdit('recruitment') ? () => setCreateOpen(true) : undefined}>
       <div className="pg-enter">
 
         <div className="ph">
@@ -40,7 +40,7 @@ export default function AptitudeTestsPage() {
             <p>Create MCQ test papers · Set pass marks · View candidate results (HR only)</p>
           </div>
           <div className="ph-r">
-            {canManageEmployees && (
+            {canEdit('recruitment') && (
               <button className="btn btn-pri btn-sm" onClick={() => setCreateOpen(true)}>
                 + New Test
               </button>
@@ -69,7 +69,7 @@ export default function AptitudeTestsPage() {
             <div style={{ fontSize: 36, marginBottom: 12 }}>🧠</div>
             <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 8 }}>No aptitude tests yet</div>
             <div style={{ fontSize: 12, marginBottom: 20 }}>Create your first test to start evaluating candidates</div>
-            {canManageEmployees && (
+            {canEdit('recruitment') && (
               <button className="btn btn-pri btn-sm" onClick={() => setCreateOpen(true)}>
                 + Create First Test
               </button>
@@ -82,7 +82,7 @@ export default function AptitudeTestsPage() {
                 key={test.id}
                 test={test}
                 onEdit={t => { setEditTarget(t); setCreateOpen(true); }}
-                canManage={canManageEmployees}
+                canManage={canEdit('recruitment')}
               />
             ))}
           </div>

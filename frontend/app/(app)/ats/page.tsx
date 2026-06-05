@@ -34,8 +34,7 @@ import { Dropdown } from 'primereact/dropdown';
 export default function ATSPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { isHR, isAdmin, isManager } = usePermission();
-  const canManage = isHR || isAdmin || isManager;
+  const { canEdit, canDelete, canView, } = usePermission();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -265,13 +264,13 @@ export default function ATSPage() {
                         <span style={{ fontSize: 9, color: 'var(--purple)', fontWeight: 700 }}>📅 {formatDate(c.interview_date)}</span>
                       )}
                     </div>
-                    {c.status === 'Interview_Result' && canManage && (
+                    {c.status === 'Interview_Result' && canEdit('recruitment') && (
                       <button type="button" onClick={e => { e.stopPropagation(); setResultTarget(c); }}
                         style={{ marginTop: 6, width: '100%', padding: '4px 0', background: 'var(--teal-lt)', border: '1px solid var(--teal-bd)', borderRadius: 5, fontSize: 10, color: 'var(--teal)', cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 600 }}>
                         🎯 Record Result
                       </button>
                     )}
-                    {canManage && (
+                    {canEdit('recruitment') && (
                       <div style={{ display: 'flex', gap: 4, marginTop: 8 }} onClick={e => e.stopPropagation()}>
                         <button type="button" onClick={() => setMoveTarget(c)}
                           style={{ flex: 1, padding: '3px 0', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 5, fontSize: 10, color: 'var(--ink4)', cursor: 'pointer', fontFamily: 'var(--font)' }}>
@@ -316,7 +315,7 @@ export default function ATSPage() {
   };
 
   return (
-    <AppShell onAddNew={canManage ? openCreate : undefined}>
+    <AppShell onAddNew={canEdit('recruitment') ? openCreate : undefined}>
       <div className="pg-enter">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
@@ -334,7 +333,7 @@ export default function ATSPage() {
                 </button>
               ))}
             </div>
-            {canManage && (
+            {canEdit('recruitment') && (
               <>
                 <button className="btn btn-sec btn-sm" onClick={() => setBulkOpen(true)}>↑ Bulk Import</button>
                 <button className="btn btn-pri btn-sm" onClick={openCreate}>+ Add Candidate</button>
@@ -694,7 +693,7 @@ export default function ATSPage() {
               body={(c) => (
                 <ResumeColumn
                   c={c}
-                  canManage={canManage}
+                  canManage={canEdit('recruitment')}
                 />
               )}
             />
@@ -712,7 +711,7 @@ export default function ATSPage() {
 
             {/* Actions */}
 
-            {canManage && (
+            {canEdit('recruitment') && (
               <Column
                 header="Actions"
                 exportable={false}
@@ -738,13 +737,14 @@ export default function ATSPage() {
                     >
                       Move
                     </Chip>
-
-                    <Chip
+                    {canDelete('recruitment') && (
+                      <Chip
                       variant="red"
                       onClick={() => setDeleteTarget(c)}
-                    >
+                      >
                       Delete
                     </Chip>
+                    )} 
                   </div>
                 )}
               />
