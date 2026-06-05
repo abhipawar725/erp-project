@@ -18,13 +18,8 @@ export const SYSTEM_GROUPS = [
     color:       '#1e56d9',
     is_system:   true,
     slug_grants: [
-      'employees:view','employees:edit','employees:mask','employees:download',
-      'attendance:view','attendance:edit','attendance:download',
-      'leaves:view','leaves:edit','leaves:approve',
-      'payroll:view',
-      'departments:view','departments:edit',
-      'recruitment:view','recruitment:edit',
-      'compliance:view',
+      'employees:view','employees:edit','employees:mask','employees:print', 'employees:copy','employees:download',
+      'cadidates:view','cadidates:edit','cadidates:mask','cadidates:print', 'cadidates:copy','cadidates:download',
     ],
   },
   {
@@ -33,11 +28,7 @@ export const SYSTEM_GROUPS = [
     description: 'Payroll, expenses, and financial reports',
     color:       '#0d8a7e',
     is_system:   true,
-    slug_grants: [
-      'employees:view',
-      'payroll:view','payroll:edit','payroll:approve','payroll:download',
-      'compliance:view',
-    ],
+    slug_grants: [] as string[],
   },
   {
     name:        'Payroll Executive',
@@ -45,10 +36,7 @@ export const SYSTEM_GROUPS = [
     description: 'Process and manage payroll — no delete access',
     color:       '#6c31d9',
     is_system:   true,
-    slug_grants: [
-      'employees:view',
-      'payroll:view','payroll:edit','payroll:download',
-    ],
+    slug_grants: [] as string[],
   },
   {
     name:        'Recruiter',
@@ -56,10 +44,7 @@ export const SYSTEM_GROUPS = [
     description: 'End-to-end recruitment and ATS management',
     color:       '#c96f00',
     is_system:   true,
-    slug_grants: [
-      'recruitment:view','recruitment:edit','recruitment:mask',
-      'employees:view',
-    ],
+    slug_grants: [] as string[],
   },
   {
     name:        'Department Manager',
@@ -67,12 +52,7 @@ export const SYSTEM_GROUPS = [
     description: 'Manage team members, approve leaves and attendance',
     color:       '#0d9669',
     is_system:   true,
-    slug_grants: [
-      'employees:view',
-      'attendance:view','attendance:edit',
-      'leaves:view','leaves:approve',
-      'departments:view',
-    ],
+    slug_grants: [] as string[],
   },
   {
     name:        'IT Admin',
@@ -80,12 +60,7 @@ export const SYSTEM_GROUPS = [
     description: 'Asset management, system settings',
     color:       '#64748b',
     is_system:   true,
-    slug_grants: [
-      'assets:view','assets:create','assets:edit','assets:mask',
-      'assets:assign','assets:return','assets:manage_categories',
-      'assets:maintenance','assets:audit','assets:download',
-      'settings:view','settings:edit',
-    ],
+    slug_grants: [] as string[],
   },
   {
     name:        'Employee Self-Service',
@@ -93,12 +68,7 @@ export const SYSTEM_GROUPS = [
     description: 'View own data, apply for leaves, request assets',
     color:       '#94a3b8',
     is_system:   true,
-    slug_grants: [
-      'employees:view',
-      'leaves:view','leaves:edit',
-      'attendance:view',
-      'assets:request',
-    ],
+    slug_grants: ['employees:view'],
   },
 ] as const;
 

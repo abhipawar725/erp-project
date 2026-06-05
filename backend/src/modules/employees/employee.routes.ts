@@ -32,7 +32,7 @@ router.use(authenticate);
 // ─── Collection routes ────────────────────────────────────────────────────────
 
 /** GET /api/employees — paginated list with filters */
-router.get('/', listEmployeeValidation, validate, getEmployees);
+router.get('/', listEmployeeValidation, validate, authorize('employees:view'), getEmployees);
 
 /** GET /api/employees/summary — dashboard stats */
 // router.get('/summary', getSummary);
@@ -45,13 +45,14 @@ router.post(
   '/',
   createEmployeeValidation,
   validate,
+  authorize('employees:edit'),
   createEmployee,
 );
 
 // ─── Item routes ──────────────────────────────────────────────────────────────
 
 /** GET /api/employees/:id — full profile */
-router.get('/:id', employeeIdValidation, validate, getEmployee);
+router.get('/:id', employeeIdValidation, validate, authorize('employees:view'), getEmployee);
 
 /** PUT /api/employees/:id — full update */
 router.put(
@@ -59,6 +60,7 @@ router.put(
 
   employeeIdValidation,
   validate,
+  authorize('employees:edit'),
   updateEmployee,
 );
 
@@ -74,9 +76,9 @@ router.put(
 /** DELETE /api/employees/:id — soft delete */
 router.delete(
   '/:id',
-
   employeeIdValidation,
   validate,
+  authorize('employees:delete'),
   deleteEmployee,
 );
 

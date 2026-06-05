@@ -18,40 +18,40 @@ const TEMPLATE_DEFS = [
   { slug: 'employee',    name: 'Employee',           sort_order: 4 },
 ] as const;
 
-type TemplatePerm = { module: string; can_view: boolean; can_create: boolean; can_edit: boolean; can_delete: boolean; can_approve: boolean; can_export: boolean };
+type TemplatePerm = { module: string; can_view: boolean; can_copy: boolean; can_edit: boolean; can_download: boolean; can_mask: boolean };
 
 const TEMPLATE_PERMS: Record<string, TemplatePerm[]> = {
   super_admin: [
-    { module:'employees',  can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
-    { module:'payroll',    can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
-    { module:'attendance', can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
-    { module:'leaves',     can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
-    { module:'recruitment',can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
-    { module:'assets',     can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
-    { module:'settings',   can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
-    { module:'companies',  can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
-    { module:'reports',    can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
+    { module:'employees',  can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
+    { module:'payroll',    can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
+    { module:'attendance', can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
+    { module:'leaves',     can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
+    { module:'recruitment',can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
+    { module:'assets',     can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
+    { module:'settings',   can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
+    { module:'companies',  can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
+    { module:'reports',    can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
   ],
   hr_manager: [
-    { module:'employees',  can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:true,  can_export:true  },
-    { module:'payroll',    can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:true,  can_export:true  },
-    { module:'attendance', can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:true,  can_export:true  },
-    { module:'leaves',     can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:true,  can_export:true  },
-    { module:'recruitment',can_view:true,  can_create:true,  can_edit:true,  can_delete:true,  can_approve:true,  can_export:true  },
-    { module:'assets',     can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:false, can_export:true  },
-    { module:'settings',   can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:false },
-    { module:'reports',    can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:true  },
+    { module:'employees',  can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:true},
+    { module:'payroll',    can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:true},
+    { module:'attendance', can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:true},
+    { module:'leaves',     can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:true},
+    { module:'recruitment',can_view:true,  can_copy:true,  can_edit:true,  can_download:true,  can_mask:true},
+    { module:'assets',     can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:false},
+    { module:'settings',   can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
+    { module:'reports',    can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
   ],
   manager: [
-    { module:'employees',  can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:false },
-    { module:'attendance', can_view:true,  can_create:true,  can_edit:true,  can_delete:false, can_approve:false, can_export:false },
-    { module:'leaves',     can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:true,  can_export:false },
-    { module:'reports',    can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:false },
+    { module:'employees',  can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
+    { module:'attendance', can_view:true,  can_copy:true,  can_edit:true,  can_download:false, can_mask:false},
+    { module:'leaves',     can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:true},
+    { module:'reports',    can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
   ],
   employee: [
-    { module:'employees',  can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:false },
-    { module:'attendance', can_view:true,  can_create:false, can_edit:false, can_delete:false, can_approve:false, can_export:false },
-    { module:'leaves',     can_view:true,  can_create:true,  can_edit:false, can_delete:false, can_approve:false, can_export:false },
+    { module:'employees',  can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
+    { module:'attendance', can_view:true,  can_copy:false, can_edit:false, can_download:false, can_mask:false},
+    { module:'leaves',     can_view:true,  can_copy:true,  can_edit:false, can_download:false, can_mask:false},
   ],
 };
 
@@ -89,7 +89,7 @@ export async function seedDatabase(): Promise<void> {
     logger.info('✅ Role templates + permissions seeded');
 
     // ── 3. Per-company roles + module permissions ────────────────────────────
-    const templateMap = new Map(allTemplates.map(t => [t.slug, t]));
+const templateMap = new Map(allTemplates.map(t => [t.slug, t]));
     for (const def of TEMPLATE_DEFS) {
       const tmpl = templateMap.get(def.slug)!;
       const [role] = await Role.findOrCreate({
@@ -108,9 +108,6 @@ export async function seedDatabase(): Promise<void> {
           where:    { role_id: role.id, module: tp.module },
           defaults: {
             role_id: role.id, module: tp.module,
-            can_view: tp.can_view, can_create: tp.can_create,
-            can_edit: tp.can_edit, can_delete: tp.can_delete,
-            can_approve: tp.can_approve, can_export: tp.can_export,
           },
         });
       }

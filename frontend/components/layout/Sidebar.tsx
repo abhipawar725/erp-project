@@ -35,11 +35,11 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Talent Acquisition',
     items: [
-      { id:'ats',        label:'Sourcing (ATS)',     icon:'⇧', href:'/ats',        count:48, permission:'recruitment:view' },
-      { id:'pipeline',   label:'Pipeline / Kanban',  icon:'▤', href:'/pipeline',   count:23, permission:'recruitment:view' },
-      { id:'interviews', label:'Interviews',          icon:'📅',href:'/interviews', count:7,  permission:'recruitment:view' },
-      { id:'evaluation', label:'Evaluation Forms',    icon:'★', href:'/evaluation',           permission:'recruitment:view' },
-      { id:'pool',       label:'Candidate Pool',      icon:'◙', href:'/pool',                 permission:'recruitment:view' },
+      { id:'ats',        label:'Sourcing (ATS)',     icon:'⇧', href:'/ats', permission:'recruitment:view' },
+      { id:'pipeline',   label:'Pipeline / Kanban',  icon:'▤', href:'/pipeline',   permission:'recruitment:view' },
+      { id:'interviews', label:'Interviews',          icon:'📅',href:'/interviews', permission:'recruitment:view' },
+      { id:'evaluation', label:'Evaluation Forms',    icon:'★', href:'/evaluation', permission:'recruitment:view' },
+      { id:'pool',       label:'Candidate Pool',      icon:'◙', href:'/pool', permission:'recruitment:view' },
     ],
   },
   {
