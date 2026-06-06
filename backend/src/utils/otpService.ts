@@ -18,10 +18,10 @@ const MSG91_LENGTH = 6;
 
 // ─── SMS via MSG91 ────────────────────────────────────────────────────────────
 async function sendSms(phone: string, otp: string): Promise<void> {
-  // if (process.env.NODE_ENV !== 'production') {
-  //   logger.info(`[DEV] SMS skipped for ${phone}. OTP: ${otp}`);
-  //   return;
-  // }
+  if (process.env.NODE_ENV !== 'production') {
+    logger.info(`[DEV] SMS skipped for ${phone}. OTP: ${otp}`);
+    return;
+  }
 
   let mobile = phone.replace(/^\+/, '').replace(/\s+/g, '');
 
@@ -54,10 +54,10 @@ async function sendEmail(
   otp: string,
   employeeId: number,
 ): Promise<void> {
-  //   if (process.env.NODE_ENV !== 'production') {
-  //   logger.info(`[DEV] Email skipped for ${email}. OTP: ${otp}`);
-  //   return;
-  // }
+    if (process.env.NODE_ENV !== 'production') {
+    logger.info(`[DEV] Email skipped for ${email}. OTP: ${otp}`);
+    return;
+  }
 
   await sendMail({
     to: email,

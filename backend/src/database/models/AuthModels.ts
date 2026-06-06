@@ -84,7 +84,7 @@ export class RoleTemplatePermission extends Model {
   public module!:      string;
   public can_view!:    boolean;
   public can_edit!:    boolean;
-  public can_copy!:  boolean;
+  public can_delete!:  boolean;
   public can_download!:  boolean;
   public can_mask!: boolean;
 }
@@ -95,7 +95,7 @@ RoleTemplatePermission.init({
   module:      { type: DataTypes.STRING(100), allowNull: false },
   can_view:    { type: DataTypes.BOOLEAN, defaultValue: false },
   can_edit:    { type: DataTypes.BOOLEAN, defaultValue: false },
-  can_copy:  { type: DataTypes.BOOLEAN, defaultValue: false },
+  can_delete:  { type: DataTypes.BOOLEAN, defaultValue: false },
   can_download:  { type: DataTypes.BOOLEAN, defaultValue: false },
   can_mask: { type: DataTypes.BOOLEAN, defaultValue: false },
 }, {

@@ -16,12 +16,14 @@ import { userPermissionsRouter } from '../modules/user-permissions/userPermissio
 // import { assetRouter } from '../modules/assets/asset.controller';
 import { permissionGroupRouter } from '../modules/permission-groups/permissionGroups.controller';
 import { superAdminRouter } from '../modules/super-admin/superAdmin.routes';
-import { adminRouter } from '@/modules/admin/admin.controller';
+import { adminRouter } from '../modules/admin/admin.controller';
 import { companyUsersRouter, companyEmployeesRouter } from '../modules/admin/company-users-controller';
+import { companyRouter } from '../modules/company/company.controller';
 
 const router = Router();
 
 router.get('/health', (_req, res) => res.json({ success: true, message: 'NexHR API running', version: '2.0.0', timestamp: new Date().toISOString() }));
+
 
 router.use('/auth', authRoutes);
 router.use('/employees', employeeRoutes);
@@ -41,5 +43,6 @@ router.use('/permission-groups', permissionGroupRouter);
 router.use('/admin', adminRouter);
 router.use('/admin/companies/:companyId/users',      companyUsersRouter);
 router.use('/admin/companies/:companyId/employees',  companyEmployeesRouter);
+router.use('/companies', companyRouter);
 
 export default router;

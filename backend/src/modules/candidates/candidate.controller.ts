@@ -9,8 +9,8 @@ import { Candidate } from '../../database/models/Candidate';
 import { hashPassword } from '../../utils/hash';
 import { sendResponse, sendPaginated, sendError } from '../../utils/response';
 import { env } from '../../config/env';
-import { mailer } from '@/utils/mailer';
-import { ActivityLog } from '@/database/models';
+import { mailer } from '../../utils/mailer';
+import { ActivityLog } from '../../database/models/ActivityLog';
 
 const MAX_ROWS = 5000;
 const REQUIRED_HEADERS = ['candidate_name'];

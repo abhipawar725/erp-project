@@ -173,14 +173,14 @@ interface RoleModulePermAttr {
   module:       string;
   can_view:     boolean;
   can_edit:     boolean;
-  can_copy:   boolean;
+  can_delete:   boolean;
   can_download:   boolean;
   can_mask:  boolean;
 }
 
 export class RoleModulePermission
   extends Model<RoleModulePermAttr, Optional<RoleModulePermAttr,
-    'id'|'can_view'|'can_edit'|'can_copy'|'can_download'|'can_mask'>>
+    'id'|'can_view'|'can_edit'|'can_delete'|'can_download'|'can_mask'>>
   implements RoleModulePermAttr
 {
   public id!:          number;
@@ -188,7 +188,7 @@ export class RoleModulePermission
   public module!:      string;
   public can_view!:    boolean;
   public can_edit!:    boolean;
-  public can_copy!:  boolean;
+  public can_delete!:  boolean;
   public can_download!:  boolean;
   public can_mask!: boolean;
 }
@@ -200,7 +200,7 @@ RoleModulePermission.init(
     module:      { type: DataTypes.STRING(100), allowNull: false },
     can_view:    { type: DataTypes.BOOLEAN, defaultValue: false },
     can_edit:    { type: DataTypes.BOOLEAN, defaultValue: false },
-    can_copy:  { type: DataTypes.BOOLEAN, defaultValue: false },
+    can_delete:  { type: DataTypes.BOOLEAN, defaultValue: false },
     can_download:  { type: DataTypes.BOOLEAN, defaultValue: false },
     can_mask: { type: DataTypes.BOOLEAN, defaultValue: false },
   },

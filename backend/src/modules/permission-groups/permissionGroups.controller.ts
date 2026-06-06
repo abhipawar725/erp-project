@@ -96,8 +96,10 @@ await group.update({ name, description, color, is_active });
   // ── Permission assignment ────────────────────────────────────────────────────
 
   async setPermissions(id: number, companyId: number, slugs: string[], updatedBy?: number) {
+    console.log("data", id, companyId, slugs, updatedBy)
     await this.getById(id, companyId);
     const permissions = await Permission.findAll({ where: { slug: slugs } });
+    console.log("permissions", permissions)
     await GroupPermission.destroy({ where: { group_id: id } });
     await GroupPermission.bulkCreate(permissions.map(p => ({ group_id: id, permission_id: p.id })));
 

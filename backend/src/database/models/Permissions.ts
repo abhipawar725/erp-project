@@ -7,11 +7,11 @@ export const PERMISSIONS = [
         { module: 'employees', action: 'mask', slug: 'employees:mask', description: 'View masked sensitive fields (salary, Aadhaar, PAN)' },
 
         // Aptitude
-        { module: 'apptitude', action: 'view', slug: 'apptitude:view', description: 'View candidates and pipeline' },
-        { module: 'apptitude', action: 'edit', slug: 'apptitude:edit', description: 'Edit apptitude records' },
-        { module: 'apptitude', action: 'delete', slug: 'apptitude:delete', description: 'Delete candidates' },
-        { module: 'apptitude', action: 'download', slug: 'apptitude:download', description: 'Download resumes and documents' },
-        { module: 'apptitude', action: 'mask', slug: 'apptitude:mask', description: 'View masked candidate fields' },
+        { module: 'aptitude', action: 'view', slug: 'aptitude:view', description: 'View candidates and pipeline' },
+        { module: 'aptitude', action: 'edit', slug: 'aptitude:edit', description: 'Edit aptitude records' },
+        { module: 'aptitude', action: 'delete', slug: 'aptitude:delete', description: 'Delete candidates' },
+        { module: 'aptitude', action: 'download', slug: 'aptitude:download', description: 'Download resumes and documents' },
+        { module: 'aptitude', action: 'mask', slug: 'aptitude:mask', description: 'View masked candidate fields' },
 
         // Recruitment
         { module: 'recruitment', action: 'view', slug: 'recruitment:view', description: 'View candidates and pipeline' },
@@ -21,18 +21,18 @@ export const PERMISSIONS = [
         { module: 'recruitment', action: 'mask', slug: 'recruitment:mask', description: 'View masked candidate fields' },
 
         // Departments
-        { module: 'departments', action: 'view', slug: 'departments:view', description: 'View departments' },
-        { module: 'departments', action: 'edit', slug: 'departments:edit', description: 'Edit departments' },
-        { module: 'departments', action: 'delete', slug: 'departments:delete', description: 'Delete departments' },
-        { module: 'departments', action: 'download', slug: 'departments:download', description: 'Download department data' },
-        { module: 'departments', action: 'mask', slug: 'departments:mask', description: 'Mask department data' },
+        { module: 'department', action: 'view', slug: 'department:view', description: 'View department' },
+        { module: 'department', action: 'edit', slug: 'department:edit', description: 'Edit department' },
+        { module: 'department', action: 'delete', slug: 'department:delete', description: 'Delete department' },
+        { module: 'department', action: 'download', slug: 'department:download', description: 'Download department data' },
+        { module: 'department', action: 'mask', slug: 'department:mask', description: 'Mask department data' },
 
         // Designations
-        { module: 'designations', action: 'view', slug: 'designations:view', description: 'View designations' },
-        { module: 'designations', action: 'edit', slug: 'designations:edit', description: 'Edit designations' },
-        { module: 'designations', action: 'delete', slug: 'designations:delete', description: 'Delete designations' },
-        { module: 'designations', action: 'download', slug: 'designations:download', description: 'Download designation data' },
-        { module: 'designations', action: 'mask', slug: 'designations:mask', description: 'Mask designation data' },
+        { module: 'designation', action: 'view', slug: 'designation:view', description: 'View designation' },
+        { module: 'designation', action: 'edit', slug: 'designation:edit', description: 'Edit designation' },
+        { module: 'designation', action: 'delete', slug: 'designation:delete', description: 'Delete designation' },
+        { module: 'designation', action: 'download', slug: 'designation:download', description: 'Download designation data' },
+        { module: 'designation', action: 'mask', slug: 'designation:mask', description: 'Mask designation data' },
 
         // Settings
         { module: 'settings', action: 'view', slug: 'settings:view', description: 'View system settings' },

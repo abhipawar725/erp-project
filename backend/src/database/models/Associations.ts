@@ -45,6 +45,27 @@ import {
   AssetRequest, AssetMaintenance,
 }                                                        from './AssetModels';
 
+import { CompanyManager } from './CompanyManager';
+
+// Company ↔ CompanyManager ↔ Employee (many-to-many)
+Company.hasMany(CompanyManager, { foreignKey: 'company_id', as: 'managers' });
+CompanyManager.belongsTo(Company,  { foreignKey: 'company_id', as: 'company'  });
+
+Employee.hasMany(CompanyManager, { foreignKey: 'employee_id', as: 'managedCompanies' });
+CompanyManager.belongsTo(Employee, { foreignKey: 'employee_id', as: 'employee' });
+
+Company.belongsToMany(Employee, {
+  through:    CompanyManager,
+  foreignKey: 'company_id',
+  otherKey:   'employee_id',
+  as:         'companyManagers',
+});
+Employee.belongsToMany(Company, {
+  through:    CompanyManager,
+  foreignKey: 'employee_id',
+  otherKey:   'company_id',
+  as:         'companies',
+});
 
 // ─── Company ──────────────────────────────────────────────────────────────────
 Employee.belongsTo(Company,  { foreignKey: 'company_id', as: 'company'   });

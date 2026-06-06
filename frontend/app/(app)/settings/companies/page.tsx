@@ -1,295 +1,376 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useParams }           from 'next/navigation';
-import { useAppDispatch }      from '../../../../store';
-import { setPageTitle }        from '../../../../store/slices/uiSlice';
-import { AppShell }            from '../../../../layouts/AppLayout';
-import { Modal }               from '../../../../components/ui/Modal';
-import { usePermission }       from '../../../../features/auth/hooks/usePermission';
+import { useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAppDispatch } from '../../../../store';
+import { setPageTitle } from '../../../../store/slices/uiSlice';
+import { AppShell } from '../../../../layouts/AppLayout';
+import { Modal } from '../../../../components/ui/Modal';
+import { usePermission } from '../../../../hooks/usePermission';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient               from '../../../../services/api/client';
-import { showToast }           from '../../../../utils/toast';
-import { formatDate }          from '../../../../utils/formatters';
+import apiClient from '../../../../services/api/client';
+import { showToast } from '../../../../utils/toast';
+import { formatDate } from '../../../../utils/formatters';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface CompanyUser {
-  id:                  number;
-  email:               string;
-  is_active:           boolean;
-  has_employee_record: boolean;
-  full_name:           string | null;
-  role:                { id: number; name: string; slug: string } | null;
-  employee?:           { id: number; employee_code: string } | null;
-  created_at:          string;
+interface Company {
+  id: number;
+  name: string;
+  slug: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string;
+  industry?: string | null;
+  email?: string | null;
+  subscription_plan: string;
+  max_employees: number;
+  employee_count: number;
+  is_active: boolean;
+  onboarding_step: number;
+  created_at: string;
+  primary_manager?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    avatar_url?: string | null;
+  } | null;
 }
 
-interface CompanyEmployee {
-  id:              number;
-  employee_code:   string;
-  first_name:      string;
-  last_name:       string;
-  full_name:       string;
-  email:           string;
-  has_login:       boolean;
-  role?:           { name: string; slug: string } | null;
-  department?:     { id: number; name: string } | null;
-  designation?:    { id: number; name: string } | null;
-  date_of_joining: string | null;
+interface EligibleEmployee {
+  id: number;
+  full_name: string;
+  email: string;
+  employee_code: string;
+  is_super_admin: boolean;
 }
 
-interface Department { id: number; name: string; code: string; }
-interface Designation { id: number; name: string; }
-interface Role { id: number; name: string; slug: string; }
+interface PlatformStats {
+  totalCompanies: number;
+  activeCompanies: number;
+  suspendedCompanies: number;
+  totalEmployees: number;
+  plans: Record<string, number>;
+}
 
-// ─── Avatar ───────────────────────────────────────────────────────────────────
+// ─── Small components ─────────────────────────────────────────────────────────
+
+function StatusBadge({ c }: { c: Company }) {
+  if (!c.is_active) return <span className="badge-red">Suspended</span>;
+  if (c.onboarding_step < 5) return <span className="badge-amber">Setup</span>;
+  return <span className="badge-green">Active</span>;
+}
+
+function PlanBadge({ plan }: { plan: string }) {
+  const styles: Record<string, React.CSSProperties> = {
+    starter: { background: 'var(--surface2)', color: 'var(--ink4)' },
+    growth: { background: 'var(--blue-lt)', color: 'var(--blue)' },
+    enterprise: { background: 'var(--purple-lt)', color: 'var(--purple)' },
+  };
+  const s = styles[plan] || styles.starter;
+  return (
+    <span style={{
+      ...s, fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 99,
+      textTransform: 'uppercase', letterSpacing: '.05em', border: '1px solid transparent', whiteSpace: 'nowrap'
+    }}>
+      {plan}
+    </span>
+  );
+}
 
 function Av({ name, size = 32 }: { name: string; size?: number }) {
   const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   return (
-    <div style={{ width: size, height: size, borderRadius: '50%', background: 'linear-gradient(135deg,var(--blue),var(--purple))', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.35, fontWeight: 600, flexShrink: 0 }}>
+    <div style={{
+      width: size, height: size, borderRadius: '50%', background: 'linear-gradient(135deg,var(--blue),var(--purple))',
+      color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: size * .34, fontWeight: 700, flexShrink: 0
+    }}>
       {initials}
     </div>
   );
 }
 
-// ─── Add User Modal ───────────────────────────────────────────────────────────
+// ─── Stat card ────────────────────────────────────────────────────────────────
 
-function AddUserModal({ open, companyId, roles, onClose }: { open: boolean; companyId: number; roles: Role[]; onClose: () => void }) {
-  const qc = useQueryClient();
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [roleSlug, setRoleSlug] = useState('emp');
-
-  useEffect(() => { if (open) { setEmail(''); setPassword(''); setRoleSlug('emp'); } }, [open]);
-
-  const mutation = useMutation({
-    mutationFn: () => apiClient.post<any,any>(`/admin/companies/${companyId}/users`, { email, password, role_slug: roleSlug }),
-    onSuccess: (r: any) => {
-      qc.invalidateQueries({ queryKey: ['company-users', companyId] });
-      showToast(`✓ User ${r.data.email} created`);
-      onClose();
-    },
-    onError: (e: any) => showToast(e?.message || 'Failed'),
-  });
-
+function StatCard({ label, value, sub, color = 'var(--ink)' }: { label: string; value: number | string; sub?: string; color?: string }) {
   return (
-    <Modal open={open} onClose={onClose} title="Add User to Company" subtitle="Creates login credentials — convert to employee after to assign HR permissions" width={420}
-      footer={<>
-        <button className="btn btn-sec" onClick={onClose}>Cancel</button>
-        <button className="btn btn-pri" onClick={() => mutation.mutate()} disabled={!email || !password || mutation.isPending}>
-          {mutation.isPending ? 'Creating…' : '✓ Create User'}
-        </button>
-      </>}>
-      <div className="fg"><label>Email *</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} autoFocus placeholder="user@company.com" /></div>
-      <div className="fg"><label>Temporary Password *</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="min 6 characters" /></div>
-      <div className="fg">
-        <label>Role</label>
-        <select value={roleSlug} onChange={e => setRoleSlug(e.target.value)}>
-          {roles.map(r => <option key={r.id} value={r.slug}>{r.name}</option>)}
-        </select>
-      </div>
-      <div style={{ background: 'var(--blue-lt)', border: '1px solid var(--blue-md)', borderRadius: 'var(--r)', padding: '10px 14px', fontSize: 11, color: 'var(--blue)', marginTop: 6 }}>
-        ℹ After creating, click "Convert to Employee" on the user to create their HR record (name, department, designation). Only then will they appear in employee lists and permission assignments.
-      </div>
-    </Modal>
+    <div style={{
+      flex: 1, minWidth: 150, background: 'var(--surface)', border: '1px solid var(--border)',
+      borderRadius: 'var(--r3)', padding: '16px 20px', boxShadow: 'var(--sh)'
+    }}>
+      <div style={{ fontSize: 26, fontWeight: 500, color, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', marginTop: 4 }}>{label}</div>
+      {sub && <div style={{ fontSize: 11, color: 'var(--ink4)', marginTop: 2 }}>{sub}</div>}
+    </div>
   );
 }
 
-// ─── Convert to Employee Modal ────────────────────────────────────────────────
+// ─── Create Company Modal ─────────────────────────────────────────────────────
 
-function ConvertModal({ open, user, companyId, departments, designations, onClose }: {
-  open: boolean; user: CompanyUser | null; companyId: number;
-  departments: Department[]; designations: Designation[]; onClose: () => void;
-}) {
+function CreateModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const qc = useQueryClient();
-  const [f, setF] = useState({ first_name: '', last_name: '', department_id: '', designation_id: '', date_of_joining: new Date().toISOString().slice(0, 10), gender: '', phone: '' });
-  const F = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF(p => ({...p, [k]: e.target.value}));
+  const [step, setStep] = useState<1 | 2>(1);
+  const [search, setSearch] = useState('');
+  const [selectedMgrs, setSelectedMgrs] = useState<number[]>([]);
 
+  const [f, setF] = useState({
+    name: '',
+    city: '',
+    state: '',
+    country: 'India',
+    industry: '',
+    email: '',
+    phone: '',
+    subscription_plan: 'starter',
+    max_employees: '100',
+    timezone: 'Asia/Kolkata',
+    currency: 'INR',
+    // First admin employee
+    admin_first_name: '',
+    admin_last_name: '',
+    admin_email: '',
+    admin_phone: '',
+  });
+  const F = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setF(p => ({ ...p, [k]: e.target.value }));
+
+  // Reset on open
   useEffect(() => {
-    if (open && user) {
-      const parts = (user.full_name || '').split(' ');
-      setF(p => ({ ...p, first_name: parts[0] || '', last_name: parts.slice(1).join(' ') || '' }));
-    }
-  }, [open, user]);
+    if (open) { setStep(1); setSearch(''); setSelectedMgrs([]); setF(p => ({ ...p, name: '', admin_first_name: '', admin_last_name: '', admin_email: '', admin_phone: '' })); }
+  }, [open]);
 
-  const mutation = useMutation({
-    mutationFn: () => apiClient.post<any,any>(
-      `/admin/companies/${companyId}/users/${user!.id}/convert-to-employee`,
-      { ...f, department_id: f.department_id ? Number(f.department_id) : null, designation_id: f.designation_id ? Number(f.designation_id) : null }
-    ),
-    onSuccess: (r: any) => {
-      qc.invalidateQueries({ queryKey: ['company-users',     companyId] });
-      qc.invalidateQueries({ queryKey: ['company-employees', companyId] });
-      showToast(`✓ ${r.data.full_name} (${r.data.employee_code}) is now an employee`);
-      onClose();
-    },
-    onError: (e: any) => showToast(e?.message || 'Failed'),
+  // Load eligible managers
+  const { data: eligible = [] } = useQuery({
+    queryKey: ['eligible-managers-global'],
+    queryFn: () => apiClient.get<any, any>('/companies/1/eligible-managers'),
+    enabled: open && step === 2,
+    select: (r: any) => r.data as EligibleEmployee[],
   });
 
-  return (
-    <Modal open={open} onClose={onClose} title="Convert to Employee" subtitle={`Create HR record for ${user?.email}`} width={500}
-      footer={<>
-        <button className="btn btn-sec" onClick={onClose}>Cancel</button>
-        <button className="btn btn-pri" onClick={() => mutation.mutate()} disabled={!f.first_name || !f.last_name || mutation.isPending}>
-          {mutation.isPending ? 'Converting…' : '✓ Convert to Employee'}
-        </button>
-      </>}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-        <div className="fg"><label>First Name *</label><input autoFocus value={f.first_name} onChange={F('first_name')} /></div>
-        <div className="fg"><label>Last Name *</label><input value={f.last_name} onChange={F('last_name')} /></div>
-        <div className="fg">
-          <label>Department</label>
-          <select value={f.department_id} onChange={F('department_id')}>
-            <option value="">— Select —</option>
-            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
-        </div>
-        <div className="fg">
-          <label>Designation</label>
-          <select value={f.designation_id} onChange={F('designation_id')}>
-            <option value="">— Select —</option>
-            {designations.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
-        </div>
-        <div className="fg"><label>Date of Joining</label><input type="date" value={f.date_of_joining} onChange={F('date_of_joining')} /></div>
-        <div className="fg"><label>Gender</label>
-          <select value={f.gender} onChange={F('gender')}>
-            <option value="">— Select —</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div className="fg" style={{ gridColumn: '1/-1' }}><label>Phone</label><input value={f.phone} onChange={F('phone')} /></div>
-      </div>
-      <div style={{ background: 'var(--green-lt)', border: '1px solid var(--green-bd)', borderRadius: 'var(--r)', padding: '10px 14px', fontSize: 11, color: 'var(--green)', marginTop: 6 }}>
-        ✓ After conversion this person will appear in: Employee list, Permission Group member picker, User Permissions, Leave/Attendance records.
-      </div>
-    </Modal>
-  );
-}
+  // Actually fetch all eligible across platform for creation
+  const { data: allEligible = [] } = useQuery({
+    queryKey: ['all-eligible-managers'],
+    queryFn: async () => {
+      // For creation, use a platform-wide endpoint
+      const r = await apiClient.get<any, any>('/companies/eligible-managers');
+      return r.data as EligibleEmployee[];
+    },
+    enabled: open && step === 2,
+  });
 
-// ─── Add Employee Modal (direct, with optional login) ─────────────────────────
-
-function AddEmployeeModal({ open, companyId, departments, designations, roles, onClose }: {
-  open: boolean; companyId: number; departments: Department[]; designations: Designation[]; roles: Role[]; onClose: () => void;
-}) {
-  const qc = useQueryClient();
-  const [f, setF] = useState({ first_name: '', last_name: '', email: '', department_id: '', designation_id: '', date_of_joining: new Date().toISOString().slice(0, 10), gender: '', phone: '', employment_type: 'Full_Time', create_login: false, login_password: '', role_slug: 'emp' });
-  const F = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF(p => ({...p, [k]: e.target.value}));
-
-  useEffect(() => { if (open) setF(p => ({ ...p, first_name: '', last_name: '', email: '', login_password: '' })); }, [open]);
+  const filtered = useMemo(() =>
+    allEligible.filter(e =>
+      !search ||
+      e.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      e.email.toLowerCase().includes(search.toLowerCase()) ||
+      e.employee_code.toLowerCase().includes(search.toLowerCase())
+    ), [allEligible, search]);
 
   const mutation = useMutation({
-    mutationFn: () => apiClient.post<any,any>(`/admin/companies/${companyId}/employees`, {
-      ...f, department_id: f.department_id ? Number(f.department_id) : null, designation_id: f.designation_id ? Number(f.designation_id) : null,
+    mutationFn: () => apiClient.post<any, any>('/companies', {
+      ...f,
+      max_employees: Number(f.max_employees),
+      manager_employee_ids: selectedMgrs,
     }),
     onSuccess: (r: any) => {
-      qc.invalidateQueries({ queryKey: ['company-employees', companyId] });
-      qc.invalidateQueries({ queryKey: ['company-users',     companyId] });
-      showToast(`✓ ${r.data.full_name} (${r.data.employee_code}) added`);
+      qc.invalidateQueries({ queryKey: ['companies'] });
+      qc.invalidateQueries({ queryKey: ['company-stats'] });
+      showToast(`✓ ${r.data.name} created`);
       onClose();
     },
-    onError: (e: any) => showToast(e?.message || 'Failed'),
+    onError: (e: any) => showToast(e?.message || 'Failed to create company'),
   });
 
+  const step1Valid = f.name.trim().length > 0;
+
   return (
-    <Modal open={open} onClose={onClose} title="Add Employee" subtitle="Creates HR record directly — login optional" width={520}
-      footer={<>
-        <button className="btn btn-sec" onClick={onClose}>Cancel</button>
-        <button className="btn btn-pri" onClick={() => mutation.mutate()} disabled={!f.first_name || !f.last_name || !f.email || mutation.isPending}>
-          {mutation.isPending ? 'Adding…' : '✓ Add Employee'}
-        </button>
-      </>}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-        <div className="fg"><label>First Name *</label><input autoFocus value={f.first_name} onChange={F('first_name')} /></div>
-        <div className="fg"><label>Last Name *</label><input value={f.last_name} onChange={F('last_name')} /></div>
-        <div className="fg" style={{ gridColumn: '1/-1' }}><label>Work Email *</label><input type="email" value={f.email} onChange={F('email')} /></div>
-        <div className="fg">
-          <label>Department</label>
-          <select value={f.department_id} onChange={F('department_id')}>
-            <option value="">— Select —</option>
-            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
-        </div>
-        <div className="fg">
-          <label>Designation</label>
-          <select value={f.designation_id} onChange={F('designation_id')}>
-            <option value="">— Select —</option>
-            {designations.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
-        </div>
-        <div className="fg"><label>Joining Date</label><input type="date" value={f.date_of_joining} onChange={F('date_of_joining')} /></div>
-        <div className="fg"><label>Gender</label>
-          <select value={f.gender} onChange={F('gender')}>
-            <option value="">— Select —</option>
-            <option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
-          </select>
-        </div>
-        <div className="fg"><label>Employment Type</label>
-          <select value={f.employment_type} onChange={F('employment_type')}>
-            <option value="Full_Time">Full Time</option><option value="Part_Time">Part Time</option>
-            <option value="Contract">Contract</option><option value="Intern">Intern</option>
-          </select>
-        </div>
-        <div className="fg"><label>Phone</label><input value={f.phone} onChange={F('phone')} /></div>
+    <Modal open={open} onClose={onClose} title="Create New Company" width={560}
+      footer={
+        step === 1 ? (
+          <>
+            <button className="btn btn-sec" onClick={onClose}>Cancel</button>
+            <button className="btn btn-pri" onClick={() => setStep(2)} disabled={!step1Valid}>
+              Next: Assign Managers →
+            </button>
+          </>
+        ) : (
+          <>
+            <button className="btn btn-sec" onClick={() => setStep(1)}>← Back</button>
+            <button className="btn btn-pri" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+              {mutation.isPending ? 'Creating…' : '✓ Create Company'}
+            </button>
+          </>
+        )
+      }>
+
+      {/* Step indicator */}
+      <div style={{ display: 'flex', gap: 0, marginBottom: 20, marginTop: -4 }}>
+        {['Company Details', 'Assign Managers'].map((label, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0,
+                background: i < step ? 'var(--green)' : i + 1 === step ? 'var(--blue)' : 'var(--surface2)',
+                color: i + 1 <= step ? '#fff' : 'var(--ink4)',
+                border: `2px solid ${i + 1 <= step ? (i + 1 === step ? 'var(--blue)' : 'var(--green)') : 'var(--border2)'}`,
+              }}>
+                {i + 1 < step ? '✓' : i + 1}
+              </div>
+              <span style={{
+                fontSize: 12, fontWeight: i + 1 === step ? 600 : 400,
+                color: i + 1 === step ? 'var(--blue)' : i + 1 < step ? 'var(--green)' : 'var(--ink4)'
+              }}>
+                {label}
+              </span>
+            </div>
+            {i < 1 && (
+              <div style={{ flex: 1, height: 2, background: step > 1 ? 'var(--green)' : 'var(--border)', margin: '0 12px', borderRadius: 99 }} />
+            )}
+          </div>
+        ))}
       </div>
 
-      {/* Login toggle */}
-      <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
-          <input type="checkbox" checked={f.create_login} onChange={e => setF(p => ({...p, create_login: e.target.checked}))}
-            style={{ width: 14, height: 14, accentColor: 'var(--blue)' }} />
-          Also create portal login for this employee
-        </label>
-        {f.create_login && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px', marginTop: 10 }}>
-            <div className="fg"><label>Password *</label><input type="password" value={f.login_password} onChange={F('login_password')} placeholder="min 6 characters" /></div>
-            <div className="fg"><label>Role</label>
-              <select value={f.role_slug} onChange={F('role_slug')}>
-                {roles.map(r => <option key={r.id} value={r.slug}>{r.name}</option>)}
+      {/* ── Step 1: Company Details ───────────────────────── */}
+      {step === 1 && (
+        <>
+          {/* Company info */}
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--ink4)', marginBottom: 10 }}>Company Information</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+            <div className="fg" style={{ gridColumn: '1/-1' }}>
+              <label>Company Name *</label>
+              <input autoFocus value={f.name} onChange={F('name')} placeholder="e.g. Nexgen Solutions Pvt Ltd" />
+            </div>
+            <div className="fg"><label>City</label><input value={f.city} onChange={F('city')} /></div>
+            <div className="fg"><label>State</label><input value={f.state} onChange={F('state')} /></div>
+            <div className="fg"><label>Industry</label>
+              <select value={f.industry} onChange={F('industry')}>
+                <option value="">— Select —</option>
+                {['Technology', 'Manufacturing', 'Finance', 'Healthcare', 'Education', 'Retail', 'Logistics', 'Media', 'Real Estate', 'Other'].map(i => <option key={i} value={i}>{i}</option>)}
               </select>
             </div>
+            <div className="fg"><label>Company Email</label><input type="email" value={f.email} onChange={F('email')} /></div>
+            <div className="fg"><label>Plan</label>
+              <select value={f.subscription_plan} onChange={F('subscription_plan')}>
+                <option value="starter">Starter</option>
+                <option value="growth">Growth</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+            </div>
+            <div className="fg"><label>Max Employees</label><input type="number" value={f.max_employees} onChange={F('max_employees')} min="1" /></div>
           </div>
-        )}
-      </div>
+
+          {/* First admin employee */}
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--ink4)', margin: '16px 0 10px' }}>First Admin Employee</div>
+          <div style={{ background: 'var(--blue-lt)', border: '1px solid var(--blue-md)', borderRadius: 'var(--r)', padding: '8px 12px', fontSize: 11, color: 'var(--blue)', marginBottom: 12 }}>
+            ℹ This creates the first employee who manages this company. They can log in via OTP. Leave email blank to skip.
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+            <div className="fg"><label>First Name</label><input value={f.admin_first_name} onChange={F('admin_first_name')} placeholder="Admin" /></div>
+            <div className="fg"><label>Last Name</label><input value={f.admin_last_name} onChange={F('admin_last_name')} placeholder="User" /></div>
+            <div className="fg"><label>Email</label><input type="email" value={f.admin_email} onChange={F('admin_email')} placeholder="admin@company.com" /></div>
+            <div className="fg"><label>Phone</label><input value={f.admin_phone} onChange={F('admin_phone')} placeholder="+91 9999999999" /></div>
+          </div>
+        </>
+      )}
+
+      {/* ── Step 2: Assign Managers ───────────────────────── */}
+      {step === 2 && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--ink4)', marginBottom: 8 }}>
+            Select employees to manage <strong>{f.name}</strong>
+          </div>
+          <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '8px 12px', fontSize: 11, color: 'var(--ink3)', marginBottom: 12 }}>
+            You (the creator) are automatically assigned as <strong>Owner</strong>. Select additional managers below. Only employees with <code>companies:manage</code> permission or super admins are shown.
+          </div>
+
+          {/* Search */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '7px 10px', marginBottom: 8 }}>
+            <span style={{ color: 'var(--ink4)' }}>⌕</span>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, email, code…"
+              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 12, fontFamily: 'var(--font)', flex: 1, color: 'var(--ink)' }} />
+          </div>
+
+          {/* List */}
+          <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r2)', overflow: 'hidden', maxHeight: 280, overflowY: 'auto' }}>
+            {filtered.length === 0 ? (
+              <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink4)', fontSize: 12 }}>
+                No eligible employees found.<br />Employees need <code>companies:manage</code> permission or super admin status.
+              </div>
+            ) : filtered.map(emp => {
+              const checked = selectedMgrs.includes(emp.id);
+              return (
+                <div key={emp.id} onClick={() => setSelectedMgrs(p => checked ? p.filter(x => x !== emp.id) : [...p, emp.id])}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', cursor: 'pointer',
+                    borderBottom: '1px solid var(--border)',
+                    background: checked ? 'var(--blue-lt)' : 'transparent'
+                  }}>
+                  <input type="checkbox" readOnly checked={checked}
+                    style={{ width: 14, height: 14, accentColor: 'var(--blue)', cursor: 'pointer', flexShrink: 0 }} />
+                  <Av name={emp.full_name} size={32} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {emp.full_name}
+                      {emp.is_super_admin && (
+                        <span style={{ fontSize: 9, fontWeight: 700, background: 'var(--purple-lt)', color: 'var(--purple)', border: '1px solid var(--purple-bd)', borderRadius: 3, padding: '1px 5px' }}>⚡ SA</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--ink4)' }}>{emp.employee_code} · {emp.email}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {selectedMgrs.length > 0 && (
+            <div style={{ marginTop: 10, fontSize: 12, color: 'var(--green)' }}>
+              ✓ {selectedMgrs.length} manager{selectedMgrs.length !== 1 ? 's' : ''} selected (+ you as owner = {selectedMgrs.length + 1} total)
+            </div>
+          )}
+        </>
+      )}
     </Modal>
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Main page ────────────────────────────────────────────────────────────────
 
-export default function CompanyDetailPage() {
-  const { id: companyId } = useParams();
+export default function CompaniesPage() {
   const dispatch = useAppDispatch();
-  const { isSuperAdmin, canView } = usePermission();
+  const router = useRouter();
   const qc = useQueryClient();
-  const cId = Number(companyId);
+  const { canEdit, isSuperAdmin } = usePermission();
 
-  const [tab,          setTab]          = useState<'users' | 'employees'>('employees');
-  const [addUserOpen,  setAddUserOpen]  = useState(false);
-  const [addEmpOpen,   setAddEmpOpen]   = useState(false);
-  const [convertUser,  setConvertUser]  = useState<CompanyUser | null>(null);
+  useEffect(() => { dispatch(setPageTitle({ title: 'Companies', breadcrumb: 'Settings' })); }, [dispatch]);
 
-  // Load company + supporting data
-  const { data: company }      = useQuery({ queryKey: ['company', cId], queryFn: () => apiClient.get<any,any>(`/admin/companies/${cId}`), select: (r: any) => r.data });
-  const { data: users = [] }   = useQuery({ queryKey: ['company-users', cId],     queryFn: () => apiClient.get<any,any>(`/admin/companies/${cId}/users`),     select: (r: any) => r.data?.rows ?? [] });
-  const { data: employees = []} = useQuery({ queryKey: ['company-employees', cId], queryFn: () => apiClient.get<any,any>(`/admin/companies/${cId}/employees`),  select: (r: any) => r.data?.rows ?? [] });
-  const { data: departments = []} = useQuery({ queryKey: ['departments', cId], queryFn: () => apiClient.get<any,any>(`/departments?company_id=${cId}`), select: (r: any) => r.data ?? [] });
-  const { data: designations = []} = useQuery({ queryKey: ['designations', cId], queryFn: () => apiClient.get<any,any>(`/designations?company_id=${cId}`), select: (r: any) => r.data ?? [] });
-  const { data: roles = [] }   = useQuery({ queryKey: ['roles', cId], queryFn: () => apiClient.get<any,any>(`/rbac/roles`), select: (r: any) => r.data ?? [] });
+  const [createOpen, setCreateOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [planFilter, setPlanFilter] = useState('');
 
-  useEffect(() => { if (company) dispatch(setPageTitle({ title: company.name, breadcrumb: 'Companies' })); }, [company, dispatch]);
-
-  const createLoginMutation = useMutation({
-    mutationFn: ({ empId, password }: { empId: number; password: string }) =>
-      apiClient.post<any,any>(`/admin/companies/${cId}/employees/${empId}/create-login`, { password, role_slug: 'emp' }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['company-employees', cId] }); showToast('✓ Login created'); },
-    onError: (e: any) => showToast(e?.message || 'Failed'),
+  const { data: stats } = useQuery({
+    queryKey: ['company-stats'],
+    queryFn: () => apiClient.get<any, any>('/companies/platform-stats'),
+    enabled: isSuperAdmin,
+    select: (r: any) => r.data as PlatformStats,
   });
 
-  if (!company) return <AppShell><div style={{ padding: 40, textAlign: 'center', color: 'var(--ink4)' }}>Loading…</div></AppShell>;
+  const { data: companies = [], isLoading } = useQuery({
+    queryKey: ['companies', search, planFilter],
+    queryFn: () => apiClient.get<any, any>(`/companies?${new URLSearchParams({ ...(search ? { search } : {}), ...(planFilter ? { plan: planFilter } : {}) })}`),
+    select: (r: any) => r.data?.rows ?? r.data ?? [],
+  });
+
+  const suspendMut = useMutation({
+    mutationFn: (id: number) => apiClient.post<any, any>(`/companies/${id}/suspend`),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['companies'] }); showToast('Company suspended'); },
+    onError: (e: any) => showToast(e?.message || 'Failed'),
+  });
+  const activateMut = useMutation({
+    mutationFn: (id: number) => apiClient.post<any, any>(`/companies/${id}/activate`),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['companies'] }); showToast('✓ Company activated'); },
+    onError: (e: any) => showToast(e?.message || 'Failed'),
+  });
 
   return (
     <AppShell>
@@ -297,155 +378,135 @@ export default function CompanyDetailPage() {
         {/* Header */}
         <div className="ph">
           <div>
-            <h1>{company.name}</h1>
-            <p style={{ fontSize: 12, color: 'var(--ink4)' }}>
-              /{company.slug} · {company.subscription_plan} plan · {company.live_employee_count || 0} employees
-            </p>
+            <h1>Companies</h1>
+            <p>{isSuperAdmin ? 'Manage all companies on the platform' : 'Companies you manage'}</p>
           </div>
-          <div className="ph-r">
-            <button className="btn btn-sec" onClick={() => setAddUserOpen(true)}>+ Add User</button>
-            <button className="btn btn-pri" onClick={() => setAddEmpOpen(true)}>+ Add Employee</button>
-          </div>
+          {canEdit('companies') && (
+            <button className="btn btn-pri" onClick={() => setCreateOpen(true)}>+ New Company</button>
+          )}
         </div>
-
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 2, background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: 3, marginBottom: 20, width: 'fit-content' }}>
-          {(['employees', 'users'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              style={{ padding: '6px 18px', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)', background: tab === t ? 'var(--surface)' : 'transparent', color: tab === t ? 'var(--ink)' : 'var(--ink4)', boxShadow: tab === t ? 'var(--sh)' : 'none', textTransform: 'capitalize' }}>
-              {t} {t === 'employees' ? `(${employees.length})` : `(${users.length})`}
-            </button>
-          ))}
-        </div>
-
-        {/* ── Employees Tab ──────────────────────────────── */}
-        {tab === 'employees' && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r3)', overflow: 'hidden', boxShadow: 'var(--sh)' }}>
-            {employees.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--ink4)' }}>
-                <div style={{ fontSize: 28, marginBottom: 10 }}>👥</div>
-                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>No employees yet</div>
-                <div style={{ fontSize: 12, marginBottom: 16 }}>Add employees directly, or create a user first and convert them to employee.</div>
-                <button className="btn btn-pri btn-sm" onClick={() => setAddEmpOpen(true)}>+ Add First Employee</button>
-              </div>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                <thead>
-                  <tr style={{ background: 'var(--surface2)' }}>
-                    {['Employee', 'Code', 'Department', 'Designation', 'Joined', 'Login', ''].map(h => (
-                      <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--ink4)', borderBottom: '1px solid var(--border)' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {(employees as CompanyEmployee[]).map(emp => (
-                    <tr key={emp.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '12px 14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <Av name={emp.full_name} />
-                          <div>
-                            <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{emp.full_name}</div>
-                            <div style={{ fontSize: 10, color: 'var(--ink4)' }}>{emp.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ padding: '12px 14px', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--blue)' }}>{emp.employee_code}</td>
-                      <td style={{ padding: '12px 14px', color: 'var(--ink3)' }}>{emp.department?.name || '—'}</td>
-                      <td style={{ padding: '12px 14px', color: 'var(--ink3)' }}>{emp.designation?.name || '—'}</td>
-                      <td style={{ padding: '12px 14px', color: 'var(--ink4)' }}>{formatDate(emp.date_of_joining)}</td>
-                      <td style={{ padding: '12px 14px' }}>
-                        {emp.has_login
-                          ? <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--green)', background: 'var(--green-lt)', border: '1px solid var(--green-bd)', borderRadius: 99, padding: '2px 8px' }}>✓ Active</span>
-                          : <button className="btn btn-sec btn-sm" style={{ fontSize: 10 }}
-                              onClick={() => { const pwd = window.prompt(`Set temporary password for ${emp.full_name}:`); if (pwd) createLoginMutation.mutate({ empId: emp.id, password: pwd }); }}>
-                              + Add Login
-                            </button>
-                        }
-                      </td>
-                      <td style={{ padding: '12px 14px' }}>
-                        {emp.role && (
-                          <span style={{ fontSize: 10, background: 'var(--blue-lt)', color: 'var(--blue)', border: '1px solid var(--blue-md)', borderRadius: 99, padding: '2px 8px' }}>{emp.role.name}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+        {isSuperAdmin && stats && (
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
+            <StatCard label="Total Companies" value={stats.totalCompanies} color="var(--ink)" />
+            <StatCard label="Active" value={stats.activeCompanies} color="var(--green)" />
+            <StatCard label="Suspended" value={stats.suspendedCompanies} color="var(--red)" />
+            <StatCard label="Total Employees" value={stats.totalEmployees} color="var(--blue)" />
+            {Object.entries(stats.plans || {}).map(([plan, count]) => (
+              <StatCard key={plan} label={plan} value={count} sub="companies" />
+            ))}
           </div>
         )}
 
-        {/* ── Users Tab ──────────────────────────────────── */}
-        {tab === 'users' && (
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '8px 12px' }}>
+            <span style={{ color: 'var(--ink4)' }}>⌕</span>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search companies…"
+              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 12, fontFamily: 'var(--font)', flex: 1, color: 'var(--ink)' }} />
+          </div>
+          <select value={planFilter} onChange={e => setPlanFilter(e.target.value)}
+            style={{ padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r)', fontSize: 12, fontFamily: 'var(--font)', background: 'var(--surface)', color: 'var(--ink)' }}>
+            <option value="">All plans</option>
+            <option value="starter">Starter</option>
+            <option value="growth">Growth</option>
+            <option value="enterprise">Enterprise</option>
+          </select>
+        </div>
+
+        {isLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[1, 2, 3].map(i => <div key={i} style={{ height: 72, borderRadius: 'var(--r3)', background: 'var(--surface)', border: '1px solid var(--border)' }}><div className="skeleton" style={{ height: '100%', borderRadius: 'var(--r3)' }} /></div>)}
+          </div>
+        ) : companies.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--ink4)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r3)' }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>🏢</div>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>No companies yet</div>
+            {canEdit('companies') && <button className="btn btn-pri btn-sm" onClick={() => setCreateOpen(true)}>+ Create First Company</button>}
+          </div>
+        ) : (
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r3)', overflow: 'hidden', boxShadow: 'var(--sh)' }}>
-            {users.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--ink4)' }}>
-                <div style={{ fontSize: 28, marginBottom: 10 }}>🔑</div>
-                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>No login users yet</div>
-                <button className="btn btn-pri btn-sm" onClick={() => setAddUserOpen(true)}>+ Add User</button>
-              </div>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                <thead>
-                  <tr style={{ background: 'var(--surface2)' }}>
-                    {['User', 'Role', 'Employee Record', 'Status', ''].map(h => (
-                      <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--ink4)', borderBottom: '1px solid var(--border)' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {(users as CompanyUser[]).map(user => (
-                    <tr key={user.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '12px 14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <Av name={user.full_name || user.email} size={32} />
-                          <div>
-                            <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{user.full_name || '(no name)'}</div>
-                            <div style={{ fontSize: 10, color: 'var(--ink4)' }}>{user.email}</div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: 'var(--surface2)' }}>
+                  {['Company', 'Plan', 'Employees', 'Manager', 'Status', 'Created', ''].map(h => (
+                    <th key={h} style={{
+                      padding: '10px 14px', textAlign: 'left', fontWeight: 700, fontSize: 10,
+                      textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--ink4)',
+                      borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap'
+                    }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {companies.map((co: Company) => (
+                  <tr key={co.id} style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                    onClick={() => router.push(`/settings/companies/${co.id}`)}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface2)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    <td style={{ padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          width: 34, height: 34, borderRadius: 'var(--r)', background: 'linear-gradient(135deg,var(--blue),var(--purple))',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0
+                        }}>
+                          {co.name[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{co.name}</div>
+                          <div style={{ fontSize: 10, color: 'var(--ink4)', marginTop: 1 }}>
+                            {co.slug} {co.city ? `· ${co.city}` : ''} {co.state ? `, ${co.state}` : ''}
                           </div>
                         </div>
-                      </td>
-                      <td style={{ padding: '12px 14px' }}>
-                        {user.role && (
-                          <span style={{ fontSize: 10, background: 'var(--surface2)', color: 'var(--ink3)', border: '1px solid var(--border)', borderRadius: 99, padding: '2px 8px' }}>{user.role.name}</span>
-                        )}
-                      </td>
-                      <td style={{ padding: '12px 14px' }}>
-                        {user.has_employee_record
-                          ? <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--green)', background: 'var(--green-lt)', border: '1px solid var(--green-bd)', borderRadius: 99, padding: '2px 8px' }}>
-                              ✓ {user.employee?.employee_code}
-                            </span>
-                          : <span style={{ fontSize: 10, color: 'var(--amber)', background: 'var(--amber-lt)', border: '1px solid var(--amber-bd)', borderRadius: 99, padding: '2px 8px' }}>
-                              ⚠ No employee record
-                            </span>
-                        }
-                      </td>
-                      <td style={{ padding: '12px 14px' }}>
-                        <span style={{ fontSize: 10, fontWeight: 600, color: user.is_active ? 'var(--green)' : 'var(--red)', background: user.is_active ? 'var(--green-lt)' : 'var(--red-lt)', border: `1px solid ${user.is_active ? 'var(--green-bd)' : 'var(--red-bd)'}`, borderRadius: 99, padding: '2px 8px' }}>
-                          {user.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 14px' }}>
-                        {!user.has_employee_record && user.is_active && (
-                          <button className="btn btn-pri btn-sm" style={{ fontSize: 10, padding: '3px 10px' }}
-                            onClick={() => setConvertUser(user)}>
-                            Convert to Employee →
+                      </div>
+                    </td>
+                    <td style={{ padding: '12px 14px' }}><PlanBadge plan={co.subscription_plan} /></td>
+                    <td style={{ padding: '12px 14px' }}>
+                      <div style={{ fontSize: 12, color: co.employee_count > co.max_employees * 0.9 ? 'var(--amber)' : 'var(--ink3)' }}>
+                        {co.employee_count} / {co.max_employees}
+                      </div>
+                      <div style={{ marginTop: 3, height: 4, background: 'var(--border)', borderRadius: 99, width: 80, overflow: 'hidden' }}>
+                        <div style={{
+                          height: '100%', borderRadius: 99, width: `${Math.min(100, co.employee_count / co.max_employees * 100)}%`,
+                          background: co.employee_count > co.max_employees * 0.9 ? 'var(--amber)' : 'var(--blue)'
+                        }} />
+                      </div>
+                    </td>
+                    <td style={{ padding: '12px 14px' }}>
+                      {co.primary_manager ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Av name={`${co.primary_manager.first_name} ${co.primary_manager.last_name}`} size={26} />
+                          <span style={{ fontSize: 11, color: 'var(--ink3)' }}>{co.primary_manager.first_name} {co.primary_manager.last_name}</span>
+                        </div>
+                      ) : <span style={{ fontSize: 11, color: 'var(--ink4)' }}>—</span>}
+                    </td>
+                    <td style={{ padding: '12px 14px' }}><StatusBadge c={co} /></td>
+                    <td style={{ padding: '12px 14px', color: 'var(--ink4)' }}>{formatDate(co.created_at)}</td>
+                    <td style={{ padding: '12px 14px', display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
+                      <button className="btn btn-sec btn-sm" style={{ fontSize: 11 }}
+                        onClick={() => router.push(`/settings/companies/${co.id}`)}>
+                        Open →
+                      </button>
+                      {canEdit('companies') && (
+                        co.is_active
+                          ? <button className="btn btn-sec btn-sm" style={{ fontSize: 11, color: 'var(--amber)' }}
+                            onClick={() => { if (window.confirm(`Suspend ${co.name}?`)) suspendMut.mutate(co.id); }}>
+                            ⏸
                           </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                          : <button className="btn btn-sec btn-sm" style={{ fontSize: 11, color: 'var(--green)' }}
+                            onClick={() => activateMut.mutate(co.id)}>
+                            ▶
+                          </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
-      </div>
 
-      {/* Modals */}
-      <AddUserModal    open={addUserOpen}  companyId={cId} roles={roles}  onClose={() => setAddUserOpen(false)} />
-      <AddEmployeeModal open={addEmpOpen}  companyId={cId} roles={roles} departments={departments} designations={designations} onClose={() => setAddEmpOpen(false)} />
-      <ConvertModal    open={!!convertUser} user={convertUser} companyId={cId} departments={departments} designations={designations} onClose={() => setConvertUser(null)} />
-    </AppShell>
+      </div>
+      <CreateModal open={createOpen} onClose={() => setCreateOpen(false)} />
+    </AppShell >
   );
 }

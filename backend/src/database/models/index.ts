@@ -46,6 +46,7 @@ import {
   Asset, AssetCategory, AssetAssignment,
   AssetRequest, AssetMaintenance,
 }                                                        from './AssetModels';
+import { CompanyManager } from './CompanyManager';
 
 
 // IMPORTANT
@@ -78,4 +79,5 @@ export {
   UserModulePermission, UserFieldPermission,
   PermissionGroup, GroupPermission, UserGroup,
   Asset, AssetCategory, AssetAssignment, AssetRequest, AssetMaintenance,
+  CompanyManager
 };
