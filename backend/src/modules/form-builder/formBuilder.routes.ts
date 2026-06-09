@@ -13,6 +13,9 @@ import {
   createField, updateField, deleteField, reorderFields,
   getPermissionMatrix, setFieldPermission, bulkSetPermissions, resolveFormPermissions,
 } from './formBuilder.controller';
+import { DynamicSourceService } from './dynamicSource.service';
+const dynSvc = new DynamicSourceService();
+
 
 const router = Router();
 router.use(authenticate);
@@ -53,5 +56,32 @@ router.get   ('/forms/:formId/permission-matrix',   [param('formId').isInt()], v
 router.put   ('/fields/:fieldId/permissions',        [param('fieldId').isInt(), body('role_id').isInt()], validate, setFieldPermission);
 router.post  ('/permissions/bulk',                   [body('role_id').isInt(), body('permissions').isArray()], validate, bulkSetPermissions);
 router.get   ('/forms/:formId/resolve',              [param('formId').isInt()], validate, resolveFormPermissions);
+
+router.get(
+  '/dynamic-source/meta',
+  authenticate,
+  (_req, res) => {
+    res.json({ success: true, data: DynamicSourceService.getSourceMeta() });
+  },
+);
+
+router.get(
+  '/dynamic-source/:source',
+  authenticate,
+  async (req, res, next) => {
+    try {
+      const { source } = req.params;
+      const { label_field, value_field, filter } = req.query as any;
+      const options = await dynSvc.resolve(
+        source as any,
+        req.user!.companyId,
+        label_field,
+        value_field,
+        filter,
+      );
+      res.json({ success: true, data: options });
+    } catch(e){ next(e); }
+  },
+);
 
 export default router;

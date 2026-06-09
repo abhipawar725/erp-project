@@ -96,7 +96,7 @@ export class DesignationService {
           model:      Employee,
           as:         'employees',
           attributes: ['id', 'first_name', 'last_name', 'employee_code', 'status', 'avatar_url', 'department_id'],
-          where:      { status: ['Active', 'On Probation'] },
+          where:      { status: ['Active', 'On_Probation'] },
           required:   false,
         },
       ],
@@ -117,7 +117,7 @@ export class DesignationService {
 
     // Most populated designation
     const empCounts = await Employee.findAll({
-      where:      { status: ['Active', 'On Probation'] },
+      where:      { status: ['Active', 'On_Probation'] },
       attributes: ['designation_id', [fn('COUNT', col('Employee.id')), 'count']],
       include:    [{
         model:      Designation,
@@ -227,7 +227,7 @@ export class DesignationService {
     const designation = await this.findOrFail(id, companyId);
 
     const empCount = await Employee.count({
-      where: { designation_id: id, status: ['Active', 'On Probation'] },
+      where: { designation_id: id, status: ['Active', 'On_Probation'] },
     });
     if (empCount > 0) {
       throw new AppError(

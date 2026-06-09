@@ -417,7 +417,7 @@ export function StepEmployment({
             </option>
 
             <option value="On_Probation">
-              On Probation
+              On_Probation
             </option>
 
             <option value="Left">

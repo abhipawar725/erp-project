@@ -511,7 +511,7 @@ export class CandidateService {
                               ? new Date(dto.date_of_joining)
                               : (candidate.confirmed_joining_date || new Date()),
       reporting_manager_id: dto.reporting_manager_id || null,
-      status:               'On Probation' as any,
+      status:               'On_Probation' as any,
       created_by:           createdBy ?? null,
     } as any);
 

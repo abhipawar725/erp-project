@@ -118,7 +118,7 @@ export class RolesService {
     });
     if (!assignments.length) return [];
 
-    const userIds = assignments.map(a => a.user_id);
+    const userIds = assignments.map(a => a.employee_id);
     const employees = await Employee.findAll({
       where: { company_id: companyId },
       include: [{ model: User, as: 'user', where: { id: userIds }, attributes: ['id','email'] }],

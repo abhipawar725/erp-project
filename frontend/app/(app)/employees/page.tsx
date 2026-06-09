@@ -511,7 +511,7 @@ const handleDelete = async () => {
           </option>
 
           <option value="On_Probation">
-            On Probation
+            On_Probation
           </option>
 
           <option value="Left">
@@ -650,7 +650,7 @@ const handleDelete = async () => {
           />
 
           <StatCard
-            label="On Probation"
+            label="On_Probation"
             value={
               summary?.onProbation ??
               '…'

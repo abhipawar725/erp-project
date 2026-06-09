@@ -74,7 +74,6 @@ export class CompanyService {
         name: dto.name, slug,
         city: dto.city || null, state: dto.state || null, country: dto.country || 'India',
         industry: dto.industry || null, email: dto.email || null, phone: dto.phone || null,
-        max_employees: dto.max_employees || 100,
         timezone: dto.timezone || 'Asia/Kolkata', currency: dto.currency || 'INR',
         is_active: true, onboarding_step: 0, created_by: createdBy || null,
       }, { transaction: t });

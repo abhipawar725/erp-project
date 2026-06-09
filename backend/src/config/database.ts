@@ -31,7 +31,7 @@ export async function connectDatabase(): Promise<void> {
       await sequelize.sync(
         { 
           alter: true, 
-          // logging: console.log 
+          logging: console.log 
         }
         );
     }

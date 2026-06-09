@@ -23,7 +23,6 @@ interface CompanyAttributes {
   industry:              string | null;
   fiscal_year:           string;
   employee_count:        number;
-  max_employees:         number;
   timezone:              string;
   currency:              string;
   date_format:           string;
@@ -40,7 +39,7 @@ interface CompanyAttributes {
 interface CompanyCreationAttributes extends Optional<CompanyAttributes,
   'id' | 'slug' | 'code' | 'logo_url' | 'gstin' | 'pan' | 'phone' | 'email' |
   'website' | 'address' | 'city' | 'state' | 'pincode' | 'industry' |
-  'country' | 'fiscal_year' | 'employee_count' | 'max_employees' |
+  'country' | 'fiscal_year' | 'employee_count' |
   'timezone' | 'currency' |
   'date_format' | 'onboarding_step' | 'setup_completed_at' | 'is_active' |
   'notes' | 'created_by'
@@ -68,7 +67,6 @@ export class Company
   public industry!:              string | null;
   public fiscal_year!:           string;
   public employee_count!:        number;
-  public max_employees!:         number;
   public timezone!:              string;
   public currency!:              string;
   public date_format!:           string;
@@ -101,7 +99,6 @@ Company.init({
   industry:              { type: DataTypes.STRING(100), allowNull: true },
   fiscal_year:           { type: DataTypes.STRING(10),  allowNull: false, defaultValue: 'Apr-Mar' },
   employee_count:        { type: DataTypes.INTEGER.UNSIGNED, defaultValue: 0 },
-  max_employees:         { type: DataTypes.INTEGER.UNSIGNED, defaultValue: 100 },
   timezone:              { type: DataTypes.STRING(100), defaultValue: 'Asia/Kolkata' },
   currency:              { type: DataTypes.STRING(10),  defaultValue: 'INR' },
   date_format:           { type: DataTypes.STRING(30),  defaultValue: 'DD/MM/YYYY' },

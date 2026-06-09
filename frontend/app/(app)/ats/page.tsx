@@ -30,6 +30,7 @@ import {
 } from '../../../features/candidates/types/candidate.types';
 import { formatDate } from '../../../utils/formatters';
 import { Dropdown } from 'primereact/dropdown';
+import { MultiStepForm } from '../../../components/form-builder/MultiStepForm';
 
 export default function ATSPage() {
   const dispatch = useAppDispatch();
@@ -314,8 +315,13 @@ export default function ATSPage() {
     );
   };
 
+  const handleSave = () => {
+    
+  }
+
   return (
     <AppShell onAddNew={canEdit('recruitment') ? openCreate : undefined}>
+      <MultiStepForm formId={1} roleId={2} onSubmit={handleSave} />
       <div className="pg-enter">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}

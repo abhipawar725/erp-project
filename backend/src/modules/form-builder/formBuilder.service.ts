@@ -5,8 +5,10 @@ import {
   FieldPermissionV2, FIELD_TYPES,
 } from '../../database/models/FormBuilder';
 import { Role }            from '../../database/models/RoleModels';
+import type { DynamicSource } from '../../database/models/FormBuilder';
 import { AppError }        from '../../middleware/errorHandler.middleware';
 import { logActivity }     from '../../utils/activityLogger';
+
 
 // ─── Default system modules seeded on company creation ────────────────────────
 export const SYSTEM_MODULES = [
@@ -19,6 +21,7 @@ export const SYSTEM_MODULES = [
   { name:'Performance',    slug:'performance',    icon:'📈', description:'KRA, KPI and appraisals' },
   { name:'Assets',         slug:'assets',         icon:'🖥',  description:'Company asset tracking' },
 ];
+
 
 export class FormBuilderService {
 

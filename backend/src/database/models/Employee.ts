@@ -30,7 +30,7 @@ interface EmployeeAttributes {
   date_of_joining?:     Date | null;
   date_of_confirmation?: Date | null;
   date_of_leaving?:     Date | null;
-  status:               'Active' | 'On Probation' | 'On_Leave' | 'Left' | 'Absconding' | 'Terminated';
+  status:               'Active' | 'On_Probation' | 'On_Leave' | 'Left' | 'Absconding' | 'Terminated';
   // ── Statutory (sensitive) ──────────────────────────────────────────────────
   aadhaar_number?:      string | null;
   pan_number?:          string | null;
@@ -106,7 +106,7 @@ export class Employee
   public date_of_joining!:      Date | null;
   public date_of_confirmation!: Date | null;
   public date_of_leaving!:      Date | null;
-  public status!:               'Active' | 'On Probation' | 'On_Leave' | 'Left' | 'Absconding' | 'Terminated';
+  public status!:               'Active' | 'On_Probation' | 'On_Leave' | 'Left' | 'Absconding' | 'Terminated';
   public aadhaar_number!:       string | null;
   public pan_number!:           string | null;
   public passport_number!:      string | null;
@@ -176,8 +176,8 @@ Employee.init(
     date_of_confirmation: { type: DataTypes.DATEONLY, allowNull: true },
     date_of_leaving:      { type: DataTypes.DATEONLY, allowNull: true },
     status: {
-      type: DataTypes.ENUM('Active','On Probation','On_Leave','Left','Absconding','Terminated'),
-      defaultValue: 'On Probation',
+      type: DataTypes.ENUM('Active','On_Probation','On_Leave','Left','Absconding','Terminated'),
+      defaultValue: 'On_Probation',
     },
     aadhaar_number:       { type: DataTypes.STRING(20),  allowNull: true },
     pan_number:           { type: DataTypes.STRING(20),  allowNull: true },

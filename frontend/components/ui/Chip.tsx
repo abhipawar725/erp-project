@@ -36,7 +36,7 @@ export function Chip({ children, variant = 'gray', className = '', onClick }: Ch
 export function statusToVariant(status: string): ChipVariant {
   const map: Record<string, ChipVariant> = {
     Active: 'green',
-    'On Probation': 'amber',
+    'On_Probation': 'amber',
     Left: 'red',
     Absconding: 'purple',
     Present: 'green',

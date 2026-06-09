@@ -28,7 +28,7 @@ type EmployeeStatus = 'Active' | 'On_Probation' | 'Left' | 'Absconding';
 
 const STATUS_LABEL: Record<EmployeeStatus, string> = {
   Active: 'Active',
-  On_Probation: 'On Probation',
+  On_Probation: 'On_Probation',
   Left: 'Left',
   Absconding: 'Absconding',
 };

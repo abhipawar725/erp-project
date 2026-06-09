@@ -129,7 +129,7 @@ export class DepartmentService {
           model:      Employee,
           as:         'employees',
           attributes: ['id', 'first_name', 'last_name', 'employee_code', 'status', 'avatar_url', 'designation_id'],
-          where:      { status: ['Active', 'On Probation'] },
+          where:      { status: ['Active', 'On_Probation'] },
           required:   false,
         },
       ],
@@ -147,7 +147,7 @@ export class DepartmentService {
     ]);
 
     const empCounts = await Employee.findAll({
-      where: { status: ['Active', 'On Probation'] },
+      where: { status: ['Active', 'On_Probation'] },
       include: [{
         model:      Department,
         as:         'department',
@@ -241,7 +241,7 @@ export class DepartmentService {
     if (!dept) throw new AppError('Department not found', 404);
 
     const empCount = await Employee.count({
-      where: { department_id: id, status: ['Active', 'On Probation'] },
+      where: { department_id: id, status: ['Active', 'On_Probation'] },
     });
     if (empCount > 0)
       throw new AppError(

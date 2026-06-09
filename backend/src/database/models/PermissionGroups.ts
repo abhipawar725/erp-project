@@ -9,7 +9,7 @@ export const SYSTEM_GROUPS = [
     description: 'Full access to everything — cannot be modified',
     color:       '#cc2a2a',
     is_system:   true,
-    slug_grants: [] as string[], // handled by is_super_admin flag
+    slug_grants: ['*'] as string[], // handled by is_super_admin flag
   },
   {
     name:        'HR Manager',

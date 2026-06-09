@@ -11,6 +11,7 @@ interface DepartmentAttributes {
   created_by?: number | null;
   updated_by?: number | null;
   deleted_by?: number | null;
+  head_id: number | null;
 }
 
 interface DepartmentCreationAttributes extends Optional<DepartmentAttributes, 'id' | 'is_active'> { }
@@ -30,6 +31,7 @@ export class Department
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
   public readonly deleted_at!: Date | null;
+  public head_id!: number | null;
 }
 
 Department.init(
@@ -43,6 +45,7 @@ Department.init(
     created_by: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
     updated_by: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
     deleted_by: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
+    head_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
   },
   {
     sequelize,

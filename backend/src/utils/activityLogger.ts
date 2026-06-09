@@ -30,8 +30,12 @@ export async function logActivity(params: LogActivityParams): Promise<void> {
       ip_address:  params.ipAddress   ?? null,
       user_agent:  params.userAgent   ?? null,
     });
-  } catch (err) {
-    // Never throw — logging should never break the main flow
-    logger.error('logActivity failed:', err);
-  }
+  }catch (err: any) {
+  console.error('========== LOG_ACTIVITY FAILED ==========');
+  console.error('MESSAGE:', err?.message);
+  console.error('PARENT:', err?.parent);
+  console.error('ORIGINAL:', err?.original);
+  console.error('SQL:', err?.sql);
+  console.error(err);
+}
 }
