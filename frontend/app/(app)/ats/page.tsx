@@ -21,7 +21,7 @@ import { useUploadResume } from '../../../features/candidates/hooks/useCandidate
 import {
   useCandidates, useCandidateStats, useDeleteCandidate,
 } from '../../../features/candidates/hooks/useCandidates';
-import { usePermission } from '../../../features/auth/hooks/usePermission';
+import { usePermission } from '../../../features/auth/hooks/useAuth';
 import { useDebounce } from '../../../hooks/useDebounce';
 import type { Candidate } from '../../../features/candidates/types/candidate.types';
 import {
@@ -31,11 +31,12 @@ import {
 import { formatDate } from '../../../utils/formatters';
 import { Dropdown } from 'primereact/dropdown';
 import { MultiStepForm } from '../../../components/form-builder/MultiStepForm';
+import { PermissionGuard } from '../../../utils/permissionGuard';
 
 export default function ATSPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { canEdit, canDelete, canView, } = usePermission();
+  const { canEdit, canDelete, canCreate, canDownload, canView, hasPermission } = usePermission();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -84,7 +85,7 @@ export default function ATSPage() {
     },
   });
 
-  const ResumeColumn = ({ c, canManage }: any) => {
+  const ResumeColumn = ({ c }: any) => {
     const resumeMutation = useUploadResume(c.id);
 
     return (
@@ -129,7 +130,7 @@ export default function ATSPage() {
               No resume uploaded
             </div>
 
-            {canManage && (
+            {canEdit('recruitment:edit') && (
               <label style={{ cursor: 'pointer' }}>
                 <input
                   type="file"
@@ -319,9 +320,11 @@ export default function ATSPage() {
     
   }
 
+
+
   return (
-    <AppShell onAddNew={canEdit('recruitment') ? openCreate : undefined}>
-      <MultiStepForm formId={1} roleId={2} onSubmit={handleSave} />
+    <PermissionGuard permission="recruitment:view">
+    <AppShell>
       <div className="pg-enter">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
@@ -339,12 +342,14 @@ export default function ATSPage() {
                 </button>
               ))}
             </div>
-            {canEdit('recruitment') && (
               <>
+              {canDownload('recruitment') && (
                 <button className="btn btn-sec btn-sm" onClick={() => setBulkOpen(true)}>↑ Bulk Import</button>
+              )}
+              {canCreate('recruitment') && (
                 <button className="btn btn-pri btn-sm" onClick={openCreate}>+ Add Candidate</button>
-              </>
-            )}
+              )}
+                </>
           </div>
         </div>
 
@@ -467,7 +472,6 @@ export default function ATSPage() {
             removableSort
             rowHover
             dataKey="id"
-
             filters={filters}
             filterDisplay="row"
             onFilter={(e) => {
@@ -717,7 +721,6 @@ export default function ATSPage() {
 
             {/* Actions */}
 
-            {canEdit('recruitment') && (
               <Column
                 header="Actions"
                 exportable={false}
@@ -730,19 +733,22 @@ export default function ATSPage() {
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Chip
+                    {canEdit('recruitment') && (
+                      <Chip
                       variant="gray"
                       onClick={() => openEdit(c)}
-                    >
+                      >
                       Edit
                     </Chip>
-
+                    )}
+                    {canEdit('recruitment') && (
                     <Chip
                       variant="purple"
                       onClick={() => setMoveTarget(c)}
                     >
                       Move
                     </Chip>
+                    )}
                     {canDelete('recruitment') && (
                       <Chip
                       variant="red"
@@ -754,7 +760,6 @@ export default function ATSPage() {
                   </div>
                 )}
               />
-            )}
 
           </DataTable>
         )}
@@ -819,5 +824,6 @@ export default function ATSPage() {
         </div>
       </Modal>
     </AppShell>
+    </PermissionGuard>
   );
 }

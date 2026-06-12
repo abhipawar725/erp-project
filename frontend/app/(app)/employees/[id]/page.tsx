@@ -13,7 +13,8 @@ import {
 } from '../../../../features/employees/hooks/useEmployees';
 import { formatDate, getTenure, getInitials } from '../../../../utils/formatters';
 import { showToast } from '../../../../utils/toast';
-
+import { usePermission } from '../../../../features/auth/hooks/useAuth';
+import { PermissionGuard } from '@/utils/permissionGuard';
 const TABS = [
   'Personal',
   'Employment',
@@ -52,6 +53,7 @@ export default function EmployeeDetailPage() {
 
   const { data: employee, isLoading } = useEmployee(id);
   const deleteMutation = useDeleteEmployee();
+const {canDelete} = usePermission();
 
   useEffect(() => {
     if (employee) {
@@ -77,27 +79,32 @@ export default function EmployeeDetailPage() {
 
   if (isLoading) {
     return (
+      <PermissionGuard permission='employees:view'>
       <AppShell>
         <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--ink4)' }}>
           Loading employee…
         </div>
       </AppShell>
+      </PermissionGuard>
     );
   }
 
   if (!employee) {
     return (
+      <PermissionGuard permission='employees:view'>
       <AppShell>
         <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--red)' }}>
           Employee not found.
         </div>
       </AppShell>
+      </PermissionGuard>
     );
   }
 
   const initials = getInitials(`${employee.first_name} ${employee.last_name}`);
 
   return (
+    <PermissionGuard permission='employees:view'>
     <AppShell>
       <div className="pg-enter">
         {/* PROFILE HEADER */}
@@ -136,9 +143,11 @@ export default function EmployeeDetailPage() {
             <button className="btn btn-sec btn-sm" onClick={() => router.push('/employees')}>
               ← Back
             </button>
-            <button className="btn btn-danger btn-sm" onClick={() => setDeleteModal(true)}>
+            {canDelete('employees') && (
+              <button className="btn btn-danger btn-sm" onClick={() => setDeleteModal(true)}>
               Remove
             </button>
+            )}
           </div>
         </div>
 
@@ -246,5 +255,6 @@ export default function EmployeeDetailPage() {
         </div>
       </Modal>
     </AppShell>
+    </PermissionGuard>
   );
 }

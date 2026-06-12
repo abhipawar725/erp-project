@@ -250,8 +250,7 @@ async function createCompany(req: Request, res: Response, next: NextFunction): P
           email:      admin_email.toLowerCase(),
           phone:      admin_phone || null,
           department_id:   depts[0]?.id || null,
-          date_of_joining: new Date(),
-          employment_type: 'Full-time', work_location: 'Office',
+          employment_type: 'Permanent',
           status: 'Active', portal_access: true,
           is_super_admin: false,  // never set this — use employee_roles instead
           must_change_password: true,
@@ -544,7 +543,7 @@ async function getEligibleManagers(req: Request, res: Response, next: NextFuncti
 
     const eligible = await Employee.findAll({
       where: {
-        state: 'Active', portal_access: true,
+        status: 'Active', portal_access: true,
         ...(excludeIds.length ? { id: { [Op.notIn]: excludeIds } } : {}),
         [Op.or]: [
           { is_super_admin: true },
@@ -643,12 +642,12 @@ async function listManagers(req: Request, res: Response, next: NextFunction): Pr
 export const companyRouter = Router();
 companyRouter.use(authenticate);
 
-companyRouter.get('/platform-stats',    requireSuperAdmin => authenticate, getPlatformStats);
-companyRouter.get('/eligible-managers', authorize('companies:create'), getGlobalEligibleManagers);
-companyRouter.get('/mine',              authorize('companies:view'),   getMyCompanies);
-companyRouter.get('/',                  authorize('companies:view'),   listCompanies);
-companyRouter.post('/',                 authorize('companies:create'), [body('name').trim().notEmpty(), body('admin_email').optional().isEmail()], validate, createCompany);
-companyRouter.get('/:id',               authorize('companies:view'),   [param('id').isInt()], validate, getCompany);
+companyRouter.get('/platform-stats',    requireSuperAdmin => authenticate,  getPlatformStats);
+companyRouter.get('/eligible-managers',   getGlobalEligibleManagers);
+companyRouter.get('/mine',                getMyCompanies);
+companyRouter.get('/',                    listCompanies);
+companyRouter.post('/',                  [body('name').trim().notEmpty(), body('admin_email').optional().isEmail()], validate,  createCompany);
+companyRouter.get('/:id',                  [param('id').isInt()], validate,  getCompany);
 companyRouter.put('/:id',               [param('id').isInt()], validate, requireCompanyAccess, updateCompany);
 companyRouter.post('/:id/suspend',      [param('id').isInt()], validate, requireCompanyAccess, suspendCompany);
 companyRouter.post('/:id/activate',     [param('id').isInt()], validate, requireCompanyAccess, activateCompany);

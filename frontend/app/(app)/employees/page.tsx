@@ -3,13 +3,9 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
 import { useAppDispatch } from '../../../store';
-
 import { setPageTitle } from '../../../store/slices/uiSlice';
-
 import { AppShell } from '../../../layouts/AppLayout';
-
 import {
   DataTable,
   type Column,
@@ -30,7 +26,7 @@ import {
 
 import { useDebounce } from '../../../hooks/useDebounce';
 
-import { usePermission } from '../../../hooks/usePermission';
+import { usePermission } from '../../../features/auth/hooks/useAuth';
 
 import type {
   Employee,
@@ -46,13 +42,12 @@ import {
 import { Modal } from '../../../components/ui/Modal';
 
 import { showToast } from '../../../utils/toast';
+import { PermissionGuard } from '../../../utils/permissionGuard';
 
 export default function EmployeesPage() {
   const router = useRouter();
-
   const dispatch = useAppDispatch();
-
-  const { canEdit } = usePermission();
+  const { canEdit, canCreate, canDelete, canDownload, canView } = usePermission();
 
   /* ------------------------------------------------ */
   /* STATE */
@@ -137,28 +132,28 @@ export default function EmployeesPage() {
   /* DELETE */
   /* ------------------------------------------------ */
 
-const handleDelete = async () => {
-  if (!deleteTarget) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
 
-  try {
-    await deleteMutation.mutateAsync(
-      Number(deleteTarget.id),
-    );
+    try {
+      await deleteMutation.mutateAsync(
+        Number(deleteTarget.id),
+      );
 
-    showToast(
-      'Employee removed successfully',
-    );
+      showToast(
+        'Employee removed successfully',
+      );
 
-    setDeleteTarget(null);
-  } catch (error: unknown) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : 'Failed to remove employee';
+      setDeleteTarget(null);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Failed to remove employee';
 
-    showToast(message);
-  }
-};
+      showToast(message);
+    }
+  };
 
   /* ------------------------------------------------ */
   /* COLUMNS */
@@ -396,35 +391,35 @@ const handleDelete = async () => {
               View
             </Chip>
 
-            {/* {canManage && ( */}
-              <Chip
-                variant="gray"
-                onClick={(e: any) => {
-                  e.stopPropagation();
+            {canEdit('employees') && (
+            <Chip
+              variant="gray"
+              onClick={(e: any) => {
+                e.stopPropagation();
 
-                  router.push(
-                    `/employees/${row.id}/edit`,
-                  );
-                }}
-              >
-                Edit
-              </Chip>
-            {/* )} */}
+                router.push(
+                  `/employees/${row.id}/edit`,
+                );
+              }}
+            >
+              Edit
+            </Chip>
+            )}
 
-            {/* {canManage && ( */}
-              <Chip
-                variant="red"
-                onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-                  e.stopPropagation();
+            {canDelete('employees') && (
+            <Chip
+              variant="red"
+              onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+                e.stopPropagation();
 
-                  setDeleteTarget(
-                    row,
-                  );
-                }}
-              >
-                Remove
-              </Chip>
-            {/* )} */}
+                setDeleteTarget(
+                  row,
+                );
+              }}
+            >
+              Remove
+            </Chip>
+            )}
           </div>
         ),
       },
@@ -558,6 +553,7 @@ const handleDelete = async () => {
 
   if (isError) {
     return (
+      <PermissionGuard permission='employees:view'>
       <AppShell>
         <div
           style={{
@@ -570,6 +566,7 @@ const handleDelete = async () => {
           employees.
         </div>
       </AppShell>
+      </PermissionGuard>
     );
   }
 
@@ -578,9 +575,10 @@ const handleDelete = async () => {
   /* ------------------------------------------------ */
 
   return (
+    <PermissionGuard permission='employees:view'>
     <AppShell
       onAddNew={
-           canEdit('employees')
+        canEdit('employees')
           ? () =>
             router.push(
               '/employees/new',
@@ -606,30 +604,31 @@ const handleDelete = async () => {
           </div>
 
           <div className="ph-r">
+            {canDownload('employees') && (
             <button
               className="btn btn-sec btn-sm"
               disabled
             >
               ↓ Export
             </button>
-
-            {/* {canManage && ( */}
-              <button
-                className="btn btn-pri btn-sm"
-                onClick={() =>
-                  router.push(
-                    '/employees/new',
-                  )
-                }
-              >
-                + Add Employee
-              </button>
-            {/* )} */}
+            )}
+            {canCreate('employees') && (
+            <button
+              className="btn btn-pri btn-sm"
+              onClick={() =>
+                router.push(
+                  '/employees/new',
+                )
+              }
+            >
+              + Add Employee
+            </button>
+            )}
           </div>
         </div>
 
         {/* STATS */}
-
+ 
         <div className="g4 mb14">
           <StatCard
             label="Total Employees"
@@ -757,5 +756,6 @@ const handleDelete = async () => {
         </div>
       </Modal>
     </AppShell>
+    </PermissionGuard>
   );
 }

@@ -20,36 +20,36 @@ const TEMPLATE_DEFS = [
   { slug: 'employee', name: 'Employee', sort_order: 4 },
 ] as const;
 
-type TemplatePerm = { module: string; can_view: boolean; can_edit: boolean; can_delete: boolean; can_download: boolean; can_mask: boolean };
+type TemplatePerm = { module: string; can_view: boolean; can_edit: boolean; can_delete: boolean; can_download: boolean; };
 
 const TEMPLATE_PERMS: Record<string, TemplatePerm[]> = {
   super_admin: [
-    { module: 'recruitment', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'apptitude', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'employees', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'department', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'designation', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'settings', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'companies', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'recruitment', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'apptitude', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'employees', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'department', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'designation', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'settings', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'companies', can_view: true, can_edit: true, can_delete: true, can_download: true,},
   ],
   hr_manager: [
-    { module: 'recruitment', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'apptitude', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'employees', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'department', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'designation', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'recruitment', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'apptitude', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'employees', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'department', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'designation', can_view: true, can_edit: true, can_delete: true, can_download: true,},
   ],
   manager: [
-    { module: 'recruitment', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'apptitude', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'employees', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'department', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'designation', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'settings', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
-    { module: 'companies', can_view: true, can_edit: true, can_delete: true, can_download: true, can_mask: true },
+    { module: 'recruitment', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'apptitude', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'employees', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'department', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'designation', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'settings', can_view: true, can_edit: true, can_delete: true, can_download: true,},
+    { module: 'companies', can_view: true, can_edit: true, can_delete: true, can_download: true,},
   ],
   employee: [
-    { module: 'employees', can_view: true, can_delete: false, can_edit: false, can_download: false, can_mask: false },
+    { module: 'employees', can_view: true, can_delete: false, can_edit: false, can_download: false },
   ],
 };
 
@@ -143,8 +143,8 @@ export async function seedDatabase(): Promise<void> {
         email: 'superadmin@ung.com', phone: '+918130988753',
         department_id: deptMap.get('Human Resources') ?? null,
         designation_id: desigMap.get('HR Manager') ?? null,
-        date_of_joining: new Date(), employment_type: 'Full-time',
-        work_location: 'Office', status: 'Active',
+        employment_type: 'Permanent',
+        status: 'Active',
         portal_access: true, is_super_admin: true,
       },
     });
@@ -168,8 +168,8 @@ export async function seedDatabase(): Promise<void> {
         email: 'admin@ung.com', phone: '+918826693968',
         department_id: deptMap.get('Human Resources') ?? null,
         designation_id: desigMap.get('HR Manager') ?? null,
-        date_of_joining: new Date(), employment_type: 'Full-time',
-        work_location: 'Office', status: 'Active',
+        employment_type: 'Permanent',
+        status: 'Active',
         portal_access: true, is_super_admin: false,
       },
     });

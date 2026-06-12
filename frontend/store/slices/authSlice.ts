@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, User, ManagedCompany } from '../../types/auth.types';
-// import { setAccessToken } from '../../services/api/client';
 
 const initialState: AuthState = {
   user:            null,
@@ -22,7 +21,6 @@ const authSlice = createSlice({
       state.permissions     = user.permissions ?? [];
       // Default active company = home company
       state.activeCompanyId = user.companyId;
-      // setAccessToken(accessToken);
     },
 
     // Switch active company — used by CompanySwitcher in sidebar
@@ -34,7 +32,6 @@ const authSlice = createSlice({
 
     updateToken(state, action: PayloadAction<string>) {
       state.accessToken = action.payload;
-      // setAccessToken(action.payload);
     },
 
     clearCredentials(state) {
@@ -43,7 +40,6 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.permissions     = [];
       state.activeCompanyId = null;
-      // setAccessToken(null);
     },
 
     setPermissions(state, action: PayloadAction<string[]>) {

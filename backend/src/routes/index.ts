@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import authRoutes from '../modules/auth/auth.routes';
-import employeeRoutes from '../modules/employees/employee.routes';
+import {employeeRoutes} from '../modules/employees/employee.routes';
 import departmentRoutes from '../modules/departments/department.routes';
 import designationRoutes from '../modules/designations/designation.routes';
 import attendanceRoutes from '../modules/attendance/attendance.routes';

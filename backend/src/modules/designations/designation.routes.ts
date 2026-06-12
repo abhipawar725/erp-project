@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validate }                  from '../../middleware/validate.middleware';
-import { authenticate} from '../auth/auth.middleware';
+import { authenticate, authorize} from '../auth/auth.middleware';
 import {
   getDesignations, getDesignationStats, getDesignation,
   createDesignation, updateDesignation, toggleDesignation, deleteDesignation,
@@ -26,7 +26,7 @@ router.get('/:id', idValidation, validate, getDesignation);
 router.post('/', createDesignationValidation, validate, createDesignation);
 
 // PUT /api/designations/:id
-router.put('/:id', updateDesignationValidation, validate, updateDesignation);
+router.put('/:id', updateDesignationValidation, validate,  updateDesignation);
 
 // PATCH /api/designations/:id/toggle — activate / deactivate
 router.patch('/:id/toggle', idValidation, validate, toggleDesignation);

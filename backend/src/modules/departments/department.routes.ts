@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validate }                  from '../../middleware/validate.middleware';
-import { authenticate} from '../../modules/auth/auth.middleware';
+import { authenticate, authorize} from '../../modules/auth/auth.middleware';
 import {
   getDepartments, getDepartmentStats, getDepartment,
   createDepartment, updateDepartment, deleteDepartment,

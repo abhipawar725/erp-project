@@ -1,39 +1,45 @@
-import http from "http";
-import "module-alias/register";
-import app from "./app";
-import { connectDatabase } from "./config/database";
-import { logger } from "./config/logger";
-import { env } from "./config/env";
-import { initSocket } from "./socket";
+import http                  from 'http';
+import app                   from './app';
+import { env }               from './config/env';
+import { connectDatabase }   from './config/database';
+import { logger }            from './config/logger';
+import { initSocket }        from './socket/socket';
 
-const server = http.createServer(app)
-
-initSocket(server)
-
-// Load models BEFORE DB connection
-import "./database/models/Associations";
-
-
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   try {
     await connectDatabase();
 
-    logger.info("Database connected");
+    // Create HTTP server from Express app
+    // Socket.IO MUST share the same HTTP server instance
+    const httpServer = http.createServer(app);
 
-    const mainserver = server.listen(env.port, () => {
-      logger.info(`Server is started on port ${env.port}`);
+    // Initialise Socket.IO on the HTTP server
+    initSocket(httpServer);
+
+    httpServer.listen(env.port, () => {
+      logger.info(`🚀 NexHR API running on port ${env.port} [${env.nodeEnv}]`);
+      logger.info(`🔌 Socket.IO ready on port ${env.port}`);
     });
 
-    // optional graceful shutdown
-    process.on("SIGTERM", () => {
-      mainserver.close(() => {
-        logger.info("Server closed");
+    const shutdown = async (signal: string) => {
+      logger.info(`${signal} received. Shutting down gracefully...`);
+      httpServer.close(() => {
+        logger.info('HTTP + WebSocket server closed');
         process.exit(0);
       });
-    });
+    };
 
-  } catch (err) {
-    logger.error("Bootstrap error:", err);
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT',  () => shutdown('SIGINT'));
+    process.on('unhandledRejection', (reason) => {
+      logger.error('Unhandled Promise Rejection:', reason);
+    });
+    process.on('uncaughtException', (err) => {
+      logger.error('Uncaught Exception:', err);
+      process.exit(1);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
     process.exit(1);
   }
 }

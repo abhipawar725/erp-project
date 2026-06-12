@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
 import { validate }   from '../../middleware/validate.middleware';
-import { authenticate} from "../../modules/auth/auth.middleware"
+import { authenticate, authorize} from "../../modules/auth/auth.middleware"
 import {
   createTest, getTests, getTest,
   addQuestion, updateQuestion, deleteQuestion,
@@ -16,7 +16,6 @@ router.get('/', authenticate, getTests);
 router.get('/:id', authenticate, getTest);
 router.post('/',
   authenticate,
-
   [
     body('title').notEmpty().withMessage('Title required'),
     body('duration_minutes').isInt({ min: 1 }).withMessage('Duration required'),
@@ -28,7 +27,6 @@ router.post('/',
 
 router.post('/:id/questions',
   authenticate,
-
   [
     param('id').isInt({ min: 1 }),
     body('question_text').notEmpty(),

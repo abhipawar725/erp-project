@@ -9,6 +9,16 @@ import { updateToken, clearCredentials } from "@/store/slices/authSlice";
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL;
 
+let accessToken: string | null = null
+
+export function setAccessToken(token: string | null):void{
+  accessToken = token
+}
+
+export function getAccessToken():string | null{
+  return accessToken
+}
+
 // Track refresh state
 let isRefreshing = false;
 
@@ -91,10 +101,11 @@ apiClient.interceptors.response.use(
         );
 
         const newToken = response.data?.data?.accessToken;
-
+        
         if (!newToken) throw new Error("No token from refresh");
-
+        
         // update redux store
+        setAccessToken(newToken)
         store.dispatch(updateToken(newToken));
 
         // retry queued requests
@@ -109,7 +120,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError as Error, null);
-
+        setAccessToken(null)
         // clear auth state
         store.dispatch(clearCredentials());
 

@@ -9,7 +9,14 @@ export const SYSTEM_GROUPS = [
     description: 'Full access to everything — cannot be modified',
     color:       '#cc2a2a',
     is_system:   true,
-    slug_grants: ['*'] as string[], // handled by is_super_admin flag
+    slug_grants: ['employees:view', 'employees:create', 'employees:edit', 'employees:delete', 'employees:download',
+      'aptitude:view', 'aptitude:create', 'aptitude:edit', 'aptitude:delete', 'aptitude:download',
+      'recruitment:view', 'recruitment:create', 'recruitment:edit', 'recruitment:delete', 'recruitment:download',
+      'department:view', 'department:create', 'department:edit', 'department:delete', 'department:download', 
+      'designation:view', 'designation:create', 'designation:edit', 'designation:delete', 'designation:download',
+      'settings:view', 'settings:create', 'settings:edit', 'settings:delete', 'settings:download',
+      'companies:view', 'companies:create', 'companies:edit', 'companies:delete', 'companies:download'
+    ] as string[], // handled by is_super_admin flag
   },
   {
     name:        'HR Manager',
@@ -17,23 +24,7 @@ export const SYSTEM_GROUPS = [
     description: 'Full HR operations — employee lifecycle, leave, attendance',
     color:       '#1e56d9',
     is_system:   true,
-    slug_grants: [] as string[], // handled by is_super_admin flag
-  },
-  {
-    name:        'Finance Manager',
-    slug:        'finance_manager',
-    description: 'Payroll, expenses, and financial reports',
-    color:       '#0d8a7e',
-    is_system:   true,
-    slug_grants: [] as string[],
-  },
-  {
-    name:        'Payroll Executive',
-    slug:        'payroll_executive',
-    description: 'Process and manage payroll — no delete access',
-    color:       '#6c31d9',
-    is_system:   true,
-    slug_grants: [] as string[],
+    slug_grants: ['employees:view', 'employees:create', 'employees:edit', 'employees:delete', 'employees:download','aptitude:view', 'aptitude:create', 'aptitude:edit', 'aptitude:delete', 'aptitude:download','recruitment:view', 'recruitment:create', 'recruitment:edit', 'recruitment:delete', 'recruitment:download'] as string[], // handled by is_super_admin flag
   },
   {
     name:        'Recruiter',
@@ -41,7 +32,7 @@ export const SYSTEM_GROUPS = [
     description: 'End-to-end recruitment and ATS management',
     color:       '#c96f00',
     is_system:   true,
-    slug_grants: [] as string[],
+    slug_grants: ['aptitude:view', 'aptitude:create', 'aptitude:edit', 'aptitude:delete', 'aptitude:download','recruitment:view', 'recruitment:create', 'recruitment:edit', 'recruitment:delete', 'recruitment:download'] as string[],
   },
   {
     name:        'Department Manager',
@@ -49,15 +40,7 @@ export const SYSTEM_GROUPS = [
     description: 'Manage team members, approve leaves and attendance',
     color:       '#0d9669',
     is_system:   true,
-    slug_grants: [] as string[],
-  },
-  {
-    name:        'IT Admin',
-    slug:        'it_admin',
-    description: 'Asset management, system settings',
-    color:       '#64748b',
-    is_system:   true,
-    slug_grants: [] as string[],
+    slug_grants: ['department:view', 'department:create', 'department:edit', 'department:delete', 'department:download', 'designation:view', 'designation:create', 'designation:edit', 'designation:delete', 'designation:download'] as string[],
   },
   {
     name:        'Employee Self-Service',

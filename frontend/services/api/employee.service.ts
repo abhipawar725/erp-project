@@ -1,140 +1,39 @@
-import apiClient from './client';
-
-import type {
-  Employee,
-  EmployeeQueryParams,
-} from '../../features/employees/types/employee.types';
-
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  meta?: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
+/**
+ * employee.service.ts  (frontend)
+ * All API calls for the employee module.
+ */
+import apiClient from '../api/client';
 
 export const employeeService = {
-  // List
-  getAll: (
-    params?: EmployeeQueryParams,
-  ) =>
-    apiClient.get<
-      unknown,
-      ApiResponse<Employee[]>
-    >('/employees', {
-      params,
-    }),
-
-  // Single
-  getById: (id: number) =>
-    apiClient.get<
-      unknown,
-      ApiResponse<Employee>
-    >(`/employees/${id}`),
-
-  // Auto-generate next code
-  getNextCode: () =>
-    apiClient.get<
-      unknown,
-      ApiResponse<{
-        code: string;
-      }>
-    >('/employees/next-code'),
-
-  // Summary stats
-  getSummary: () =>
-    apiClient.get<
-      unknown,
-      ApiResponse<{
-        total: number;
-        active: number;
-        onProbation: number;
-        left: number;
-      }>
-    >('/employees/summary'),
-
-  // Managers list
-  getManagers: () =>
-    apiClient.get<
-      unknown,
-      ApiResponse<Employee[]>
-    >('/employees/managers'),
-
-  // Create
-  create: (
-    data: Partial<Employee>,
-  ) =>
-    apiClient.post<
-      unknown,
-      ApiResponse<Employee>
-    >('/employees', data),
-
-  // Full update
-  update: (
-    id: number,
-    data: Partial<Employee>,
-  ) =>
-    apiClient.put<
-      unknown,
-      ApiResponse<Employee>
-    >(`/employees/${id}`, data),
-
-  // Wizard patch
-  patchStep: (
-    id: number,
-    step:
-      | 'basic'
-      | 'employment'
-      | 'address'
-      | 'statutory'
-      | 'bank',
-    data: object,
-  ) =>
-    apiClient.patch<
-      unknown,
-      ApiResponse<Employee>
-    >(
-      `/employees/${id}/step/${step}`,
-      data,
-    ),
-
-  // Delete
-  delete: (id: number) =>
-    apiClient.delete<
-      unknown,
-      ApiResponse<null>
-    >(`/employees/${id}`),
-
-  // Avatar upload
-  uploadAvatar: (
-    id: number,
-    file: File,
-  ) => {
-    const form = new FormData();
-
-    form.append(
-      'avatar',
-      file,
-    );
-
-    return apiClient.post<
-      unknown,
-      ApiResponse<{
-        avatar_url: string;
-      }>
-    >(
-      `/employees/${id}/avatar`,
-      form,
-      {
-        headers: {
-          'Content-Type':
-            'multipart/form-data',
-        },
-      },
-    );
+  getAll:              (params?: object)   => apiClient.get('/employees', { params }),
+  getById:             (id: number)        => apiClient.get(`/employees/${id}`),
+  create:              (data: object)      => apiClient.post('/employees', data),
+  updateStep:          (id: number, step: string, data: object) =>
+                                             apiClient.patch(`/employees/${id}/step/${step}`, data),
+  delete:              (id: number)        => apiClient.delete(`/employees/${id}`),
+  summary:             ()                  => apiClient.get('/employees/summary'),
+  nextCode:            ()                  => apiClient.get('/employees/next-code'),
+  fieldPermissions:    ()                  => apiClient.get('/employees/field-permissions'),
+  managerById:         (id: number)        => apiClient.get(`/employees/managers/${id}`),
+  saveDraft:           (data: object)      => apiClient.post('/employees/draft', data),
+  getDraft:            (sid: string)       => apiClient.get(`/employees/draft/${sid}`),
+  discardDraft:        (sid: string)       => apiClient.delete(`/employees/draft/${sid}`),
+  downloadTemplate:    ()                  => apiClient.get('/employees/template', { responseType: 'blob' }),
+  bulkUpload:          (file: File)        => {
+    const fd = new FormData(); fd.append('file', file);
+    return apiClient.post('/employees/bulk-upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  uploadAvatar:        (id: number, file: File) => {
+    const fd = new FormData(); fd.append('avatar', file);
+    return apiClient.post(`/employees/${id}/avatar`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
   },
 };
+
+// Search managers by name/code — returns list [{id, employee_code, first_name, last_name, official_email}]
+// Uses employee_id (integer) as the stored value, NOT employee_code
+export const searchManagers = (q: string, excludeId?: number): any =>
+  apiClient.get('/employees/managers/search', { params: { q, ...(excludeId ? { exclude: excludeId } : {}) } });
+
+// Resolve a single manager by employee_id (to display after form load)
+export const getManagerById = (id: number): any =>
+  apiClient.get(`/employees/managers/${id}`);

@@ -83,10 +83,10 @@ export class RoleTemplatePermission extends Model {
   public template_id!: number;
   public module!:      string;
   public can_view!:    boolean;
+  public can_create!:    boolean;  
   public can_edit!:    boolean;
   public can_delete!:  boolean;
   public can_download!:  boolean;
-  public can_mask!: boolean;
 }
 
 RoleTemplatePermission.init({
@@ -94,10 +94,10 @@ RoleTemplatePermission.init({
   template_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
   module:      { type: DataTypes.STRING(100), allowNull: false },
   can_view:    { type: DataTypes.BOOLEAN, defaultValue: false },
+  can_create:    { type: DataTypes.BOOLEAN, defaultValue: false },
   can_edit:    { type: DataTypes.BOOLEAN, defaultValue: false },
   can_delete:  { type: DataTypes.BOOLEAN, defaultValue: false },
   can_download:  { type: DataTypes.BOOLEAN, defaultValue: false },
-  can_mask: { type: DataTypes.BOOLEAN, defaultValue: false },
 }, {
   sequelize, tableName: 'role_template_permissions', modelName: 'RoleTemplatePermission',
   timestamps: false,

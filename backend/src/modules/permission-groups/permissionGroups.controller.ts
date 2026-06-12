@@ -6,12 +6,13 @@ import { Permission } from '../../database/models/RoleModels';
 import { User } from '../../database/models/User';
 import { Employee } from '../../database/models/Employee';
 import { AppError } from '../../middleware/errorHandler.middleware';
-import { authenticate } from '../auth/auth.middleware';
-import { authorize, clearPermissionCache } from '../../middleware/rbac.middleware';
+import { authenticate, authorize } from '../auth/auth.middleware';
+import { clearPermissionCache } from '../../middleware/rbac.middleware';
 import { validate } from '../../middleware/validate.middleware';
 import { sendResponse, sendError } from '../../utils/response';
 import { logActivity } from '../../utils/activityLogger';
-import { getIO, getUserSocket } from "../../socket";
+import { broadcastAfter } from '../../middleware/permissionBroadcast.middleware';
+import {EmployeePermission} from "../../database/models/EmployeePermission"
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
@@ -105,26 +106,78 @@ class PermissionGroupService {
     // Invalidate cache for all users in this group
     const userGroups = await UserGroup.findAll({ where: { group_id: id } });
 
-    const affectedEmployeeIds = userGroups.map(u => u.employee_id);
-
-    for (const employee_id of affectedEmployeeIds) {
-      clearPermissionCache(employee_id)
-    }
-
-    // for (const ug of userGroups) clearPermissionCache(ug.employee_id);
+    for (const ug of userGroups) clearPermissionCache(ug.employee_id);
 
     await logActivity({ companyId, employeeId: updatedBy, action: 'PERMISSION_GROUP_PERMISSIONS_UPDATED', module: 'settings', entityId: id, newValues: { slugs } });
-    const io = getIO();
-    for (const employee_id of affectedEmployeeIds) {
-      io.to(`employee_${employee_id}`).emit("permissions:updated", {
-        type: "GROUP_PERMISSION_UPDATE",
-        groupId: id,
-        permissions: slugs,
-        forceRefresh: true
-      })
-    }
-    return { updated: permissions.length };
+    return { groupId: id, slugs, updated: permissions.length };
   }
+
+async getEmployeePermissions(
+  employeeId: number,
+  companyId: number
+) {
+  const groups = await UserGroup.findAll({
+    where: {
+      employee_id: employeeId,
+      company_id: companyId,
+    },
+  });
+
+  const groupIds = groups.map(g => g.group_id);
+
+  const groupPermissions = await GroupPermission.findAll({
+    where: {
+      group_id: groupIds,
+    },
+    include: [
+      {
+        model: Permission,
+      },
+    ],
+  });
+
+  const overrides = await EmployeePermission.findAll({
+    where: {
+      employee_id: employeeId,
+      company_id: companyId,
+    },
+    include: [
+      {
+        model: Permission,
+      },
+    ],
+  });
+
+  const finalPermissions = new Set<string>();
+
+  for (const gp of groupPermissions) {
+    finalPermissions.add(
+      (gp as any).Permission.slug
+    );
+  }
+
+  const grants = overrides.filter(
+    o => o.type === 'grant'
+  );
+
+  const revokes = overrides.filter(
+    o => o.type === 'revoke'
+  );
+
+  for (const grant of grants) {
+    finalPermissions.add(
+      (grant as any).Permission.slug
+    );
+  }
+
+  for (const revoke of revokes) {
+    finalPermissions.delete(
+      (revoke as any).Permission.slug
+    );
+  }
+
+  return [...finalPermissions];
+}
 
   // ── Member management ────────────────────────────────────────────────────────
 
@@ -151,7 +204,7 @@ class PermissionGroupService {
 
     clearPermissionCache(employeeId);
     await logActivity({ companyId, employeeId: addedBy, action: 'PERMISSION_GROUP_MEMBER_ADDED', module: 'settings', entityId: groupId, newValues: { employeeId } });
-    return { added: true };
+    return { employeeId, groupId, action: 'member_added' };
   }
 
   async removeMember(groupId: number, companyId: number, employeeId: number, removedBy?: number) {
@@ -159,7 +212,7 @@ class PermissionGroupService {
     if (!deleted) throw new AppError('User is not in this group', 404);
     clearPermissionCache(employeeId);
     await logActivity({ companyId, employeeId: removedBy, action: 'PERMISSION_GROUP_MEMBER_REMOVED', module: 'settings', entityId: groupId, newValues: { employeeId } });
-    return { removed: true };
+    return { employeeId, groupId, action: 'member_removed' };
   }
 
   async getUserGroups(employeeId: number, companyId: number) {
@@ -201,6 +254,61 @@ class PermissionGroupService {
         await GroupPermission.bulkCreate(permIds.map(pid => ({ group_id: group.id, permission_id: pid })), { ignoreDuplicates: true });
       }
     }
+  }
+}
+
+class EmployeePermissionService {
+  async setOverrides(
+    employeeId: number,
+    companyId: number,
+    grants: string[],
+    revokes: string[],
+    updatedBy?: number
+  ) {
+    const permissions = await Permission.findAll();
+
+    const permissionMap = new Map(
+      permissions.map(p => [p.slug, p.id])
+    );
+
+    await EmployeePermission.destroy({
+      where: {
+        employee_id: employeeId,
+        company_id: companyId,
+      },
+    });
+
+    const rows = [
+      ...grants
+        .filter(s => permissionMap.has(s))
+        .map(slug => ({
+          company_id: companyId,
+          employee_id: employeeId,
+          permission_id: permissionMap.get(slug)!,
+          type: 'grant' as const,
+          created_by: updatedBy,
+        })),
+
+      ...revokes
+        .filter(s => permissionMap.has(s))
+        .map(slug => ({
+          company_id: companyId,
+          employee_id: employeeId,
+          permission_id: permissionMap.get(slug)!,
+          type: 'revoke' as const,
+          created_by: updatedBy,
+        })),
+    ];
+
+    await EmployeePermission.bulkCreate(rows);
+
+    clearPermissionCache(employeeId);
+
+    return {
+      employeeId,
+      grants,
+      revokes,
+    };
   }
 }
 
@@ -271,9 +379,9 @@ permissionGroupRouter.put('/:id', [param('id').isInt()], validate, updateGroup);
 permissionGroupRouter.delete('/:id', [param('id').isInt()], validate, deleteGroup);
 
 permissionGroupRouter.get('/:id/permissions', [param('id').isInt()], validate, getGroupPermissions);
-permissionGroupRouter.put('/:id/permissions', [param('id').isInt(), body('slugs').isArray()], validate, setGroupPermissions);
+permissionGroupRouter.put('/:id/permissions', [param('id').isInt(), body('slugs').isArray()], validate, broadcastAfter('bulk_permissions_updated'), setGroupPermissions);
 permissionGroupRouter.get('/:id/members', [param('id').isInt()], validate, getGroupMembers);
-permissionGroupRouter.post('/:id/members', [param('id').isInt(), body('employee_id').isInt()], validate, addGroupMember);
-permissionGroupRouter.delete('/:id/members/:employeeId', [param('id').isInt(), param('employeeId').isInt()], validate, removeGroupMember);
+permissionGroupRouter.post('/:id/members', [param('id').isInt(), body('employee_id').isInt()], validate, broadcastAfter('permissions_updated'), addGroupMember);
+permissionGroupRouter.delete('/:id/members/:employeeId', [param('id').isInt(), param('employeeId').isInt()], validate, broadcastAfter('permissions_updated'), removeGroupMember);
 
 permissionGroupRouter.post('/seed', seedGroups);

@@ -1,87 +1,73 @@
-import { Router } from 'express';
-import { validate } from '../../middleware/validate.middleware';
-import { authenticate, authorize } from '../../modules/auth/auth.middleware';
-import { uploadAvatar as uploadAvatarMiddleware } from '../../middleware/upload.middleware';
+import { Request, Response, Router, NextFunction } from 'express';
+import {employeeController} from "./employee.controller"
+import { authenticate, authorize } from '../auth/auth.middleware';
+import { asyncHandler } from '../../middleware/errorHandler.middleware';
+import { rbacCheck } from '../../middleware/rbac.middleware';
 import {
-  getEmployees,
-  getNextCode,
-  getSummary,
-  getEmployee,
-  createEmployee,
-  updateEmployee,
-  patchEmployeeStep,
-  deleteEmployee,
-  uploadAvatar,
-} from './employee.controller';
-import {
-  createEmployeeValidation,
-  listEmployeeValidation,
-  employeeIdValidation,
-  basicInfoValidation,
-  employmentValidation,
-  addressValidation,
-  statutoryValidation,
-  bankValidation,
+  listValidation, idValidation, STEP_VALIDATORS,
 } from './employee.validation';
 
-const router = Router();
 
-// All routes require authentication
-router.use(authenticate);
+export const employeeRoutes = Router();
+employeeRoutes.use(authenticate);
 
-// ─── Collection routes ────────────────────────────────────────────────────────
+// Static routes — ALL must be declared before /:id to avoid param collision
+employeeRoutes.get('/summary',              asyncHandler(employeeController.summary));
+employeeRoutes.get('/next-code',            asyncHandler(employeeController.nextCode));
+employeeRoutes.get('/field-permissions',    asyncHandler(employeeController.fieldPermissions));
+employeeRoutes.get('/template',             employeeController.downloadTemplate);
 
-/** GET /api/employees — paginated list with filters */
-router.get('/', listEmployeeValidation, validate, getEmployees);
+// Manager search (must be before /:id — otherwise Express treats 'search' as an id param)
+employeeRoutes.get('/managers/search',      asyncHandler(employeeController.managersSearch));
+employeeRoutes.get('/managers/:id',         asyncHandler(employeeController.managerById));
 
-/** GET /api/employees/summary — dashboard stats */
-router.get('/summary', getSummary);
+// Draft
+employeeRoutes.post('/draft',                asyncHandler(employeeController.saveDraft));
+employeeRoutes.get('/draft/:sessionId',      asyncHandler(employeeController.getDraft));
+employeeRoutes.delete('/draft/:sessionId',   asyncHandler(employeeController.discardDraft));
 
-/** GET /api/employees/next-code — auto-generate next employee code */
-router.get('/next-code', getNextCode);
-
-/** POST /api/employees — create new employee (full profile) */
-router.post(
-  '/',
-  createEmployee,
+// Bulk
+employeeRoutes.get('/bulk-upload/template',  employeeController.downloadTemplate);
+employeeRoutes.post('/bulk-upload',
+  rbacCheck('employees', 'create'),
+  ...employeeController.bulkUpload,
 );
 
-// ─── Item routes ──────────────────────────────────────────────────────────────
-
-/** GET /api/employees/:id — full profile */
-router.get('/:id', employeeIdValidation, validate,getEmployee);
-
-/** PUT /api/employees/:id — full update */
-router.put(
-  '/:id',
-  employeeIdValidation,
-  validate,
-  updateEmployee,
+// CRUD
+employeeRoutes.get('/',
+  rbacCheck('employees', 'view'),
+  listValidation,
+  asyncHandler(employeeController.getAll),
 );
 
-/** PATCH /api/employees/:id/step/:step */
-router.patch(
-  '/:id/step/:step',
-  employeeIdValidation,
-  validate,
-  patchEmployeeStep,
+employeeRoutes.post('/',
+  rbacCheck('employees', 'create'),
+  asyncHandler(employeeController.create),
 );
 
-/** DELETE /api/employees/:id — soft delete */
-router.delete(
-  '/:id',
-  employeeIdValidation,
-  validate,
-  deleteEmployee,
+employeeRoutes.get('/:id',
+  rbacCheck('employees', 'view'),
+  idValidation,
+  asyncHandler(employeeController.getById),
 );
 
-/** POST /api/employees/:id/avatar — upload profile photo */
-router.post(
-  '/:id/avatar',
-  employeeIdValidation,
-  validate,
-  uploadAvatarMiddleware.single('avatar'),
-  uploadAvatar,
+employeeRoutes.delete('/:id',
+  rbacCheck('employees', 'delete'),
+  idValidation,
+  asyncHandler(employeeController.remove),
 );
 
-export default router;
+// Step update — dynamic validation by step name
+employeeRoutes.patch('/:id/step/:step',
+  rbacCheck('employees', 'edit'),
+  idValidation,
+  (req: Request, res: Response, next: NextFunction) => {
+    const validators = STEP_VALIDATORS[req.params.step] || [];
+    if (!validators.length) return next();
+    // Run validators sequentially
+    Promise.all(validators.map((v: any) => v.run(req)))
+      .then(() => next())
+      .catch(next);
+  },
+  asyncHandler(employeeController.updateStep),
+);

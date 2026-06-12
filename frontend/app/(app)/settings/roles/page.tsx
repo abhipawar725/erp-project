@@ -8,14 +8,14 @@ import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/rea
 import { showToast } from '../../../../utils/toast';
 import apiClient     from '../../../../services/api/client';
 import type { ApiResponse }          from '../../../../types/api.types';
-import { Eye, SquarePen, Trash2, Download, Delete } from 'lucide-react';
-import { usePermission }            from '../../../../hooks/usePermission';
+import { Eye, SquarePen, Trash2, Download, Pen, Settings } from 'lucide-react';
+import { usePermission }            from '../../../../features/auth/hooks/useAuth';
 import { PageHeaderWithCompany, useCompanySelector } from '../../../../components/company/CompanySelector';
+import { PermissionGuard } from '../../../../utils/permissionGuard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type View = 'groups' | 'edit' | 'field-perms';
-
 interface PermGroup {
   id:           number;
   name:         string;
@@ -39,9 +39,9 @@ const MODULES = [
   { key:'settings',      label:'Settings & RBAC'      },
 ];
 
-const PERMS    = ['view','edit','delete','download'] as const;
-const PERM_ICONS:Record<string, React.ReactNode> = { view: <Eye size={16} />, edit: <SquarePen size={16} />, delete: <Trash2 size={16} />, download: <Delete size={16} />};
-const PERM_LABELS: Record<string, string> = { view:'View', edit:'Edit', delete:'Delete', download:'Download'};
+const PERMS    = ['view', 'create', 'edit','delete','download'] as const;
+const PERM_ICONS:Record<string, React.ReactNode> = { view: <Eye size={16} />, create: <Pen size={16} />, edit: <SquarePen size={16} />, delete: <Trash2 size={16} />, download: <Download size={16} />};
+const PERM_LABELS: Record<string, string> = { view:'View', create: 'Create', edit:'Edit', delete:'Delete', download:'Download'};
 
 type ModulePerms = Record<string, Record<string, boolean>>;
 
@@ -159,7 +159,7 @@ function GroupCard({ group, members, onEdit, onFieldPerms, onDelete }: {
 }) {
   const slugs    = group.permissions?.map(p => p.slug) || [];
   const modPerms = slugsToModulePerms(slugs);
-
+  const { canView, canEdit, canCreate, canDelete} = usePermission();
   const permSummary = PERMS.map(p => ({ p, count: countPerm(modPerms, p) })).filter(x => x.count > 0);
 
   return (
@@ -174,7 +174,9 @@ function GroupCard({ group, members, onEdit, onFieldPerms, onDelete }: {
         <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 9px', borderRadius: 99, background: `${cssForKey(group.color)}20`, color: cssForKey(group.color), border: `1px solid ${cssForKey(group.color)}40`, whiteSpace: 'nowrap' }}>
           {group.member_count} member{group.member_count !== 1 ? 's' : ''}
         </span>
-        <button className="btn btn-sec btn-sm" onClick={onEdit} style={{ fontSize: 11 }}>✎ Edit</button>
+        {canEdit('settings') && (
+          <button className="btn btn-sec btn-sm" onClick={onEdit} style={{ fontSize: 11 }}>✎ Edit</button>
+        )}
         <button className="btn btn-sec btn-sm" onClick={onFieldPerms} style={{ fontSize: 11 }} title="Field Permissions">☷</button>
         {!group.is_system && (
           <button className="btn btn-sec btn-sm" onClick={onDelete} style={{ fontSize: 11, color: 'var(--red)' }}>🗑</button>
@@ -376,17 +378,17 @@ const FP_FIELD_MODULES = [
 
 type PermissionKey =
   | 'view'
+  | 'create' 
   | 'edit'
   | 'delete'
-  | 'download'
-  | 'mask';
+  | 'download';
 
 type FPPermission = {
   view: boolean;
+  create: boolean;
   edit: boolean;
   delete: boolean;
   download: boolean;
-  mask: boolean;
 };
 
 type FPPerms = Record<string, FPPermission>;
@@ -406,7 +408,7 @@ function FieldPermissionsView({ groupId, onBack }: { groupId: number; onBack: ()
     const init: FPPerms = {};
     for (const m of FP_FIELD_MODULES) {
       for (const f of m.fields) {
-        init[`${m.key}:${f.k}`] = { view: true, edit: !f.sensitive, delete: !f.sensitive, download: !f.sensitive, mask: !!f.sensitive };
+        init[`${m.key}:${f.k}`] = { view: true, create: !f.sensitive, edit: !f.sensitive, delete: !f.sensitive, download: !f.sensitive };
       }
     }
     setFp(init);
@@ -428,7 +430,7 @@ const toggleFP = (key: string, perm: PermissionKey) => {
       const next = { ...prev };
       for (const f of selMod.fields) {
         const k = `${selMod.key}:${f.k}`;
-        next[k] = { view: true, edit: true, delete: true, download: true, mask: false };
+        next[k] = { view: true, create:true, edit: true, delete: true, download: true };
       }
       return next;
     });
@@ -440,7 +442,7 @@ const toggleFP = (key: string, perm: PermissionKey) => {
       const next = { ...prev };
       for (const f of selMod.fields) {
         const k = `${selMod.key}:${f.k}`;
-        next[k] = { view: false, edit: false, delete: false, download: false, mask: false };
+        next[k] = { view: false, create:false, edit: false, delete: false, download: false };
       }
       return next;
     });
@@ -453,7 +455,7 @@ const toggleFP = (key: string, perm: PermissionKey) => {
       for (const f of selMod.fields) {
         if (f.sensitive) {
           const k = `${selMod.key}:${f.k}`;
-          next[k] = { ...next[k], mask: true };
+          next[k] = { ...next[k] };
         }
       }
       return next;
@@ -720,8 +722,7 @@ function EditView({ group, onBack }: { group: PermGroup | null; onBack: () => vo
 
 export default function RolesPermissionsPage() {
   const dispatch = useAppDispatch();
-  const { canView, canEdit, canDelete } = usePermission();
-
+  const { canView, canEdit, canCreate, canDelete} = usePermission();
   // ── KEY CHANGE: use companyId from company selector ───────────────────────
   const { companyId } = useCompanySelector();
 
@@ -786,7 +787,6 @@ export default function RolesPermissionsPage() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['rp'] }); showToast('Group deleted'); setDeleteTarget(null); },
     onError: (e:any) => showToast(e?.message || 'Failed'),
   });
-
   if (view === 'edit') return (
     <AppShell>
       <div className="pg-enter">
@@ -802,9 +802,8 @@ export default function RolesPermissionsPage() {
       </div>
     </AppShell>
   );
-
-
   return (
+<PermissionGuard permission='settings:view'>
     <AppShell>
       <div className="pg-enter">
 
@@ -813,9 +812,9 @@ export default function RolesPermissionsPage() {
           title="Roles & Permissions"
           description="Permission groups · Employee assignment · Field-level access control"
           actions={
-            canEdit('settings') ? (
+            canCreate('settings') ? (
             <div className="ph-r">
-            <button className="btn btn-sec btn-sm" onClick={() => setView('field-perms')}>☷ Field Permissions</button>
+            {/* <button className="btn btn-sec btn-sm" onClick={() => setView('field-perms')}>☷ Field Permissions</button> */}
             <button className="btn btn-pri btn-sm" onClick={() => { setEditGroup(null); setView('edit'); }}>+ New Group</button>
           </div>
             ) : undefined
@@ -826,9 +825,9 @@ export default function RolesPermissionsPage() {
         <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
           {[
             { label: 'Permission Groups', value: stats?.totalGroups ?? groups.length,   color: 'var(--blue)'   },
-            { label: 'Employees Assigned', value: stats?.totalAssigned ?? '—',          color: 'var(--green)'  },
+            { label: 'Employees Assigned', value: totalAssigned ?? '—',          color: 'var(--green)'  },
             { label: 'Unassigned',         value: stats?.unassigned ?? '—',             color: 'var(--amber)'  },
-            { label: 'Field Rules',        value: stats?.fieldRules ?? '—',             color: 'var(--purple)' },
+            { label: 'Field Rules',        value: fieldRuleCount ?? '—',             color: 'var(--purple)' },
           ].map(s => (
             <div key={s.label} style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r3)', padding: '14px 18px', boxShadow: 'var(--sh)' }}>
               <div style={{ fontSize: 26, fontWeight: 500, color: s.color }}>{s.value}</div>
@@ -856,7 +855,7 @@ export default function RolesPermissionsPage() {
               <div className="skeleton" style={{ height: '100%', borderRadius: 'var(--r3)' }} />
             </div>
           ))
-        ) : groups.length === 0 ? (
+        ) : groups.length === 0 && canCreate('settings') ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--ink4)' }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>🔐</div>
             <div style={{ fontSize: 14, fontWeight: 600 }}>No permission groups yet</div>
@@ -883,5 +882,6 @@ export default function RolesPermissionsPage() {
 
       </div>
     </AppShell>
+    </PermissionGuard>
   );
 }

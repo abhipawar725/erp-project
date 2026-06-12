@@ -27,6 +27,7 @@ import { designationService } from '../../../../../services/api/designation.serv
 
 import { employeeService } from '../../../../../services/api/employee.service';
 import { RoleGuard } from '../../../../../layouts/RoleGuard';
+import { PermissionGuard } from '@/utils/permissionGuard';
 
 interface SelectOption {
   value: number;
@@ -127,6 +128,7 @@ export default function EditEmployeePage() {
 
   if (isLoading) {
     return (
+      <PermissionGuard permission='employees:edit'>
         <AppShell>
           <div
             style={{
@@ -139,6 +141,7 @@ export default function EditEmployeePage() {
             Loading employee data…
           </div>
         </AppShell>
+        </PermissionGuard>
     );
   }
 
@@ -148,6 +151,7 @@ export default function EditEmployeePage() {
 
   if (isError || !employee) {
     return (
+      <PermissionGuard permission='employees:edit'>
         <AppShell>
           <div
             style={{
@@ -173,6 +177,7 @@ export default function EditEmployeePage() {
             </span>
           </div>
         </AppShell>
+       </PermissionGuard> 
     );
   }
 
@@ -221,6 +226,7 @@ export default function EditEmployeePage() {
   /* ------------------------------------------------ */
 
   return (
+    <PermissionGuard permission='employees:edit'>
       <AppShell>
         <div className="pg-enter">
           {/* HEADER */}
@@ -277,5 +283,6 @@ export default function EditEmployeePage() {
           />
         </div>
       </AppShell>
+    </PermissionGuard>  
   );
 }

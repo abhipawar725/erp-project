@@ -6,6 +6,7 @@ import { Modal }     from '../../../components/ui/Modal';
 import { useCreateAptitudeTest, useUpdateAptitudeTest } from '../hooks/useAtsTests';
 import { createTestSchema, type CreateTestFormData } from '../validations/ats-test.schema';
 import type { AptitudeTest } from '../types/ats-test.types';
+import { usePermission } from '../../../features/auth/hooks/useAuth';
 
 interface Props {
   open:   boolean;
@@ -23,6 +24,8 @@ export function TestFormModal({ open, onClose, test, onCreated }: Props) {
     resolver: zodResolver(createTestSchema),
     defaultValues: { duration_minutes: 30, total_marks: 0 },
   });
+
+  const {canCreate} = usePermission()
 
   useEffect(() => {
     if (!open) return;
@@ -71,6 +74,7 @@ export function TestFormModal({ open, onClose, test, onCreated }: Props) {
       footer={
         <>
           <button className="btn btn-sec" onClick={onClose} disabled={isSaving}>Cancel</button>
+          {canCreate('aptitude') && (
           <button
             className="btn btn-pri"
             onClick={handleSubmit(onSubmit)}
@@ -80,6 +84,7 @@ export function TestFormModal({ open, onClose, test, onCreated }: Props) {
             {isSaving && <span style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,.4)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin .7s linear infinite' }} />}
             {isSaving ? 'Saving…' : isEdit ? '✓ Save Changes' : '✓ Create & Add Questions'}
           </button>
+          )}
         </>
       }
     >

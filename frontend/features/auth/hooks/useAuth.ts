@@ -110,7 +110,8 @@ export function usePermission() {
     canCreate:  (module: string) => hasPermission(`${module}:create`),
     canEdit:    (module: string) => hasPermission(`${module}:edit`),
     canDelete:  (module: string) => hasPermission(`${module}:delete`),
-    canApprove: (module: string) => hasPermission(`${module}:approve`),
-    canExport:  (module: string) => hasPermission(`${module}:export`),
+    canDownload:  (module: string) => hasPermission(`${module}:download`),
   };
 }
+
+
